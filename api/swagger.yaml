@@ -1,0 +1,67 @@
+---
+swagger: "2.0"
+info:
+  description: "Wallet microservice for Narfex"
+  version: "0.1.0"
+  title: "Narfex Wallets"
+  contact:
+    email: "ldevil2209@ya.ru"    
+host: "web3.narfex.com"
+basePath: "/"
+tags:
+- name: "narfex-wallets"
+  description: "Wallet microservice for Narfex"
+  externalDocs:
+    description: "Find out more"
+    url: "http://narfex.com"
+schemes:
+- "http"
+- "https"
+paths:
+  /imageUpload:
+    post:
+      tags:
+      - "image"
+      summary: "Add a new image to Google Storage"
+      description: ""
+      operationId: "addImage"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "image"
+        description: "A file containing all the data of the image"
+        required: true
+        schema:
+          $ref: "#/definitions/Image"
+      responses:
+        500:
+          description: "Internal Server Error"
+        200:
+          description: "File Uploaded"
+        422:
+          description: "Missing Parameters" 
+      x-swagger-router-controller: "images"
+definitions:
+  Image:
+    type: "object"
+    properties:
+      shop:
+        type: "string"
+      imageContent:
+        $ref: "#/definitions/File"
+  File:
+    type: "object"
+    properties: 
+      mimetype:
+        type: "string"
+      originalname:
+        type: "string"
+      buffer: 
+        type: "string"
+        format: "base64"
+externalDocs:
+  description: "Parent project"
+  url: "https://narfex.com"

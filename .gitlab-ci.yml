@@ -1,0 +1,59 @@
+stages:
+- build
+- deploy
+
+build:
+  stage: build
+  allow_failure: false
+  tags: &ci_tags
+  - cloudbuild
+  only: &ci_only
+  - master
+  - develop
+  script: |-
+    printf \
+    "======================================================
+    TAG:                        ${TAG}
+    CI_COMMIT_REF_SLUG:         ${CI_COMMIT_REF_SLUG}
+    CI_PROJECT_PATH_SLUG:       ${CI_PROJECT_PATH_SLUG}
+    CI_COMMIT_MESSAGE:          ${CI_COMMIT_MESSAGE}"
+
+    export NODE_ENV=production;
+    export STORAGE_BUCKET="trade-ai-lianliss"
+    export CLOUD_BUCKET=$STORAGE_BUCKET
+    export API_DOMAIN="${DOMAIN}"
+
+    printf \
+    "======================================================
+    NODE_ENV:       ${NODE_ENV}
+    STORAGE_BUCKET: ${STORAGE_BUCKET}
+    CLOUD_BUCKET:   ${CLOUD_BUCKET}
+    "
+
+    export API_URL="https://${API_DOMAIN}"
+
+    ### rewriting dockerfile
+    sed -i "s/\${NODE_ENV}/$NODE_ENV/g" Dockerfile
+    ###
+    sed -i "s/\${STORAGE_BUCKET}/$STORAGE_BUCKET/g" Dockerfile
+    ###
+    sed -i "s/\${CLOUD_BUCKET}/$CLOUD_BUCKET/g" Dockerfile
+
+    ### sending to cloudbuilder
+    authenticate
+    gcloud builds submit --timeout=1800 --quiet --tag $TAG --machine-type=N1_HIGHCPU_8 .
+    gcloud container images add-tag --quiet $TAG $LATEST_TAG
+
+deploy:
+  stage: deploy
+  tags: *ci_tags
+  only: &ci_only
+  - master
+  - develop
+  environment:
+    name: trade-ai
+    url: ${API_URL}
+  variables:
+    GIT_STRATEGY: none
+  script:
+    update

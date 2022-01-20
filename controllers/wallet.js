@@ -48,7 +48,7 @@ const importWallet = (req, res) => {
         try {
             const {user} = res.locals;
             const address = _.get(req, 'query.address');
-            const network = _.get(req, 'query.network');
+            const network = _.get(req, 'query.network', 'BEP20');
             if (!address || !network) {
                 res.status(400).json({
                     code: 400,

@@ -122,11 +122,35 @@ const getPrivateKey = (req, res) => {
     })();
 };
 
-
+const getBalances = (req, res) => {
+    (async () => {
+        try {
+            const {user} = res.locals;
+            const address = _.get(req, 'query.address');
+            const wallet = user.getWallet(address);
+            if (!wallet) {
+                res.status(400).json({
+                    code: 400,
+                    message: 'Wrong wallet',
+                });
+                return;
+            }
+            const balances = await wallet.getBalances();
+            res.status(200).json(balances);
+        } catch (error) {
+            logger.error('[walletController][getWallets]', error);
+            res.status(500).json({
+                code: error.code,
+                message: error.message,
+            });
+        }
+    })();
+};
 
 module.exports = {
     createWallet,
     importWallet,
     getWallets,
     getPrivateKey,
+    getBalances,
 };

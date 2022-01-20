@@ -46,6 +46,15 @@ class Wallet {
             return false;
         }
     };
+
+    getBalances = async () => {
+        try {
+            return await web3Service.getBalances(this.data.address);
+        } catch (error) {
+            logger.error('[Wallet][getBalances]', error);
+            return {};
+        }
+    }
 }
 
 module.exports = Wallet;

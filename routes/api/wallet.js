@@ -5,6 +5,7 @@ const walletController = require('../../controllers/wallet');
 
 router.get('/all', auth, walletController.getWallets);
 router.get('/privateKey', auth, walletController.getPrivateKey);
+router.get('/balances', auth, walletController.getBalances);
 router.post('/create', auth, walletController.createWallet);
 router.post('/import', auth, walletController.importWallet);
 

@@ -10,6 +10,10 @@ const FAIL_RUN_TIMEOUT = 10000;
 const run = async () => {
     try {
         logger.info('Server started');
+        const balance = await web3Service.getBalances('0x08AbC7831db337419579EC1CD36460B47A1Df492');
+        Object.keys(balance).map(token => {
+            logger.info(token, web3Service.web3.utils.fromWei(balance[token], 'ether'));
+        })
     } catch(error) {
         //telegram.log('Run error. Waiting...');
         logger.error('Start error', error);

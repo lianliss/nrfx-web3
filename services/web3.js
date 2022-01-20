@@ -7,17 +7,31 @@ const logger = require('../utils/logger');
 const getUserPrivateKeyPassword = userID => `${config.web3.seed}${userID}`;
 
 class Web3Service {
-    constructor(providerAddress = config.web3.providerAddress) {
+    constructor(network = config.networks.BEP20) {
         try {
+            const {
+                providerAddress,
+                name,
+                contracts,
+                defaultToken,
+            } = network;
             this.web3 = new Web3(providerAddress);
+            this.networkName = name;
+            this.defaultToken = defaultToken;
+
+            // Create contracts
+            Object.keys(contracts).map(token => {
+                const {name, address, abi} = contracts[token];
+                this.contracts[token] = new this.web3.eth.Contract(abi, address);
+                this.contracts[token].name = name;
+            })
         } catch (error) {
             logger.error('[WalletService]', error);
         }
     }
     web3 = null;
-    contractAddress = '0xd9145CCE52D386f254917e481eB44e9943F39138';
-    abi = '[{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"ticker","type":"string"},{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"depositId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"fundsDeposited","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"ticker","type":"string"},{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"address","name":"receiver","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"approvals","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"fundsTransfered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"ticker","type":"string"},{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"withdrawalId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"fundsWithdrawed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"addedBy","type":"address"},{"indexed":false,"internalType":"string","name":"ticker","type":"string"},{"indexed":false,"internalType":"address","name":"tokenAddress","type":"address"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"tokenAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"ticker","type":"string"},{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"address","name":"receiver","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"approvals","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"transferApproved","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"ticker","type":"string"},{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"address","name":"receiver","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"approvals","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"transferCancelled","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"string","name":"ticker","type":"string"},{"indexed":false,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"address","name":"receiver","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"approvals","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"transferCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"addedBy","type":"address"},{"indexed":false,"internalType":"address","name":"ownerAdded","type":"address"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"walletOwnerAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"removedBy","type":"address"},{"indexed":false,"internalType":"address","name":"ownerRemoved","type":"address"},{"indexed":false,"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"name":"walletOwnerRemoved","type":"event"},{"inputs":[{"internalType":"string","name":"ticker","type":"string"},{"internalType":"address","name":"_tokenAddress","type":"address"}],"name":"addToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"addWalletOwner","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"approveTransferRequest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"cancelTransferRequest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"ticker","type":"string"},{"internalType":"address payable","name":"receiver","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"createTrnasferRequest","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"ticker","type":"string"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"deposit","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"getApprovalLimit","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"id","type":"uint256"}],"name":"getApprovals","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"ticker","type":"string"}],"name":"getBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getContractBalance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getTransferRequests","outputs":[{"components":[{"internalType":"string","name":"ticker","type":"string"},{"internalType":"address","name":"sender","type":"address"},{"internalType":"address payable","name":"receiver","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"id","type":"uint256"},{"internalType":"uint256","name":"approvals","type":"uint256"},{"internalType":"uint256","name":"timeOfTransaction","type":"uint256"}],"internalType":"struct NarfexWallet.Transfer[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getWalletOners","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"removeWalletOwner","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"ticker","type":"string"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"}]';
-    narfexContract = null;
+    contracts = {};
+    networkName = '';
 
     createAccount = (enthropy = this.web3.utils.randomHex(32)) => this.web3.eth.accounts.create(enthropy);
     getAccount = privateKey => this.web3.eth.accounts.privateKeyToAccount(privateKey);
@@ -29,6 +43,48 @@ class Web3Service {
         privateData,
         getUserPrivateKeyPassword(userID),
     );
+    getDefaultBalance = async address => {
+        try {
+            return await this.web3.eth.getBalance(address);
+        } catch (error) {
+            logger.error('[Web3Service][getDefaultBalance]', this.networkName, error);
+            return;
+        }
+    };
+    getTokenBalance = async (address, token) => {
+        try {
+            const contract = this.contracts[token];
+            const balance = await contract.methods.balanceOf(address).call();
+            return balance;
+        } catch (error) {
+            logger.error('[Web3Service][getTokenBalance]', this.networkName, token, error);
+            return;
+        }
+    };
+    getBalances = address => new Promise((fulfill, reject) => {
+        const tokens = [
+            this.defaultToken,
+            ...Object.keys(this.contracts),
+        ];
+        const promises = [
+            this.getDefaultBalance(address),
+            ...Object.keys(this.contracts)
+                .map(token => this.getTokenBalance(address, token))
+        ];
+        Promise.all(promises)
+            .then(balances => {
+                const result = {};
+                balances.map((balance, index) => {
+                    if (balance) {
+                        result[tokens[index]] = balance;
+                    }
+                });
+                fulfill(result);
+            }).catch(error => {
+                logger.error('[Web3Service][getBalances]', this.networkName, error);
+                reject(error);
+            });
+    })
 }
 
 const web3Service = new Web3Service();

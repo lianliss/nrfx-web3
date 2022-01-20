@@ -1,3 +1,5 @@
+const networks = require('./networks');
+
 const main = {
 	server: {
 		url: process.env.ROOT_URL || 'http://localhost',
@@ -32,4 +34,7 @@ const main = {
 	}
 };
 
-module.exports = {...main};
+module.exports = {
+	...main,
+	networks,
+};

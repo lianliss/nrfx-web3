@@ -9,7 +9,7 @@ const config = require('../config');
 module.exports = app => {
 
     const cors = {
-        origin: ["http://localhost","https://web3.narfex.com",],
+        origin: ["http://localhost","https://web3.narfex.com","https://narfex.com"],
         default: "https://web3.narfex.com",
     };
 

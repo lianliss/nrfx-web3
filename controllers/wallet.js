@@ -90,7 +90,7 @@ const getPrivateKey = (req, res) => {
             if (user.passwordHash !== hash) {
                 res.status(400).json({
                     code: 400,
-                    message: 'Wrong password',
+                    message: 'cabinetWalletPrivate_wrong_password',
                 });
                 return;
             }

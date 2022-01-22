@@ -74,7 +74,29 @@ const setUserWallet = async data => {
         ON DUPLICATE KEY
         UPDATE
         ${parts.update};`;
-        const result = await db.query(query);
+        return await db.query(query);
+    } catch (error) {
+        logger.error('[setUserWallet]', error);
+        return null;
+    }
+};
+
+/**
+ * Deletes user wallet
+ * @param address
+ * @param userID
+ * @returns {Promise.<*>}
+ */
+const deleteUserWallet = async (address, userID) => {
+    try {
+        const parts = model.getRequestParts({
+            address,
+            userID,
+        });
+        const query = `
+        DELETE FROM web3_wallets
+        WHERE ${parts.and};`;
+        return await db.query(query);
     } catch (error) {
         logger.error('[setUserWallet]', error);
         return null;
@@ -84,4 +106,5 @@ const setUserWallet = async data => {
 module.exports = {
     getUserWallets,
     setUserWallet,
+    deleteUserWallet,
 };

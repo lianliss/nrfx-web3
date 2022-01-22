@@ -147,10 +147,28 @@ const getBalances = (req, res) => {
     })();
 };
 
+const deleteWallet = (req, res) => {
+    (async () => {
+        try {
+            const {user} = res.locals;
+            const address = _.get(req, 'query.address');
+            user.deleteWallet(address);
+            res.status(200).json({address});
+        } catch (error) {
+            logger.error('[walletController][deleteWallet]', error);
+            res.status(500).json({
+                code: error.code,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 module.exports = {
     createWallet,
     importWallet,
     getWallets,
     getPrivateKey,
     getBalances,
+    deleteWallet,
 };

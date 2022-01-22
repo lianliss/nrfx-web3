@@ -119,7 +119,7 @@ class DataModel {
      * values property example: "(4279, '0xa4FF4DBb11F...')",
      * update property example: "user_id=4279, address='0xa4FF4DBb...'"
      * @param data {object} - example: {userID: 4279, address: '0xa4FF4DBb...'}
-     * @returns {{fields: string, values: string, update: string}}
+     * @returns {{fields: string, values: string, update: string, and: string}}
      */
     getRequestParts = data => {
         const fields = [];
@@ -137,6 +137,7 @@ class DataModel {
                 fields: `(${fields.join(', ')})`,
                 values: `(${values.join(', ')})`,
                 update: update.join(",\n"),
+                and: update.join("\nAND "),
             }
         }
 

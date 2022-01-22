@@ -8,5 +8,6 @@ router.get('/privateKey', auth, walletController.getPrivateKey);
 router.get('/balances', auth, walletController.getBalances);
 router.post('/create', auth, walletController.createWallet);
 router.post('/import', auth, walletController.importWallet);
+router.post('/delete', auth, walletController.deleteWallet);
 
 module.exports = router;

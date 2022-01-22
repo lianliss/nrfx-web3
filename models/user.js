@@ -126,6 +126,15 @@ class User {
      */
     getWallet = address => this.wallets.find(w => w.data.address === address);
 
+    deleteWallet = async address => {
+        try {
+            await db.deleteUserWallet(address, this.userID);
+            await this.loadWallets();
+        } catch (error) {
+            logger.error('[User][deleteWallet]', this.login, this.userID, address);
+        }
+    }
+
 };
 
 module.exports = User;

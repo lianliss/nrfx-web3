@@ -133,8 +133,12 @@ class User {
         } catch (error) {
             logger.error('[User][deleteWallet]', this.login, this.userID, address);
         }
-    }
+    };
 
-};
+    getFiats = () => db.getUserFiats(this.userID);
+    decreaseFiatBalance = (fiat, amount) => db.decreaseUserFiatBalance(this.userID, fiat, amount);
+    increaseFiatBalance = (fiat, amount) => db.increaseUserFiatBalance(this.userID, fiat, amount);
+
+}
 
 module.exports = User;

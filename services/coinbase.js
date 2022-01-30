@@ -19,7 +19,7 @@ class Coinbase extends Request {
             const response = await this.get(`prices/USD-${fiatSymbol}/spot`);
             return Number(response.data.amount);
         } catch (error) {
-            logger.error('[Pancake][getToken]', token, network, error);
+            logger.error('[Coinbase][getFiatUSDPrice]', fiat, error);
             throw error;
         }
     };

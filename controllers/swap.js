@@ -34,6 +34,40 @@ const swapFiatToToken = (req, res) => {
     })();
 };
 
+const getFiatToTokenRate = (req, res) => {
+    (async () => {
+        try {
+            const {user} = res.locals;
+            const fiat = _.get(req, 'query.fiat');
+            const token = _.get(req, 'query.token');
+
+            if (!fiat || !token) {
+                return res.status(400).json({
+                    code: 400,
+                    message: 'Missing parameters',
+                });
+            }
+
+            const rate = await swapLogic.getFiatToTokenRate({
+                fiat,
+                token,
+            });
+            res.status(200).json({
+                fiat,
+                token,
+                rate,
+            });
+        } catch (error) {
+            logger.error('[swapController][getFiatToTokenRate]', error);
+            res.status(500).json({
+                code: error.code,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 module.exports = {
     swapFiatToToken,
+    getFiatToTokenRate,
 };

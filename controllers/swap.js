@@ -48,10 +48,7 @@ const getFiatToTokenRate = (req, res) => {
                 });
             }
 
-            const rate = await swapLogic.getFiatToTokenRate({
-                fiat,
-                token,
-            });
+            const rate = await swapLogic.getFiatToTokenRate(fiat, token);
             res.status(200).json({
                 fiat,
                 token,

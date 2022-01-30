@@ -58,7 +58,7 @@ const swapFiatToToken = async ({
         logger.info('fiatBalance', fiatBalance);
 
         // Check current fiat amount
-        const balance = fiat.amount;
+        const balance = fiatBalance.amount;
         if (balance < fiatAmount) throw new errors.NotEnoughBalanceError();
 
         // Get user crypto wallet address

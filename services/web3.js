@@ -4,11 +4,12 @@ const _ = require('lodash');
 const Web3 = require('web3');
 const logger = require('../utils/logger');
 const errors = require('../models/error');
+const db = require('../models/db');
 
 const getUserPrivateKeyPassword = userID => `${config.web3.seed}${userID}`;
 
 class Web3Service {
-    constructor(network = 'BEP20', privateData = {}) {
+    constructor(network = 'BEP20', privateData) {
         try {
             const {
                 providerAddress,
@@ -31,8 +32,19 @@ class Web3Service {
                 this.contracts[token].name = name;
             });
             // Init sender account
-            this.defaultAccount = this.decryptPrivateKey(privateData, 0);
-            logger.debug('default account', this.defaultAccount);
+            if (privateData) {
+                this.setDefaultAccount(privateData);
+                logger.info('[Web3Service] Default account', this.defaultAccount.address);
+            } else {
+                db.getMasterKeys().then(rows => {
+                    const last = _.last(rows);
+                    const privateData = last.key;
+                    this.setDefaultAccount(privateData);
+                    logger.info('[Web3Service] Default account', this.defaultAccount.address);
+                }).catch(error => {
+                    logger.error('[Web3Service][getMasterKeys]', error);
+                })
+            }
         } catch (error) {
             logger.error('[WalletService]', error);
         }
@@ -41,6 +53,7 @@ class Web3Service {
     contracts = {};
     networkName = '';
 
+    setDefaultAccount = privateData => this.defaultAccount = this.decryptPrivateKey(privateData, 0);
     createAccount = (enthropy = this.web3.utils.randomHex(32)) => this.web3.eth.accounts.create(enthropy);
     getAccount = privateKey => this.web3.eth.accounts.privateKeyToAccount(privateKey);
     encryptPrivateKey = (privateKey, userID) => this.web3.eth.accounts.encrypt(
@@ -123,8 +136,7 @@ class Web3Service {
 
                 const tx = contract.methods.transfer(recipient, amountWei);
                 const gas = await tx.estimateGas({from});
-                logger.debug('gas', gas, this.fromGwei(gas));
-                //const nonce = await this.web3.eth.getTransactionCount(from);
+                //logger.debug('[transferFromDefault]', token, amount, gas, this.fromGwei(gas));
                 const txData = {
                     from,
                     to: contract._address,
@@ -132,16 +144,19 @@ class Web3Service {
                     data: tx.encodeABI(),
                 };
                 this.defaultAccount.signTransaction(txData).then(transaction => {
-                    logger.debug('transaction', txData, transaction);
+                    logger.debug('[transferFromDefault]', token, amount, 'transaction', txData);
 
                     this.web3.eth.sendSignedTransaction(
                         transaction.rawTransaction
                     ).on('transactionHash', hash => {
-                        logger.debug('transactionHash', hash);
+                        logger.debug('[transferFromDefault]', token, amount, 'transactionHash', hash);
                     }).on('receipt', receipt => {
-                        logger.debug('receipt', receipt);
+                        //logger.debug('receipt', receipt);
                     }).on('confirmation', (confirmationNumber, receipt) => {
                         //logger.debug('confirmation', confirmationNumber, receipt);
+                        if (confirmationNumber <= 1) {
+                            fulfill();
+                        }
                     }).on('error', error => {
                         logger.error('sendTransaction error', error);
                         if (_.includes(error.message, 'insufficient funds for gas')) {
@@ -153,12 +168,16 @@ class Web3Service {
                 });
             } catch (error) {
                 logger.error('[Web3Service][transferFromDefault]', this.networkName, token, amount, recipient, error);
-                reject(error);
+                if (_.includes(error.message, 'subtraction overflow')) {
+                    reject(new errors.MasterAccountEmptyError());
+                } else {
+                    reject(error);
+                }
             }
         })();
     });
 }
 
-const web3Service = new Web3Service(undefined, /** TODO Add common wallet privateData load **/);
+const web3Service = new Web3Service();
 
 module.exports = web3Service;

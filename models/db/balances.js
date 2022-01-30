@@ -25,7 +25,7 @@ const model = new DataModel({
 const getUserFiats = async userID => {
     try {
         return model.process(await db.query(`
-            SELECT user_id, currency, amount, lock_amount
+            SELECT id, user_id, currency, amount, lock_amount
             FROM balances
             WHERE user_id = ${userID}
             AND category = 'fiat';

@@ -12,6 +12,7 @@ class User {
 
     tokens = [];
     wallets = [];
+    isTransfersLocked = false; // Locks transfers while current transfer is in progress
 
     /**
      * Get user by token and appID

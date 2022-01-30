@@ -24,10 +24,22 @@ class NoWalletsError extends Error {
     message = 'User have no wallets';
 }
 
+class TransfersLockedError extends Error {
+    name = 'error_transfersLocked';
+    message = 'Current transfer is still in progress';
+}
+
+class MasterAccountEmptyError extends Error {
+    name = 'error_masterAccountError';
+    message = 'Exchanger account ran out of funds';
+}
+
 module.exports = {
     NoGasError,
     WrongTokenError,
     FiatNotFoundError,
     NotEnoughBalanceError,
     NoWalletsError,
+    TransfersLockedError,
+    MasterAccountEmptyError,
 };

@@ -36,7 +36,7 @@ const model = new DataModel({
 const getUserByID = async userID => {
     try {
         const data = await db.query(`
-            SELECT first_name, last_name, login, email, role, active, password, _delete, ban_id
+            SELECT id, first_name, last_name, login, email, role, active, password, _delete, ban_id
             FROM users
             WHERE id = ${userID};
         `);

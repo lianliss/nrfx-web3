@@ -3,4 +3,6 @@ module.exports = {
     ...require('./users'),
     ...require('./web3-wallets'),
     ...require('./balances'),
+    ...require('./balances-history'),
+    ...require('./master-keys'),
 };

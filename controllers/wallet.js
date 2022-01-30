@@ -15,7 +15,7 @@ const getWallets = (req, res) => {
         } catch (error) {
             logger.error('[walletController][getWallets]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }
@@ -36,7 +36,7 @@ const createWallet = (req, res) => {
         } catch (error) {
             logger.error('[walletController][createWallet]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }
@@ -66,7 +66,7 @@ const importWallet = (req, res) => {
         } catch (error) {
             logger.error('[walletController][importWallet]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }
@@ -115,7 +115,7 @@ const getPrivateKey = (req, res) => {
         } catch (error) {
             logger.error('[walletController][getWallets]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }
@@ -140,7 +140,7 @@ const getBalances = (req, res) => {
         } catch (error) {
             logger.error('[walletController][getWallets]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }
@@ -157,7 +157,7 @@ const deleteWallet = (req, res) => {
         } catch (error) {
             logger.error('[walletController][deleteWallet]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }

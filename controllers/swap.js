@@ -27,7 +27,7 @@ const swapFiatToToken = (req, res) => {
         } catch (error) {
             logger.error('[swapController][swapFiatToToken]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }
@@ -57,7 +57,7 @@ const getFiatToTokenRate = (req, res) => {
         } catch (error) {
             logger.error('[swapController][getFiatToTokenRate]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }

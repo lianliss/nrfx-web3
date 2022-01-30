@@ -15,7 +15,7 @@ const getFiatUSDPrice = (req, res) => {
         } catch (error) {
             logger.error('[ratesController][getFiatUSDPrice]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }
@@ -34,7 +34,7 @@ const getTokenUSDPrice = (req, res) => {
         } catch (error) {
             logger.error('[ratesController][getFiatUSDPrice]', error);
             res.status(500).json({
-                code: error.code,
+                name: error.name,
                 message: error.message,
             });
         }

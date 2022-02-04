@@ -13,10 +13,13 @@ const FAIL_RUN_TIMEOUT = 10000;
 const run = async () => {
     try {
         logger.info('Server started');
+
+        // Run jobs
+        const jobs = require('../services/jobs');
     } catch(error) {
         //telegram.log('Run error. Waiting...');
         logger.error('Start error', error);
-        return;
+
         setTimeout(() => {
             //telegram.log('Running again...');
             run();

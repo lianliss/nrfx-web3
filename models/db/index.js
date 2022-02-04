@@ -5,4 +5,6 @@ module.exports = {
     ...require('./balances'),
     ...require('./balances-history'),
     ...require('./master-keys'),
+    ...require('./bank-cards'),
+    ...require('./bank-cards-operations'),
 };

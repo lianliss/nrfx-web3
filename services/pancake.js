@@ -13,7 +13,11 @@ class Pancake extends Request {
     }
     getTokenInfo = async (token, network = 'BEP20') => {
         try {
-            const address = _.get(networks, `${network.toUpperCase()}.contracts.${token.toLowerCase()}.address`);
+            const lowercaseToken = token.toLowerCase();
+            const tokenOverride = lowercaseToken === 'bnb'
+                ? 'wbnb'
+                : lowercaseToken;
+            const address = _.get(networks, `${network.toUpperCase()}.contracts.${tokenOverride}.address`);
             if (!address) throw new errors.WrongTokenError();
 
             const response = await this.get(`tokens/${address}`);

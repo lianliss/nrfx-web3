@@ -5,5 +5,6 @@ const swapController = require('../../controllers/swap');
 
 router.get('/rate', auth, swapController.getFiatToTokenRate);
 router.post('/fiatToToken', auth, swapController.swapFiatToToken);
+router.get('/fiatToToken', auth, swapController.estimateTransferToUserGas);
 
 module.exports = router;

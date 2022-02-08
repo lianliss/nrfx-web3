@@ -21,6 +21,31 @@ const getFiatToTokenRate = async (fiat, token = 'nrfx', tokenNetwork = 'BEP20') 
     }
 };
 
+const estimateTransferToUserGas = async (user, amount, token = 'nrfx', tokenNetwork = 'BEP20') => {
+    try {
+        const address = _.get(user, 'wallets[0].data.address');
+        if (!address) throw new errors.NoWalletsError();
+
+        const data = await Promise.all([
+            web3Service.estimateGas(address, token, amount),
+            pancake.getTokenBNBPrice(token, tokenNetwork),
+        ]);
+        const gwei = Number(web3Service.fromGwei(data[0]));
+        return {
+            gas: data[0],
+            gasGwei: gwei,
+            gasInTokens: gwei / Number(data[1]),
+        };
+    } catch (error) {
+        if (_.includes(error.message, 'subtraction overflow')) {
+            throw new errors.MasterAccountEmptyError();
+        }
+
+        logger.error('[estimateTransferGas]', error);
+        throw error;
+    }
+};
+
 /**
  * Swap user's fiat to cryptocurrency
  * @param user
@@ -114,4 +139,5 @@ const swapFiatToToken = async ({
 module.exports = {
     getFiatToTokenRate,
     swapFiatToToken,
+    estimateTransferToUserGas,
 };

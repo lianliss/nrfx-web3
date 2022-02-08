@@ -127,7 +127,7 @@ class Web3Service {
     toWei = amount => this.web3.utils.toWei(Number(amount).toString());
     fromGwei = amount => this.web3.utils.fromWei(Number(amount).toString(), 'Gwei');
     toGwei = amount => this.web3.utils.toWei(Number(amount).toString(), 'Gwei');
-    transferFromDefault = (recipient, token, amount) => new Promise((fulfill, reject) => {
+    transferFromDefault = (recipient, token, amount, precalculatedGas) => new Promise((fulfill, reject) => {
         (async () => {
             try {
                 const from = this.defaultAccount.address;
@@ -135,8 +135,8 @@ class Web3Service {
                 const amountWei = this.toWei(amount);
 
                 const tx = contract.methods.transfer(recipient, amountWei);
-                const gas = await tx.estimateGas({from});
-                //logger.debug('[transferFromDefault]', token, amount, gas, this.fromGwei(gas));
+                const gas = precalculatedGas || await tx.estimateGas({from});
+
                 const txData = {
                     from,
                     to: contract._address,

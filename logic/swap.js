@@ -21,6 +21,14 @@ const getFiatToTokenRate = async (fiat, token = 'nrfx', tokenNetwork = 'BEP20') 
     }
 };
 
+/**
+ * Estimate a transfer gas when the logic sending tokens from default account to a user
+ * @param user
+ * @param amount
+ * @param token
+ * @param tokenNetwork
+ * @returns {Promise.<{gas: *, gasGwei: number, gasInTokens: number}>}
+ */
 const estimateTransferToUserGas = async (user, amount, token = 'nrfx', tokenNetwork = 'BEP20') => {
     try {
         const address = _.get(user, 'wallets[0].data.address');
@@ -33,8 +41,8 @@ const estimateTransferToUserGas = async (user, amount, token = 'nrfx', tokenNetw
         const gwei = Number(web3Service.fromGwei(data[0]));
         return {
             gas: data[0],
-            gasGwei: gwei,
-            gasInTokens: gwei / Number(data[1]),
+            gasGwei: gwei, // BNB amount
+            gasInTokens: gwei / Number(data[1]), // Gas price expressed in tokens
         };
     } catch (error) {
         if (_.includes(error.message, 'subtraction overflow')) {
@@ -75,8 +83,12 @@ const swapFiatToToken = async ({
             user.getFiats(),
         ]);
         const rate = data[0];
-        const tokenAmount = fiatAmount / rate;
+        let tokenAmount = fiatAmount / rate;
         const fiatKey = fiat.toLowerCase();
+
+        // Subtract a gas price expressed in tokens from the token amount
+        const gasData = await estimateTransferToUserGas(user, tokenAmount, token, tokenNetwork);
+        tokenAmount -= gasData.gasInTokens;
 
         const fiatBalance = data[1].find(row => row.currency === fiatKey);
         if (!fiatBalance) throw new errors.FiatNotFoundError();

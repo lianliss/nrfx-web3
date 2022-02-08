@@ -34,6 +34,11 @@ class MasterAccountEmptyError extends Error {
     message = 'Exchanger account ran out of funds';
 }
 
+class NotNarfexWalletError extends Error {
+    name = 'error_notNarfexWallet';
+    message = 'Your wallet is not known to our service';
+}
+
 module.exports = {
     NoGasError,
     WrongTokenError,
@@ -42,4 +47,5 @@ module.exports = {
     NoWalletsError,
     TransfersLockedError,
     MasterAccountEmptyError,
+    NotNarfexWalletError,
 };

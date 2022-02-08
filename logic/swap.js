@@ -108,7 +108,7 @@ const swapFiatToToken = async ({
         logger.info('[swapFiatToToken] Transfer confirmed', user.login, fiat, fiatAmount, token, tokenAmount);
         try {
             // Transfer tokens to the user wallet
-            await web3Service.transferFromDefault(
+            await web3Service.transfer(
                 address,
                 token,
                 tokenAmount,

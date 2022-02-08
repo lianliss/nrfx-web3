@@ -164,6 +164,36 @@ const deleteWallet = (req, res) => {
     })();
 };
 
+const transfer = (req, res) => {
+    (async () => {
+        try {
+            const {user} = res.locals;
+            const address = _.get(req, 'query.address');
+            const token = _.get(req, 'query.token', 'nrfx');
+            const amount = Number(_.get(req, 'query.amount'));
+            if (!address || !amount) {
+                res.status(400).json({
+                    code: 400,
+                    message: 'Missing parameters',
+                });
+                return;
+            }
+
+            const result = await user.wallets[0].transfer(address, token, amount);
+            res.status(200).json({
+                address,
+                ...result,
+            });
+        } catch (error) {
+            logger.error('[walletController][deleteWallet]', error);
+            res.status(500).json({
+                name: error.name,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 module.exports = {
     createWallet,
     importWallet,
@@ -171,4 +201,5 @@ module.exports = {
     getPrivateKey,
     getBalances,
     deleteWallet,
+    transfer,
 };

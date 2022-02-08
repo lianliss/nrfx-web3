@@ -2,6 +2,7 @@ const logger = require('../utils/logger');
 const _ = require('lodash');
 const db = require('./db');
 const web3Service = require('../services/web3');
+const errors = require('./error');
 
 class Wallet {
     constructor(data) {
@@ -54,7 +55,23 @@ class Wallet {
             logger.error('[Wallet][getBalances]', error);
             return {};
         }
-    }
+    };
+
+    getAccount = () => {
+        const privateKey = this.getPrivateKey();
+        if (!privateKey) throw new errors.NotNarfexWalletError();
+        return web3Service.getAccount(privateKey);
+    };
+
+    transfer = async (recipient, token, amount) => {
+        try {
+            const account = this.getAccount();
+            await web3Service.transfer(recipient, token, amount, undefined, account);
+        } catch (error) {
+            logger.error('[Wallet][transfer]', this.data.userID, token, amount, error);
+            throw error;
+        }
+    };
 }
 
 module.exports = Wallet;

@@ -115,35 +115,61 @@ class Web3Service {
             logger.error('[Web3Service][getContract]', this.networkName, token, error);
         }
     };
-    estimateGas = (recipient, token, amount) => {
-        const from = this.defaultAccount.address;
-        const contract = this.getTokenContract(token);
-        const amountWei = this.toWei(amount);
-
-        const tx = contract.methods.transfer(recipient, amountWei);
-        return tx.estimateGas({from});
+    estimateGas = (recipient, token, amount, from = this.defaultAccount.address) => {
+        if (token === 'bnb') {
+            return this.web3.eth.estimateGas({
+                from,
+                to: recipient,
+                value: this.toWei(amount),
+            })
+        } else {
+            return this.getTokenContract(token)
+                .methods
+                .transfer(recipient, this.toWei(amount))
+                .estimateGas({from});
+        }
     };
     fromWei = amount => this.web3.utils.fromWei(Number(amount).toString());
-    toWei = amount => this.web3.utils.toWei(Number(amount).toString());
+    toWei = amount => this.web3.utils.toWei(Number(amount).toFixed(18));
     fromGwei = amount => this.web3.utils.fromWei(Number(amount).toString(), 'Gwei');
-    toGwei = amount => this.web3.utils.toWei(Number(amount).toString(), 'Gwei');
-    transferFromDefault = (recipient, token, amount, precalculatedGas) => new Promise((fulfill, reject) => {
+    toGwei = amount => this.web3.utils.toWei(Number(amount).toFixed(18), 'Gwei');
+    transfer = (
+        recipient,
+        token,
+        amount,
+        precalculatedGas,
+        account = this.defaultAccount
+    ) => new Promise((fulfill, reject) => {
         (async () => {
             try {
-                const from = this.defaultAccount.address;
-                const contract = this.getTokenContract(token);
+                const from = account.address;
                 const amountWei = this.toWei(amount);
-
-                const tx = contract.methods.transfer(recipient, amountWei);
-                const gas = precalculatedGas || await tx.estimateGas({from});
 
                 const txData = {
                     from,
-                    to: contract._address,
-                    gas,
-                    data: tx.encodeABI(),
                 };
-                this.defaultAccount.signTransaction(txData).then(transaction => {
+                if (token === 'bnb') {
+                    // Prepare transaction data for BNB
+                    const gas = precalculatedGas || await this.estimateGas(recipient, token, amount, from);
+                    Object.assign(txData, {
+                        to: recipient,
+                        gas,
+                        value: amountWei,
+                    });
+                } else {
+                    // Prepare transaction data from contract
+                    const contract = this.getTokenContract(token);
+                    const tx = contract.methods.transfer(recipient, amountWei);
+                    const gas = precalculatedGas || await tx.estimateGas({from});
+                    Object.assign(txData, {
+                        to: contract._address,
+                        gas,
+                        data: tx.encodeABI(),
+                    });
+                }
+
+                // Sign and send transaction
+                account.signTransaction(txData).then(transaction => {
                     logger.debug('[transferFromDefault]', token, amount, 'transaction', txData);
 
                     this.web3.eth.sendSignedTransaction(
@@ -155,7 +181,10 @@ class Web3Service {
                     }).on('confirmation', (confirmationNumber, receipt) => {
                         //logger.debug('confirmation', confirmationNumber, receipt);
                         if (confirmationNumber <= 1) {
-                            fulfill();
+                            fulfill({
+                                token,
+                                amount,
+                            });
                         }
                     }).on('error', error => {
                         logger.error('sendTransaction error', error);

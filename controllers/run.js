@@ -13,6 +13,8 @@ const FAIL_RUN_TIMEOUT = 10000;
 const run = async () => {
     try {
         logger.info('Server started');
+        const test = await pancake.getTokenInfo('wbnb');
+        logger.debug('test', test);
 
         // Run jobs
         const jobs = require('../services/jobs');

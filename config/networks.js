@@ -1,7 +1,7 @@
 const networks = {
     BEP20: {
         name: 'Binance Smart Chain',
-        providerAddress: 'https://bsc-dataseed1.binance.org:443',
+        providerAddress: 'https://bsc-dataseed1.defibit.io:443',
         defaultToken: 'bnb',
         defaultAccount: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',
         contracts: {

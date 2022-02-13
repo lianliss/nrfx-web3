@@ -73,6 +73,36 @@ const importWallet = (req, res) => {
     })();
 };
 
+const importPrivateKey = (req, res) => {
+    (async () => {
+        try {
+            const {user} = res.locals;
+            const key = _.get(req, 'query.key');
+            const network = _.get(req, 'query.network', 'BEP20');
+            if (!key || !network) {
+                res.status(400).json({
+                    code: 400,
+                    message: 'Missing parameters',
+                });
+                return;
+            }
+
+            const wallet = await user.importPrivateKey(key, network);
+            const {data} = wallet;
+            res.status(200).json({
+                address: data.address,
+                network: data.network,
+            });
+        } catch (error) {
+            logger.error('[walletController][importPrivateKey]', error);
+            res.status(500).json({
+                name: error.name,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 const getPrivateKey = (req, res) => {
     (async () => {
         try {
@@ -197,6 +227,7 @@ const transfer = (req, res) => {
 module.exports = {
     createWallet,
     importWallet,
+    importPrivateKey,
     getWallets,
     getPrivateKey,
     getBalances,

@@ -26,7 +26,7 @@ const getTokenUSDPrice = (req, res) => {
     (async () => {
         try {
             const currency = _.get(req, 'query.currency');
-            const price = await coinbase.getTokenUSDPrice(currency);
+            const price = await pancake.getTokenUSDPrice(currency);
             res.status(200).json({
                 currency,
                 price,

@@ -86,6 +86,20 @@ const swapFiatToToken = async ({
         let tokenAmount = fiatAmount / rate;
         const fiatKey = fiat.toLowerCase();
 
+        // Apply commission
+        switch (token) {
+            case 'nrfx':
+                /**
+                 * When the contract will subtract 2% the result must be 99%
+                 */
+                tokenAmount *= 0.99 / 0.98;
+                break;
+            case 'bnb':
+            default:
+                // BNB and other tokens commission must be 3%
+                tokenAmount *= 0.97;
+        }
+
         // Subtract a gas price expressed in tokens from the token amount
         const gasData = await estimateTransferToUserGas(user, tokenAmount, token, tokenNetwork);
         tokenAmount -= gasData.gasInTokens;

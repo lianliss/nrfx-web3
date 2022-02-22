@@ -44,7 +44,7 @@ const getBonusValue = async user => {
 
 const receiveBonus = async user => {
     try {
-        const {refer, isBonusReceived,} = user;
+        const {refer, isBonusReceived, userID,} = user;
 
         // Check if the bonus was received
         if (isBonusReceived) {
@@ -69,7 +69,7 @@ const receiveBonus = async user => {
 
         return {
             bonus,
-            isBonusReceived: await db.setBonusReceived(),
+            isBonusReceived: await db.setBonusReceived(userID),
             address,
         }
     } catch (error) {

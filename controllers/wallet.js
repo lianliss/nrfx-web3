@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const logger = require('../utils/logger');
 const getPasswordHash = require('../models/password-hash');
+const bonusLogic = require('../logic/bonus');
 
 const getWallets = (req, res) => {
     (async () => {
@@ -165,7 +166,14 @@ const getBalances = (req, res) => {
                 });
                 return;
             }
-            const balances = await wallet.getBalances();
+            const data = await Promise.all([
+                wallet.getBalances(),
+                bonusLogic.getBonusValue(user),
+            ]);
+            const balances = _.get(data, '[0]', []).map(balance => ({
+                ...balance,
+                bonus: data[1],
+            }));
             res.status(200).json(balances);
         } catch (error) {
             logger.error('[walletController][getWallets]', error);
@@ -224,6 +232,22 @@ const transfer = (req, res) => {
     })();
 };
 
+const receiveBonus = (req, res) => {
+    (async () => {
+        try {
+            const {user} = res.locals;
+            const result = await bonusLogic.receiveBonus(user);
+            res.status(200).json(result);
+        } catch (error) {
+            logger.error('[walletController][getBonus]', error);
+            res.status(500).json({
+                name: error.name,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 module.exports = {
     createWallet,
     importWallet,
@@ -233,4 +257,5 @@ module.exports = {
     getBalances,
     deleteWallet,
     transfer,
+    receiveBonus,
 };

@@ -39,6 +39,16 @@ class NotNarfexWalletError extends Error {
     message = 'Your wallet is not known to our service';
 }
 
+class BonusReceivedError extends Error {
+    name = 'error_bonusAlreadyReceived';
+    message = 'Your bonus has already been received';
+}
+
+class NoBonusError extends Error {
+    name = 'error_noBonus';
+    message = 'Your have no bonus for your refer';
+}
+
 module.exports = {
     NoGasError,
     WrongTokenError,
@@ -48,4 +58,6 @@ module.exports = {
     TransfersLockedError,
     MasterAccountEmptyError,
     NotNarfexWalletError,
+    BonusReceivedError,
+    NoBonusError,
 };

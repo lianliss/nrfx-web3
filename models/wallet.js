@@ -117,7 +117,7 @@ class Wallet {
     };
 
     /**
-     * Transfer tokent to another wallet
+     * Transfer token to another wallet
      * @param recipient {string} - receiver wallet address
      * @param token {string} - token symbol
      * @param amount {number} - amount of tokens

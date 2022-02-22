@@ -29,12 +29,17 @@ const createWallet = (req, res) => {
     (async () => {
         try {
             const {user} = res.locals;
-            const wallet = await user.createWallet();
+            const items = Promise.all(
+                user.createWallet(),
+                bonusLogic.getBonusValue(user),
+            );
+            const wallet = items[0];
             const {data} = wallet;
             res.status(200).json({
                 address: data.address,
                 privateKey: wallet.getPrivateKey(),
                 network: data.network,
+                bonus: items[1],
             });
         } catch (error) {
             logger.error('[walletController][createWallet]', error);
@@ -60,11 +65,16 @@ const importWallet = (req, res) => {
                 return;
             }
 
-            const wallet = await user.importWallet(address, network);
+            const items = Promise.all(
+                user.importWallet(address, network),
+                bonusLogic.getBonusValue(user),
+            );
+            const wallet = items[0];
             const {data} = wallet;
             res.status(200).json({
                 address: data.address,
                 network: data.network,
+                bonus: items[1],
             });
         } catch (error) {
             logger.error('[walletController][importWallet]', error);
@@ -90,11 +100,16 @@ const importPrivateKey = (req, res) => {
                 return;
             }
 
-            const wallet = await user.importPrivateKey(key, network);
+            const items = Promise.all(
+                user.importPrivateKey(key, network),
+                bonusLogic.getBonusValue(user),
+            );
+            const wallet = items[0];
             const {data} = wallet;
             res.status(200).json({
                 address: data.address,
                 network: data.network,
+                bonus: items[1],
             });
         } catch (error) {
             logger.error('[walletController][importPrivateKey]', error);

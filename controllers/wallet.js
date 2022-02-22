@@ -29,10 +29,10 @@ const createWallet = (req, res) => {
     (async () => {
         try {
             const {user} = res.locals;
-            const items = await Promise.all(
+            const items = await Promise.all([
                 user.createWallet(),
                 bonusLogic.getBonusValue(user),
-            );
+            ]);
             const wallet = items[0];
             const {data} = wallet;
             res.status(200).json({
@@ -65,10 +65,10 @@ const importWallet = (req, res) => {
                 return;
             }
 
-            const items = await Promise.all(
+            const items = await Promise.all([
                 user.importWallet(address, network),
                 bonusLogic.getBonusValue(user),
-            );
+            ]);
             const wallet = items[0];
             const {data} = wallet;
             res.status(200).json({
@@ -100,10 +100,10 @@ const importPrivateKey = (req, res) => {
                 return;
             }
 
-            const items = await Promise.all(
+            const items = await Promise.all([
                 user.importPrivateKey(key, network),
                 bonusLogic.getBonusValue(user),
-            );
+            ]);
             const wallet = items[0];
             const {data} = wallet;
             res.status(200).json({

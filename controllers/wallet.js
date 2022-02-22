@@ -7,11 +7,12 @@ const getWallets = (req, res) => {
     (async () => {
         try {
             const {user} = res.locals;
+            const bonus = await bonusLogic.getBonusValue(user);
             const wallets = user.wallets.map(w => ({
                 address: w.data.address,
                 network: w.data.network,
                 isGenerated: !!w.data.isGenerated,
-                bonus: bonusLogic.getBonusValue(user),
+                bonus,
             }));
             res.status(200).json(wallets);
         } catch (error) {

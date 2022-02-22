@@ -11,6 +11,7 @@ const getWallets = (req, res) => {
                 address: w.data.address,
                 network: w.data.network,
                 isGenerated: !!w.data.isGenerated,
+                bonus: bonusLogic.getBonusValue(user),
             }));
             res.status(200).json(wallets);
         } catch (error) {
@@ -166,15 +167,7 @@ const getBalances = (req, res) => {
                 });
                 return;
             }
-            const data = await Promise.all([
-                wallet.getBalances(),
-                bonusLogic.getBonusValue(user),
-            ]);
-            logger.debug('data', data, _.get(data, '[0]', []));
-            const balances = _.get(data, '[0]', []).map(balance => ({
-                ...balance,
-                bonus: data[1],
-            }));
+            const balances = await wallet.getBalances();
             res.status(200).json(balances);
         } catch (error) {
             logger.error('[walletController][getWallets]', error);

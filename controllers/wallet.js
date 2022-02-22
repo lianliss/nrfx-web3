@@ -170,6 +170,7 @@ const getBalances = (req, res) => {
                 wallet.getBalances(),
                 bonusLogic.getBonusValue(user),
             ]);
+            logger.debug('data', data, _.get(data, '[0]', []));
             const balances = _.get(data, '[0]', []).map(balance => ({
                 ...balance,
                 bonus: data[1],

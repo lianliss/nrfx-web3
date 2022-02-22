@@ -66,10 +66,11 @@ const receiveBonus = async user => {
             'nrfx',
             bonus / 0.98, // Compensate 2% fee
         );
+        await db.setBonusReceived(userID);
+        user.isBonusReceived = true;
 
         return {
             bonus,
-            isBonusReceived: await db.setBonusReceived(userID),
             address,
         }
     } catch (error) {

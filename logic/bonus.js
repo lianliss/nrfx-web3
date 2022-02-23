@@ -33,7 +33,7 @@ const getBonusValue = async user => {
             return _.get(BONUS_AGENTS, login, 0);
         } else {
             // Get promo code
-            const promoCode = refer.trim().toUpperCase();
+            const promoCode = refer ? refer.trim().toUpperCase() : '';
             return _.get(BONUS_CODES, promoCode, 0);
         }
     } catch (error) {

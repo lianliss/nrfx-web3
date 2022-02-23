@@ -83,6 +83,11 @@ const swapFiatToToken = async ({
             user.getFiats(),
         ]);
         const rate = data[0];
+        const fiats = data[1].map(fiat => {
+            delete fiat.userID;
+            delete fiat.locked;
+            return fiat;
+        });
         let tokenAmount = fiatAmount / rate;
         const fiatKey = fiat.toLowerCase();
 
@@ -104,7 +109,7 @@ const swapFiatToToken = async ({
         const gasData = await estimateTransferToUserGas(user, tokenAmount, token, tokenNetwork);
         tokenAmount -= gasData.gasInTokens;
 
-        const fiatBalance = data[1].find(row => row.currency === fiatKey);
+        const fiatBalance = fiats.find(row => row.currency === fiatKey);
         if (!fiatBalance) throw new errors.FiatNotFoundError();
         logger.info('fiatBalance', fiatBalance);
 
@@ -118,6 +123,12 @@ const swapFiatToToken = async ({
 
         // Withdraw fiats from the user balance
         await user.decreaseFiatBalance(fiatKey, fiatAmount);
+        fiatBalance.amount -= fiatAmount;
+        // Send to stream
+        user.sendJson({
+            type: 'fiats',
+            data: fiats,
+        });
 
         logger.info('[swapFiatToToken] Transfer confirmed', user.login, fiat, fiatAmount, token, tokenAmount);
         try {
@@ -130,6 +141,12 @@ const swapFiatToToken = async ({
         } catch (error) {
             // Return fiats to the user balance
             await user.increaseFiatBalance(fiatKey, fiatAmount);
+            fiatBalance.amount += fiatAmount;
+            // Send to stream
+            user.sendJson({
+                type: 'fiats',
+                data: fiats,
+            });
             throw error;
         }
 
@@ -149,6 +166,13 @@ const swapFiatToToken = async ({
                 price: rate,
             },
         });
+
+        // Send a new balance
+        user.sendJson({
+            type: 'balance',
+            data: await user.getWallet(address).getBalances(),
+        });
+
         return {
             rate,
             tokenAmount,

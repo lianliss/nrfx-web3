@@ -69,6 +69,18 @@ const receiveBonus = async user => {
         await db.setBonusReceived(userID);
         user.isBonusReceived = true;
 
+        // Send new bonus
+        user.sendJson({
+            type: 'bonus',
+            data: 0,
+        });
+
+        // Send new balance data
+        user.sendJson({
+            type: 'balance',
+            data: await user.wallets[0].getBalances(),
+        });
+
         return {
             bonus,
             address,

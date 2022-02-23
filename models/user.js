@@ -12,6 +12,7 @@ class User {
 
     tokens = [];
     wallets = [];
+    streams = [];
     isTransfersLocked = false; // Locks transfers while current transfer is in progress
 
     /**
@@ -151,6 +152,27 @@ class User {
     getFiats = () => db.getUserFiats(this.userID);
     decreaseFiatBalance = (fiat, amount) => db.decreaseUserFiatBalance(this.userID, fiat, amount);
     increaseFiatBalance = (fiat, amount) => db.increaseUserFiatBalance(this.userID, fiat, amount);
+
+    /**
+     * Send a message through a stream
+     * @param message
+     */
+    send(message) {
+        this.streams = this.streams.filter(stream => stream.connected);
+        this.streams.map(stream => stream.sendUTF(message));
+    }
+
+    /**
+     * Send an object through a stream
+     * @param data
+     */
+    sendJson(data) {
+        try {
+            this.send(JSON.stringify(data));
+        } catch (error) {
+            logger.error('[User][sendJson] error', error);
+        }
+    }
 
 }
 

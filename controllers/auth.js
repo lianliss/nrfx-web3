@@ -6,22 +6,36 @@ const getPasswordHash = require('../models/password-hash');
 const auth = (req, res = {}, next = () => {}, callback = () => {}) => {
     (async () => {
         const headers = _.get(req, 'headers', _.get(req, 'httpRequest.headers', {}));
-        const appID = _.get(headers, 'x-app-id');
-        const token = _.get(headers, 'x-token');
+        let appID = _.get(headers, 'x-app-id');
+        let token = _.get(headers, 'x-token');
+
+        if (req.webSocketVersion) {
+            // For websocket connection
+            const url = new URL(`http://${req.host}${req.resource}`);
+            appID = url.searchParams.get('app');
+            token = url.searchParams.get('token');
+        }
+
+        if (!appID || !token) {
+            res.status && res.status(403).send('Authentication required');
+            return;
+        }
 
         try {
             const user = await UserModel.getByAuth(token, appID);
             if (!user) {
-                res.status(403).send('Authentication required');
+                // Wrong credentials
+                res.status && res.status(403).send('Authentication required');
                 return;
             } else {
+                // Successful authorization
                 _.set(res, 'locals.user', user);
                 next();
                 callback(user);
             }
         } catch (error) {
             logger.warn('[auth]', appID, token, headers);
-            res.status(403).send('Authentication required');
+            res.status && res.status(403).send('Authentication required');
             return;
         }
     })()

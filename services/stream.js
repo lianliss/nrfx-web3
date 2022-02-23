@@ -9,8 +9,8 @@ const server = http.createServer((request, response) => {
     response.writeHead(404);
     response.end();
 });
-server.listen(9000, () => {
-    logger.info('Websocket is listening on port 9000');
+server.listen(3009, () => {
+    logger.info('Websocket is listening on port 3009');
 });
 
 const streamServer = new WebSocketServer({

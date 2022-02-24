@@ -38,7 +38,14 @@ streamServer.on('request', request => {
             connection.on('message', message => {
                 if (message.type === 'utf8') {
                     logger.debug('Received Message: ' + message.utf8Data);
-                    connection.sendUTF(message.utf8Data);
+
+                    switch (_.get(message, 'utf8Data', '').toLowerCase()) {
+                        case 'ping':
+                            connection.sendUTF('PONG');
+                            break;
+                        default:
+                            connection.sendUTF(message.utf8Data);
+                    }
                 }
                 else if (message.type === 'binary') {
                     logger.debug('Received Binary Message of ' + message.binaryData.length + ' bytes');

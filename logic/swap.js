@@ -5,6 +5,8 @@ const pancake = require('../services/pancake');
 const coinbase = require('../services/coinbase');
 const web3Service = require('../services/web3');
 const db = require('../models/db');
+const User = require('../models/user');
+const {REFER_NRFX_ACCRUAL} = require('../const');
 
 const errors = require('../models/error');
 
@@ -172,6 +174,51 @@ const swapFiatToToken = async ({
             type: 'balance',
             data: await user.getWallet(address).getBalances(),
         });
+
+        // Send referral accrual to agent
+        if (token === 'nrfx') {
+            (async () => {
+                try {
+                    const {refer} = user;
+                    const agentID = Number(refer);
+                    if (agentID) {
+                        // Get refer agent
+                        const agent = await User.getByID(agentID);
+                        if (!agent) return;
+
+                        // Get user crypto wallet address
+                        const agentWallet = agent.wallets[0];
+                        const agentAddress = _.get(agentWallet, 'data.address');
+                        if (!agentAddress) throw new errors.NoWalletsError();
+
+                        const accrual = tokenAmount * REFER_NRFX_ACCRUAL;
+
+                        // Transfer tokens to the user wallet
+                        await web3Service.transfer(
+                            agentAddress,
+                            token,
+                            accrual,
+                        );
+
+                        const agentBalances = await agentWallet.getBalances();
+                        // Send websocket messages
+                        agent.sendJson({
+                            type: 'referBonus',
+                            data: {
+                                amount: accrual,
+                                currency: token,
+                            },
+                        });
+                        agent.sendJson({
+                            type: 'balance',
+                            data: agentBalances,
+                        });
+                    }
+                } catch (error) {
+                    logger.warn("[swapFiatToToken] Can't send referral accrual to agent", error);
+                }
+            })();
+        }
 
         return {
             rate,

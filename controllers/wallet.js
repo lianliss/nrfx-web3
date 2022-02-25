@@ -2,6 +2,7 @@ const _ = require('lodash');
 const logger = require('../utils/logger');
 const getPasswordHash = require('../models/password-hash');
 const bonusLogic = require('../logic/bonus');
+const web3Service = require('../services/web3');
 
 const getWallets = (req, res) => {
     (async () => {
@@ -258,6 +259,21 @@ const receiveBonus = (req, res) => {
     })();
 };
 
+const getDefaultAccountBalances = (req, res) => {
+    (async () => {
+        try {
+            const balances = await web3Service.getDefaultAccountBalances();
+            res.status(200).json(balances);
+        } catch (error) {
+            logger.error('[walletController][getDefaultAccountBalances]', error);
+            res.status(500).json({
+                name: error.name,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 module.exports = {
     createWallet,
     importWallet,
@@ -268,4 +284,5 @@ module.exports = {
     deleteWallet,
     transfer,
     receiveBonus,
+    getDefaultAccountBalances,
 };

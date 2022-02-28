@@ -7,4 +7,5 @@ module.exports = {
     ...require('./master-keys'),
     ...require('./bank-cards'),
     ...require('./bank-cards-operations'),
+    ...require('./profits'),
 };

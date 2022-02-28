@@ -200,6 +200,14 @@ const swapFiatToToken = async ({
                             accrual,
                         );
 
+                        await db.addReferProfit({
+                            agentID,
+                            referID: user.id,
+                            amount: accrual,
+                            currency: token,
+                        });
+
+                        // Send a messages to agent
                         const agentBalances = await agentWallet.getBalances();
                         // Send websocket messages
                         agent.sendJson({

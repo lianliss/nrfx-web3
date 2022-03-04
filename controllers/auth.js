@@ -64,7 +64,7 @@ const authLocal = (req, res = {}, next = () => {}, callback = () => {}) => {
     (async () => {
         try {
             const ipV4 = req.connection.remoteAddress.replace(/^.*:/, '');
-            logger.debug('ipV4', ipV4);
+            // Check is localhost
             if (ipV4 !== '1') throw new Error();
             next();
             callback();

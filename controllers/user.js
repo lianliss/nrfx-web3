@@ -7,10 +7,10 @@ const getUserData = (req, res) => {
         try {
             const {user} = res.locals;
 
+            const settings = await db.getSiteSettings();
             res.status(200).json({
                 referPercent: user.referPercent,
                 login: user.login,
-                wallets: user.wallets,
             });
         } catch (error) {
             logger.error('[userController][getUserData]', error);

@@ -61,8 +61,18 @@ class User {
             if (userCache) return userCache;
 
             // Get user data from DB
-            const userData = await db.getUserByID(userID);
+            const data = await Promise.all([
+                db.getUserByID(userID),
+                db.getSiteSettings(),
+            ]);
+            const userData = data[0];
+            const settings = data[1];
             if (userData) {
+                // Check refer percent value
+                if (userData.referPercent === null) {
+                    userData.referPercent = Number(settings.default_refer_percent) || 0;
+                }
+
                 // Get user from cache if it's already exists or create a new User object
                 const user = !!cache.users[userID]
                     ? cache.users[userID]

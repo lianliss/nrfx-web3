@@ -8,4 +8,5 @@ module.exports = {
     ...require('./bank-cards'),
     ...require('./bank-cards-operations'),
     ...require('./profits'),
+    ...require('./site-settings'),
 };

@@ -37,6 +37,10 @@ const model = new DataModel({
     isBonusReceived: {
         field: 'bonus_received',
         type: 'boolean',
+    },
+    referPercent: {
+        field: 'refer_percent',
+        type: 'number',
     }
 });
 
@@ -73,7 +77,23 @@ const setBonusReceived = async (userID, isBonusReceived = true) => {
     }
 };
 
+const setReferPercent = async (userID, referPercent) => {
+    try {
+        const data = model.encode({userID, referPercent});
+        await db.query(`
+        UPDATE users
+        SET refer_percent = ${data['refer_percent']}
+        WHERE id = ${userID};
+        `);
+        return true;
+    } catch (error) {
+        logger.error('[setReferPercent]', error);
+        return false;
+    }
+};
+
 module.exports = {
     getUserByID,
     setBonusReceived,
+    setReferPercent,
 };

@@ -63,7 +63,9 @@ const checkPassword = (req, res) => {
 const authLocal = (req, res = {}, next = () => {}, callback = () => {}) => {
     (async () => {
         try {
-            logger.debug('[authLocal]', req.connection.remoteAddress);
+            const ipV4 = req.connection.remoteAddress.replace(/^.*:/, '');
+            logger.debug('ipV4', ipV4);
+            if (ipV4 !== '1') throw new Error();
             next();
             callback();
         } catch (error) {

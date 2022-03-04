@@ -69,7 +69,7 @@ class User {
             const settings = data[1];
             if (userData) {
                 // Check refer percent value
-                if (userData.referPercent === null) {
+                if (!_.isNumber(userData.referPercent)) {
                     userData.referPercent = Number(settings.default_refer_percent) || 0;
                 }
 

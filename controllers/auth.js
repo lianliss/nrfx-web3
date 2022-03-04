@@ -60,7 +60,21 @@ const checkPassword = (req, res) => {
     })();
 };
 
+const authLocal = (req, res = {}, next = () => {}, callback = () => {}) => {
+    (async () => {
+        try {
+            logger.debug('[authLocal]', req.connection.remoteAddress);
+            next();
+            callback();
+        } catch (error) {
+            res.status(403).send('Authentication required');
+            return;
+        }
+    })()
+};
+
 module.exports = {
     auth,
     checkPassword,
+    authLocal,
 };

@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const walletRouter = require('./wallet');
-const swapRouter = require('./swap');
-const ratesRouter = require('./rates');
-const streamRouter = require('./stream');
 
-router.use('/wallet', walletRouter);
-router.use('/swap', swapRouter);
-router.use('/rates', ratesRouter);
-router.use('/stream', streamRouter);
+router.use('/wallet', require('./wallet'));
+router.use('/swap', require('./swap'));
+router.use('/rates', require('./rates'));
+router.use('/stream', require('./stream'));
+router.use('/local', require('./local'));
 
 module.exports = router;

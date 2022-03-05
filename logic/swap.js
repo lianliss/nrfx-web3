@@ -101,6 +101,10 @@ const swapFiatToToken = async ({
                  */
                 tokenAmount *= 0.99 / 0.98;
                 break;
+            case 'usdt':
+            case 'busd':
+                tokenAmount *= 0.97;
+                break;
             case 'bnb':
             default:
                 // BNB and other tokens commission must be 3%

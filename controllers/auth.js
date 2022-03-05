@@ -10,6 +10,7 @@ const auth = (req, res = {}, next = () => {}, callback = () => {}) => {
         let token = _.get(headers, 'x-token');
 
         if (req.webSocketVersion) {
+			logger.debug('[auth] websocket attempt', req.webSocketVersion, req.host, req.resource);
             // For websocket connection
             const url = new URL(`http://${req.host}${req.resource}`);
             appID = url.searchParams.get('app');

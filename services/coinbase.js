@@ -21,12 +21,14 @@ class Coinbase extends Request {
      */
     updateRates = () => {
         FIATS.map(fiat => {
-            cache.rates.set(fiat, this.getFiatUSDPrice(fiat));
+            cache.rates.set(fiat, (async () => {
+                return 1 / (await this.getFiatUSDPrice(fiat));
+            })());
         })
     };
 
     /**
-     * Returns USD price for currency
+     * Returns currency amount for 1 USD
      * @param fiat
      * @returns {Promise.<number>}
      */

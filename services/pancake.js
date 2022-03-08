@@ -3,6 +3,8 @@ const logger = require('../utils/logger');
 const {networks} = require('../config');
 const {Request} = require('./request');
 const errors = require('../models/error');
+const {TOKENS, GET_RATE_INTERVAL} = require('../const');
+const cache = require('../models/cache');
 
 class Pancake extends Request {
     constructor(config = {}) {
@@ -10,7 +12,29 @@ class Pancake extends Request {
             baseUrl: `https://api.pancakeswap.info/api/v${_.get(config, 'apiVersion', 2)}/`,
             ...config,
         });
-    }
+        this.updateRates();
+        this.interval = setInterval(this.updateRates, GET_RATE_INTERVAL);
+    };
+
+    /**
+     * Updates tokens rates in the cache
+     */
+    updateRates = () => {
+        TOKENS.map(token => {
+            cache.rates.set(token, (async () => {
+                return token === 'usdt'
+                    ? 1
+                    : Number((await this.getTokenInfo(token)).price)
+            })());
+        })
+    };
+
+    /**
+     * Returns Pancake's data for token
+     * @param token
+     * @param network
+     * @returns {Promise.<void>}
+     */
     getTokenInfo = async (token, network = 'BEP20') => {
         try {
             const lowercaseToken = token.toLowerCase();
@@ -27,6 +51,13 @@ class Pancake extends Request {
             throw error;
         }
     };
+
+    /**
+     * Returns only USD price for token
+     * @param token
+     * @param network
+     * @returns {Promise.<number>}
+     */
     getTokenUSDPrice = async (token, network = 'BEP20') => {
         try {
             const tokenSymbol = token.toLowerCase();
@@ -39,6 +70,13 @@ class Pancake extends Request {
             throw error;
         }
     };
+
+    /**
+     * Returns only BNB price for token
+     * @param token
+     * @param network
+     * @returns {Promise.<number>}
+     */
     getTokenBNBPrice = async (token, network = 'BEP20') => {
         try {
             const tokenSymbol = token.toLowerCase();

@@ -3,7 +3,8 @@ const router = express.Router();
 const {auth} = require('../../controllers/auth');
 const ratesController = require('../../controllers/rates');
 
-router.get('/fiat', ratesController.getFiatUSDPrice);
-router.get('/token', ratesController.getTokenUSDPrice);
+router.get('/', ratesController.getAllRates);
+router.get('/fiat', ratesController.getCurrencyUSDPrice);
+router.get('/token', ratesController.getCurrencyUSDPrice);
 
 module.exports = router;

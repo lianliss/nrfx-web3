@@ -103,7 +103,7 @@ const swapFiatToToken = async ({
                 break;
             case 'usdt':
             case 'busd':
-                tokenAmount *= 1.01;
+                tokenAmount *= 0.98;
                 break;
             case 'bnb':
             default:

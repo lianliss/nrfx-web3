@@ -50,7 +50,7 @@ const getUserByID = async userID => {
         const data = await db.query(`
             SELECT
             id, first_name, last_name, login, email, role, active, password, _delete, ban_id,
-            refer, bonus_received, roles,
+            refer, bonus_received, roles
             FROM users
             WHERE id = ${userID};
         `);

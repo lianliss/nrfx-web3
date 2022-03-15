@@ -49,7 +49,28 @@ const clearCardBookingByID = async id => {
     }
 };
 
+const getExpiredReservations = async () => {
+    try {
+        return await db.query(`
+            SELECT cards.id, cards.booked_by, cards.book_expiration,
+            ops.id AS operation_id,
+            ops.status, ops.amount,
+            ops.created_at_timestamp
+            FROM bank_cards AS cards
+            INNER JOIN bank_cards_operations AS ops
+            ON cards.id = ops.card_id
+            WHERE cards.book_expiration < ${Date.now() / 1000}
+            AND ops.status = 'wait_for_pay'
+            AND cards.booked_by IS NOT NULL;
+        `);
+    } catch (error) {
+        logger.error('[getExpiredReservations]', error);
+        return null;
+    }
+}
+
 module.exports = {
     getExpiredBookingCards,
     clearCardBookingByID,
+    getExpiredReservations,
 };

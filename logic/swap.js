@@ -92,7 +92,7 @@ const swapFiatToToken = async ({
             delete fiat.locked;
             return fiat;
         });
-        const commission = getCommission(data[2].commissions, token);
+        const commission = getCommission(JSON.parse(data[2].commissions), token);
         let tokenAmount = fiatAmount / rate;
         const fiatKey = fiat.toLowerCase();
 

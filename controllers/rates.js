@@ -51,7 +51,7 @@ const getCommissions = (req, res) => {
     (async () => {
         try {
             const settings = await db.getSiteSettings();
-            res.status(200).json(settings.commissions || {});
+            res.status(200).json(JSON.parse(settings.commissions) || {});
         } catch (error) {
             logger.error('[ratesController][getCommissions]', error);
             res.status(500).json({

@@ -7,6 +7,7 @@ const web3Service = require('../services/web3');
 const db = require('../models/db');
 const User = require('../models/user');
 const {REFER_NRFX_ACCRUAL} = require('../const');
+const getCommission = require('../utils/getCommission');
 
 const errors = require('../models/error');
 
@@ -83,6 +84,7 @@ const swapFiatToToken = async ({
         const data = await Promise.all([
             getFiatToTokenRate(fiat, token, tokenNetwork),
             user.getFiats(),
+            db.getSiteSettings(),
         ]);
         const rate = data[0];
         const fiats = data[1].map(fiat => {
@@ -90,26 +92,12 @@ const swapFiatToToken = async ({
             delete fiat.locked;
             return fiat;
         });
+        const commission = getCommission(data[2].commissions, token);
         let tokenAmount = fiatAmount / rate;
         const fiatKey = fiat.toLowerCase();
 
         // Apply commission
-        switch (token) {
-            case 'nrfx':
-                /**
-                 * When the contract will subtract 2% the result must be 99%
-                 */
-                tokenAmount *= 0.99 / 0.98;
-                break;
-            case 'usdt':
-            case 'busd':
-                tokenAmount *= 0.88;
-                break;
-            case 'bnb':
-            default:
-                // BNB and other tokens commission must be 3%
-                tokenAmount *= 0.97;
-        }
+        tokenAmount -= tokenAmount * commission;
 
         // Subtract a gas price expressed in tokens from the token amount
         const gasData = await estimateTransferToUserGas(user, tokenAmount, token, tokenNetwork);

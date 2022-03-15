@@ -6,5 +6,7 @@ const ratesController = require('../../controllers/rates');
 router.get('/', ratesController.getAllRates);
 router.get('/fiat', ratesController.getCurrencyUSDPrice);
 router.get('/token', ratesController.getCurrencyUSDPrice);
+router.get('/commissions', ratesController.getCommissions);
+router.post('/commissions', auth, ratesController.updateCommissions);
 
 module.exports = router;

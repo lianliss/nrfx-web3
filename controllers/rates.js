@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const logger = require('../utils/logger');
 const cache = require('../models/cache');
+const db = require('../models/db');
+const errors = require('../models/error');
 
 /**
  * Returns currency's USD price from cache
@@ -45,9 +47,47 @@ const getAllRates = (req, res) => {
     })();
 };
 
+const getCommissions = (req, res) => {
+    (async () => {
+        try {
+            const settings = await db.getSiteSettings();
+            res.status(200).json(settings.commissions || {});
+        } catch (error) {
+            logger.error('[ratesController][getCommissions]', error);
+            res.status(500).json({
+                name: error.name,
+                message: error.message,
+            });
+        }
+    })();
+};
+
+const updateCommissions = (req, res) => {
+    (async () => {
+        try {
+            const {user} = res.locals;
+            const data = _.get(req, 'query.data');
+            if (!user.isAdmin) throw new errors.PermissionDeniedError();
+            if (!data) throw new errors.MissingParametersError();
+
+            const dataObject = JSON.parse(data);
+            db.updateCommissions(dataObject);
+            res.status(200).json(dataObject);
+        } catch (error) {
+            logger.error('[ratesController][updateCommissions]', error);
+            res.status(500).json({
+                name: error.name,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 module.exports = {
     getCurrencyUSDPrice,
     getAllRates,
+    getCommissions,
+    updateCommissions,
 };
 
 

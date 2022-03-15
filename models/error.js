@@ -4,6 +4,11 @@ class NoGasError extends Error {
     message = 'Insufficient funds for gas';
 }
 
+class PermissionDeniedError extends Error {
+    name = 'error_permissionDenied';
+    message = 'Permission denied';
+}
+
 class WrongTokenError extends Error {
     name = 'error_wrongToken';
     message = 'Wrong token';
@@ -49,6 +54,11 @@ class NoBonusError extends Error {
     message = 'Your have no bonus for your refer';
 }
 
+class MissingParametersError extends Error {
+    name = 'error_missingParameters';
+    message = 'Missing parameters';
+}
+
 module.exports = {
     NoGasError,
     WrongTokenError,
@@ -60,4 +70,6 @@ module.exports = {
     NotNarfexWalletError,
     BonusReceivedError,
     NoBonusError,
+    PermissionDeniedError,
+    MissingParametersError,
 };

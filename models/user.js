@@ -8,6 +8,7 @@ class User {
 
     constructor(userData) {
         Object.assign(this, userData);
+        this.isAdmin = _.includes(userData.roles, 'admin');
     }
 
     tokens = [];

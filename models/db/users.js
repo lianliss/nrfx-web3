@@ -41,7 +41,8 @@ const model = new DataModel({
     referPercent: {
         field: 'refer_percent',
         type: 'number',
-    }
+    },
+    roles: {}
 });
 
 const getUserByID = async userID => {
@@ -49,7 +50,7 @@ const getUserByID = async userID => {
         const data = await db.query(`
             SELECT
             id, first_name, last_name, login, email, role, active, password, _delete, ban_id,
-            refer, bonus_received
+            refer, bonus_received, roles,
             FROM users
             WHERE id = ${userID};
         `);

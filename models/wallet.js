@@ -1,8 +1,7 @@
 const logger = require('../utils/logger');
 const _ = require('lodash');
 const db = require('./db');
-const web3Service = require('../services/web3');
-const tonService = require('../services/ton');
+const {getService} = require('../services/networks');
 const errors = require('./error');
 
 class Wallet {
@@ -10,7 +9,7 @@ class Wallet {
         this.data = data;
 
         if (!this.service) {
-            this.service = this.getService(data.network);
+            this.service = getService(data.network);
         }
     }
     data = {};
@@ -21,24 +20,6 @@ class Wallet {
     save = async () => db.setUserWallet(this.data);
 
     /**
-     * Get right network service
-     * @param network
-     * @returns {*}
-     */
-    getService = network => {
-        let service;
-        switch (network) {
-            case 'TON':
-                service = tonService;
-                break;
-            case 'BEP20':
-            default:
-                service = web3Service;
-        }
-        return service;
-    };
-
-    /**
      * Create a new wallet in BEP20 network and save it to user
      * @param userID
      * @param network
@@ -46,7 +27,7 @@ class Wallet {
      */
     static create = async (userID, network = 'BEP20') => {
         try {
-            const service = this.getService(network);
+            const service = getService(network);
             const account = await service.createAccount();
             const key = account.mnemonic || account.privateKey;
             const data = {
@@ -89,12 +70,13 @@ class Wallet {
      */
     static importPrivateKey = async (userID, key, network = 'BEP20') => {
         try {
-            const service = this.getService(network);
-            const account = await service.getAccount(key);
+            const service = getService(network);
+            const processedKey = network === 'BEP20' ? key : key.split(' ');
+            const account = await service.getAccount(processedKey);
             const data = {
                 userID,
                 address: account.address,
-                privateData: service.encrypt(key, userID),
+                privateData: service.encrypt(processedKey, userID),
                 isGenerated: true,
                 network,
                 service,
@@ -113,14 +95,16 @@ class Wallet {
      * @returns {*}
      */
     getPrivateKey = () => {
-        const {userID, service} = this.data;
+        const {userID} = this.data;
 
         const key = this.data.encryption || this.data.privateData;
+        logger.debug('getPrivateKey', key, this.data);
         if (!userID || !key) return false;
 
-        const account = service.decrypt(key, userID);
-        if (account && (account.privateKey || account.mnemonic)) {
-            return account.privateKey || account.mnemonic;
+        const account = this.service.decrypt(key, userID);
+        logger.debug('account', account);
+        if (account && (account.privateKey || account.length)) {
+            return account.privateKey ? account.privateKey : account.join(' ');
         } else {
             return false;
         }
@@ -132,11 +116,11 @@ class Wallet {
      */
     getBalances = async () => {
         try {
-            const {service, address} = this.data;
+            const { address} = this.data;
 
-            return await service.getBalances(address);
+            return await this.service.getBalances(address);
         } catch (error) {
-            logger.error('[Wallet][getBalances]', network, error);
+            logger.error('[Wallet][getBalances]', this.network, error);
             return {};
         }
     };

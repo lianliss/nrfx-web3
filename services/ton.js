@@ -10,7 +10,6 @@ const CryptoJS = require('crypto-js');
 
 const getUserPrivateKeyPassword = userID => `${config.web3.seed}${userID}`;
 const {TON} = config.networks;
-const nacl = TonWeb.utils.nacl;
 
 class TonService {
     constructor(encryption) {
@@ -137,6 +136,7 @@ class TonService {
      * Returns default market account balance
      */
     getDefaultAccountBalances = () => this.getBalances(this.defaultAccount.address);
+    
 }
 
 const tonService = new TonService();

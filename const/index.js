@@ -6,6 +6,7 @@ module.exports = {
         'usdt',
         'busd',
         'bnb',
+        'ton',
     ],
     FIATS: [
         'rub',

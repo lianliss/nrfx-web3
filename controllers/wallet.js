@@ -2,19 +2,22 @@ const _ = require('lodash');
 const logger = require('../utils/logger');
 const getPasswordHash = require('../models/password-hash');
 const bonusLogic = require('../logic/bonus');
-const web3Service = require('../services/web3');
+const {getService} = require('../services/networks');
 
 const getWallets = (req, res) => {
     (async () => {
         try {
             const {user} = res.locals;
-            const bonus = await bonusLogic.getBonusValue(user);
             const wallets = user.wallets.map(w => ({
                 address: w.data.address,
                 network: w.data.network,
                 isGenerated: !!w.data.isGenerated,
-                bonus,
             }));
+
+            user.wallets.map(w => {
+                logger.info('data', w.data, w.getPrivateKey());
+            });
+
             res.status(200).json(wallets);
         } catch (error) {
             logger.error('[walletController][getWallets]', error);
@@ -30,17 +33,13 @@ const createWallet = (req, res) => {
     (async () => {
         try {
             const {user} = res.locals;
-            const items = await Promise.all([
-                user.createWallet(),
-                bonusLogic.getBonusValue(user),
-            ]);
-            const wallet = items[0];
+            const network = _.get(req, 'query.network', 'BEP20');
+            const wallet = await user.createWallet(network);
             const {data} = wallet;
             res.status(200).json({
                 address: data.address,
                 privateKey: wallet.getPrivateKey(),
                 network: data.network,
-                bonus: items[1],
             });
         } catch (error) {
             logger.error('[walletController][createWallet]', error);
@@ -66,16 +65,11 @@ const importWallet = (req, res) => {
                 return;
             }
 
-            const items = await Promise.all([
-                user.importWallet(address, network),
-                bonusLogic.getBonusValue(user),
-            ]);
-            const wallet = items[0];
+            const wallet = await user.importWallet(address, network);
             const {data} = wallet;
             res.status(200).json({
                 address: data.address,
                 network: data.network,
-                bonus: items[1],
             });
         } catch (error) {
             logger.error('[walletController][importWallet]', error);
@@ -101,16 +95,11 @@ const importPrivateKey = (req, res) => {
                 return;
             }
 
-            const items = await Promise.all([
-                user.importPrivateKey(key, network),
-                bonusLogic.getBonusValue(user),
-            ]);
-            const wallet = items[0];
+            const wallet = await user.importPrivateKey(key, network);
             const {data} = wallet;
             res.status(200).json({
                 address: data.address,
                 network: data.network,
-                bonus: items[1],
             });
         } catch (error) {
             logger.error('[walletController][importPrivateKey]', error);
@@ -162,7 +151,7 @@ const getPrivateKey = (req, res) => {
 
             res.status(200).json(privateKey);
         } catch (error) {
-            logger.error('[walletController][getWallets]', error);
+            logger.error('[walletController][getPrivateKey]', error);
             res.status(500).json({
                 name: error.name,
                 message: error.message,
@@ -187,7 +176,7 @@ const getBalances = (req, res) => {
             const balances = await wallet.getBalances();
             res.status(200).json(balances);
         } catch (error) {
-            logger.error('[walletController][getWallets]', error);
+            logger.error('[walletController][getBalances]', error);
             res.status(500).json({
                 name: error.name,
                 message: error.message,
@@ -218,6 +207,7 @@ const transfer = (req, res) => {
         try {
             const {user} = res.locals;
             const address = _.get(req, 'query.address');
+            const network = _.get(req, 'query.network', 'BEP20');
             const token = _.get(req, 'query.token', 'nrfx');
             const amount = Number(_.get(req, 'query.amount'));
             if (!address || !amount) {
@@ -228,29 +218,14 @@ const transfer = (req, res) => {
                 return;
             }
 
-            const result = await user.wallets[0].transfer(address, token, amount);
+            const wallet = user.wallets.find(w => w.network === network);
+            const result = await wallet.transfer(address, token, amount);
             res.status(200).json({
                 address,
                 ...result,
             });
         } catch (error) {
-            logger.error('[walletController][deleteWallet]', error);
-            res.status(500).json({
-                name: error.name,
-                message: error.message,
-            });
-        }
-    })();
-};
-
-const receiveBonus = (req, res) => {
-    (async () => {
-        try {
-            const {user} = res.locals;
-            const result = await bonusLogic.receiveBonus(user);
-            res.status(200).json(result);
-        } catch (error) {
-            logger.error('[walletController][getBonus]', error);
+            logger.error('[walletController][transfer]', error);
             res.status(500).json({
                 name: error.name,
                 message: error.message,
@@ -262,7 +237,10 @@ const receiveBonus = (req, res) => {
 const getDefaultAccountBalances = (req, res) => {
     (async () => {
         try {
-            const balances = await web3Service.getDefaultAccountBalances();
+            const network = _.get(req, 'query.network', 'BEP20');
+            const service = getService(network);
+
+            const balances = await service.getDefaultAccountBalances();
             res.status(200).json(balances);
         } catch (error) {
             logger.error('[walletController][getDefaultAccountBalances]', error);
@@ -283,6 +261,5 @@ module.exports = {
     getBalances,
     deleteWallet,
     transfer,
-    receiveBonus,
     getDefaultAccountBalances,
 };

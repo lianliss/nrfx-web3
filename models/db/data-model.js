@@ -92,7 +92,7 @@ class DataModel {
             // Current property model
             const model = this.model[key];
             if (!model) {
-                logger.warn('[DataModel][encodeData] Unknown property', key, value);
+                logger.warn('[DataModel][encodeData] Unknown property', key);
                 return;
             }
             switch (model.type) {

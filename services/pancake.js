@@ -22,9 +22,14 @@ class Pancake extends Request {
     updateRates = () => {
         TOKENS.map(token => {
             cache.rates.set(token, (async () => {
-                return token === 'usdt'
-                    ? 1
-                    : Number((await this.getTokenInfo(token)).price)
+                try {
+                    return token === 'usdt'
+                        ? 1
+                        : Number((await this.getTokenInfo(token)).price)
+                } catch (error) {
+                    logger.warn('[Pancake][updateRates]', error.message, token);
+                    return null;
+                }
             })());
         })
     };

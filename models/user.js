@@ -149,7 +149,9 @@ class User {
      * Get wallet object by address
      * @param address
      */
-    getWallet = address => this.wallets.find(w => w.data.address === address);
+    getWallet = address => {
+        return this.wallets.find(w => w.data.address === address)
+    };
 
     deleteWallet = async address => {
         try {

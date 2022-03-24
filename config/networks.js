@@ -30,7 +30,15 @@ const networks = {
                 decimals: 18,
             },
         },
-    }
+    },
+    TON: {
+        name: 'Telegram Open Network',
+        providerAddress: 'https://toncenter.com/api/v2/jsonRPC',
+        apiKey: 'c1f8abc113c9c0458cb079a995427f5558d437b00f8ef09bf34452a0556fb002',
+        defaultToken: 'ton',
+        defaultAccount: 'EQCaFlFd8RL9_nA2X-y7nh3Gpr2y3gSZjPK4ncbMQxN6V60U',
+        contracts: {},
+    },
 };
 
 module.exports = networks;

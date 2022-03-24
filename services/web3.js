@@ -37,16 +37,16 @@ class Web3Service {
                 logger.info('[Web3Service] Default account', this.defaultAccount.address);
             } else {
                 db.getMasterKeys().then(rows => {
-                    const last = _.last(rows);
-                    const privateData = last.key;
-                    this.setDefaultAccount(privateData);
+                    const record = rows.find(row => row.name === network);
+                    const key = record.encryption || record.key;
+                    this.setDefaultAccount(key);
                     logger.info('[Web3Service] Default account', this.defaultAccount.address);
                 }).catch(error => {
                     logger.error('[Web3Service][getMasterKeys]', error);
                 })
             }
         } catch (error) {
-            logger.error('[WalletService]', error);
+            logger.error('[Web3Service]', error);
         }
     }
     web3 = null;
@@ -57,26 +57,26 @@ class Web3Service {
      * Set account as default market account
      * @param privateData {object} - encrypted privateKey data
      */
-    setDefaultAccount = privateData => this.defaultAccount = this.decryptPrivateKey(privateData, 0);
+    setDefaultAccount = privateData => this.defaultAccount = this.decrypt(privateData, 0);
 
     /**
      * Create a new wallet account in current blockchain
      * @param enthropy {string} - random string
      */
-    createAccount = (enthropy = this.web3.utils.randomHex(32)) => this.web3.eth.accounts.create(enthropy);
+    createAccount = async (enthropy = this.web3.utils.randomHex(32)) => this.web3.eth.accounts.create(enthropy);
 
     /**
      * Get an account from a privateKey
      * @param privateKey {string} - account private key
      */
-    getAccount = privateKey => this.web3.eth.accounts.privateKeyToAccount(privateKey);
+    getAccount = async privateKey => this.web3.eth.accounts.privateKeyToAccount(privateKey);
 
     /**
      * Encrypt a private key to privateData
      * @param privateKey {string}
      * @param userID {int}
      */
-    encryptPrivateKey = (privateKey, userID) => this.web3.eth.accounts.encrypt(
+    encrypt = (privateKey, userID) => this.web3.eth.accounts.encrypt(
         privateKey,
         getUserPrivateKeyPassword(userID),
     );
@@ -86,7 +86,7 @@ class Web3Service {
      * @param privateData {string}
      * @param userID {int}
      */
-    decryptPrivateKey = (privateData, userID) => this.web3.eth.accounts.decrypt(
+    decrypt = (privateData, userID) => this.web3.eth.accounts.decrypt(
         privateData,
         getUserPrivateKeyPassword(userID),
     );

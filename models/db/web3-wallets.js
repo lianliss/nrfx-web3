@@ -34,6 +34,9 @@ const model = new DataModel({
         field: 'updated_timestamp',
         type: 'number',
     },
+    encryption: {
+        type: 'string',
+    }
 });
 
 /**
@@ -98,7 +101,7 @@ const deleteUserWallet = async (address, userID) => {
         WHERE ${parts.and};`;
         return await db.query(query);
     } catch (error) {
-        logger.error('[setUserWallet]', error);
+        logger.error('[deleteUserWallet]', error);
         return null;
     }
 };

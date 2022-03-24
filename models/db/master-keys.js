@@ -10,6 +10,9 @@ const model = new DataModel({
     key: {
         type: 'json',
     },
+    encryption: {
+        type: 'string',
+    }
 });
 
 const getMasterKeys = async () => {

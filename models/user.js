@@ -116,8 +116,8 @@ class User {
      * Create a new wallet in DB
      * @returns {Promise.<*>}
      */
-    createWallet = async () => {
-        const wallet = await Wallet.create(this.userID);
+    createWallet = async (network = 'BEP20') => {
+        const wallet = await Wallet.create(this.userID, network);
         this.wallets.push(wallet);
         return wallet;
     };

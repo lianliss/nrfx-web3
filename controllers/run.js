@@ -16,13 +16,6 @@ const run = async () => {
         logger.info('Server started');
         require('../services/stream');
 
-        const balance = await tonService.getDefaultBalance('EQCaFlFd8RL9_nA2X-y7nh3Gpr2y3gSZjPK4ncbMQxN6V60U');
-        logger.debug('balance', tonService.fromNano(balance));
-
-        const def = await tonService.createAccount();
-        const encryption = tonService.encrypt(def.mnemonic, 0);
-        logger.debug('default TON', encryption);
-
         // Run jobs
         const jobs = require('../services/jobs');
     } catch(error) {

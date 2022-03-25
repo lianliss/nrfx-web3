@@ -144,7 +144,15 @@ class Wallet {
     transfer = async (recipient, token, amount) => {
         try {
             const account = await this.getAccount();
-            await this.service.transfer(recipient, token, amount, undefined, account);
+            const network = _.get(this.data, 'network', 'BEP20');
+            switch (network) {
+                case 'TON':
+                    await this.service.transfer(recipient, amount, 'From Narfex user', account);
+                    break;
+                case 'BEP20':
+                default:
+                    await this.service.transfer(recipient, token, amount, undefined, account);
+            }
         } catch (error) {
             logger.error('[Wallet][transfer]', this.data.userID, this.data.network, token, amount, error);
             throw error;

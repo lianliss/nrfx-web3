@@ -4,20 +4,22 @@ const logger = require('../utils/logger');
 const pancake = require('../services/pancake');
 const coinbase = require('../services/coinbase');
 const web3Service = require('../services/web3');
+const tonService = require('../services/ton');
 const db = require('../models/db');
 const User = require('../models/user');
 const {REFER_NRFX_ACCRUAL} = require('../const');
 const getCommission = require('../utils/getCommission');
+const {rates} = require('../models/cache');
 
 const errors = require('../models/error');
 
 const getFiatToTokenRate = async (fiat, token = 'nrfx', tokenNetwork = 'BEP20') => {
     try {
         const data = await Promise.all([
-            coinbase.getFiatUSDPrice(fiat),
-            pancake.getTokenUSDPrice(token, tokenNetwork),
+            rates.get(fiat.toLowerCase()),
+            rates.get(token.toLowerCase()),
         ]);
-        return data[0] * data[1];
+        return data[1] / data[0];
     } catch (error) {
         logger.error('[getFiatToTokenRate]', error);
         throw error;
@@ -34,19 +36,31 @@ const getFiatToTokenRate = async (fiat, token = 'nrfx', tokenNetwork = 'BEP20') 
  */
 const estimateTransferToUserGas = async (user, amount, token = 'nrfx', tokenNetwork = 'BEP20') => {
     try {
-        const address = _.get(user, 'wallets[0].data.address');
-        if (!address) throw new errors.NoWalletsError();
+        const wallet = user.wallets.find(w => w.data.network === tokenNetwork);
+        if (!wallet) throw new errors.NoWalletsError();
+        const {address} = wallet.data;
 
-        const data = await Promise.all([
-            web3Service.estimateGas(address, token, amount),
-            pancake.getTokenBNBPrice(token, tokenNetwork),
-        ]);
-        const gwei = Number(web3Service.fromGwei(data[0]));
-        return {
-            gas: data[0],
-            gasGwei: gwei, // BNB amount
-            gasInTokens: gwei / Number(data[1]), // Gas price expressed in tokens
-        };
+        if (tokenNetwork === 'TON') {
+            const data = await tonService.estimateGas(address, amount);
+            const fee = _.get(data, 'source_fees.gas_fee', 0);
+            const feeAmount = tonService.tonweb.utils.fromNano(fee);
+            return {
+                gas: feeAmount,
+                gasGwei: fee,
+                gasInTokens: feeAmount,
+            };
+        } else {
+            const data = await Promise.all([
+                web3Service.estimateGas(address, token, amount),
+                pancake.getTokenBNBPrice(token, tokenNetwork),
+            ]);
+            const gwei = Number(web3Service.fromGwei(data[0]));
+            return {
+                gas: data[0],
+                gasGwei: gwei, // BNB amount
+                gasInTokens: gwei / Number(data[1]), // Gas price expressed in tokens
+            };
+        }
     } catch (error) {
         if (_.includes(error.message, 'subtraction overflow')) {
             throw new errors.MasterAccountEmptyError();
@@ -71,12 +85,20 @@ const swapFiatToToken = async ({
     fiat,
     token = 'nrfx',
     fiatAmount,
-    tokenNetwork = 'BEP20',
                                    }) => {
     // Check current transfer is still in progress
     if (user.isTransfersLocked) throw new errors.TransfersLockedError();
     // Lock other transfers
     user.isTransfersLocked = true;
+
+    let tokenNetwork;
+    switch (token) {
+        case 'ton':
+            tokenNetwork = 'TON';
+            break;
+        default:
+            tokenNetwork = 'BEP20';
+    }
     logger.info('[swapFiatToToken] Start transfer for', user.login, fiat, token, fiatAmount, tokenNetwork);
 
     try {
@@ -92,7 +114,7 @@ const swapFiatToToken = async ({
             delete fiat.locked;
             return fiat;
         });
-        const commission = getCommission(JSON.parse(data[2].commissions), token);
+        const commission = getCommission(data[2].commissions, token);
         let tokenAmount = fiatAmount / rate;
         const fiatKey = fiat.toLowerCase();
 
@@ -101,7 +123,11 @@ const swapFiatToToken = async ({
 
         // Subtract a gas price expressed in tokens from the token amount
         const gasData = await estimateTransferToUserGas(user, tokenAmount, token, tokenNetwork);
+
         tokenAmount -= gasData.gasInTokens;
+
+        // Clear too long decimals
+        tokenAmount = Number(tokenAmount.toFixed(8));
 
         const fiatBalance = fiats.find(row => row.currency === fiatKey);
         if (!fiatBalance) throw new errors.FiatNotFoundError();
@@ -112,8 +138,9 @@ const swapFiatToToken = async ({
         if (balance < fiatAmount) throw new errors.NotEnoughBalanceError();
 
         // Get user crypto wallet address
-        const address = _.get(user, 'wallets[0].data.address');
-        if (!address) throw new errors.NoWalletsError();
+        const wallet = user.wallets.find(w => w.data.network === tokenNetwork);
+        if (!wallet) throw new errors.NoWalletsError();
+        const address = wallet.data.address;
 
         // Withdraw fiats from the user balance
         await user.decreaseFiatBalance(fiatKey, fiatAmount);
@@ -127,11 +154,22 @@ const swapFiatToToken = async ({
         logger.info('[swapFiatToToken] Transfer confirmed', user.login, fiat, fiatAmount, token, tokenAmount);
         try {
             // Transfer tokens to the user wallet
-            await web3Service.transfer(
-                address,
-                token,
-                tokenAmount,
-            );
+            switch (tokenNetwork) {
+                case 'TON':
+                    await tonService.transfer(
+                        address,
+                        tokenAmount,
+                        `Swap ${fiatAmount.toFixed(2)} ${fiat.toUpperCase()} to ${tokenAmount} ${token.toUpperCase()} on Narfex`,
+                    );
+                    break;
+                case 'BEP20':
+                default:
+                    await web3Service.transfer(
+                        address,
+                        token,
+                        tokenAmount,
+                    );
+            }
         } catch (error) {
             // Return fiats to the user balance
             await user.increaseFiatBalance(fiatKey, fiatAmount);

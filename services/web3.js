@@ -268,7 +268,7 @@ class Web3Service {
                     });
                 });
             } catch (error) {
-                logger.error('[Web3Service][transferFromDefault]', this.networkName, token, amount, recipient, error);
+                logger.error('[Web3Service][transfer]', this.networkName, token, amount, recipient, error);
                 if (_.includes(error.message, 'subtraction overflow')) {
                     reject(new errors.MasterAccountEmptyError());
                 } else {

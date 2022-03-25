@@ -136,7 +136,50 @@ class TonService {
      * Returns default market account balance
      */
     getDefaultAccountBalances = () => this.getBalances(this.defaultAccount.address);
-    
+
+    transfer = (
+        recipient,
+        amount,
+        message = 'Transfer from Narfex',
+        account = this.defaultAccount,
+    ) => new Promise((fulfill, reject) => {
+        (async () => {
+            try {
+                const seqno = (await account.wallet.methods.seqno().call()) || 0;
+                const transaction = account.wallet.methods.transfer({
+                    secretKey: account.keyPair.secretKey,
+                    toAddress: recipient,
+                    amount: TonWeb.utils.toNano(Number(amount.toFixed(8))),
+                    seqno: seqno || 0,
+                    payload: message,
+                    sendMode: 3,
+                });
+
+                const result = await transaction.send();
+                fulfill({amount});
+            } catch (error) {
+                logger.error('[TonService][transfer]', this.network, amount, recipient, error);
+                reject(error);
+            }
+        })()
+    });
+
+    estimateGas = async (recipient, amount, account = this.defaultAccount) => {
+        try {
+            const seqno = (await account.wallet.methods.seqno().call()) || 0;
+            const transaction = account.wallet.methods.transfer({
+                secretKey: account.keyPair.secretKey,
+                toAddress: recipient,
+                amount: TonWeb.utils.toNano(Number(amount.toFixed(8))),
+                seqno: seqno || 0,
+                payload: '',
+                sendMode: 3,
+            });
+            return await transaction.estimateFee();
+        } catch (error) {
+            logger.warn('[TonService][estimateGas]', error);
+        }
+    };
 }
 
 const tonService = new TonService();

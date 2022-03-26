@@ -204,6 +204,7 @@ const swapFiatToToken = async ({
                 to_currency: token,
                 crypto_amount: tokenAmount,
                 price: rate,
+                commission,
             },
         });
 

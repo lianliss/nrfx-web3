@@ -115,11 +115,11 @@ const swapFiatToToken = async ({
             return fiat;
         });
 
-        let commissions = data[2];
+        let commissions = data[2].commissions;
         try {
             commissions = JSON.parse(commissions);
         } catch (error) {
-            logger.warn('Commissions in not JSON format', data[2]);
+            logger.warn('Commissions in not JSON format', commissions);
         }
 
         const commission = getCommission(commissions, token);

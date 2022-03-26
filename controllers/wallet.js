@@ -207,9 +207,11 @@ const transfer = (req, res) => {
         try {
             const {user} = res.locals;
             const address = _.get(req, 'query.address');
-            const network = _.get(req, 'query.network', 'BEP20');
             const token = _.get(req, 'query.token', 'nrfx');
             const amount = Number(_.get(req, 'query.amount'));
+
+            const network = token === 'ton' ? 'TON' : 'BEP20';
+
             if (!address || !amount) {
                 res.status(400).json({
                     code: 400,
@@ -218,7 +220,7 @@ const transfer = (req, res) => {
                 return;
             }
 
-            const wallet = user.wallets.find(w => w.network === network);
+            const wallet = user.wallets.find(w => w.data.network === network);
             const result = await wallet.transfer(address, token, amount);
             res.status(200).json({
                 address,

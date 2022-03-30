@@ -73,6 +73,37 @@ const addHistoryExchange = async data => {
     }
 };
 
+const getBalancesHistory = async () => {
+    try {
+        return db.query(`
+        SELECT
+        op.id,
+        op.manager_id,
+        m.login AS manager,
+        c.number AS card,
+        op.amount, op.fee,
+        op.created_at_timestamp,
+        op.user_id,
+        u.first_name, u.last_name, u.login, u.email
+        FROM bank_cards_operations AS op
+        LEFT JOIN users AS u
+        ON op.user_id = u.id
+        LEFT JOIN users AS m
+        ON op.user_id = m.id
+        LEFT JOIN bank_cards AS c
+        ON op.card_id = c.id
+        WHERE
+        op.created_at_timestamp >= 1643523562
+        AND op.user_id != 4279
+        AND op.status = 'confirmed';
+        `);
+    } catch (error) {
+        logger.error('[getBalancesHistory]', error);
+        return null;
+    }
+};
+
 module.exports = {
     addHistoryExchange,
+    getBalancesHistory,
 };

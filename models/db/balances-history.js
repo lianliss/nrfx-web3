@@ -89,7 +89,7 @@ const getBalancesHistory = async () => {
         LEFT JOIN users AS u
         ON op.user_id = u.id
         LEFT JOIN users AS m
-        ON op.user_id = m.id
+        ON op.manager_id = m.id
         LEFT JOIN bank_cards AS c
         ON op.card_id = c.id
         WHERE

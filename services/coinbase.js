@@ -22,7 +22,12 @@ class Coinbase extends Request {
     updateRates = () => {
         FIATS.map(fiat => {
             cache.rates.set(fiat, (async () => {
-                return 1 / (await this.getFiatUSDPrice(fiat));
+                try {
+                    return 1 / (await this.getFiatUSDPrice(fiat));
+                } catch (error) {
+                    logger.warn('[Coinbase][updateRates]', fiat, error);
+                    return 1;
+                }
             })());
         })
     };
@@ -40,8 +45,15 @@ class Coinbase extends Request {
             const response = await this.get(`prices/USD-${fiatSymbol}/spot`);
             return Number(response.data.amount);
         } catch (error) {
+            const code = _.get(error, 'response.status', 0);
+            const message = `${_.get(error, 'response.statusText', 'Undefined response')} Code: ${code}`;
+            const newError = new Error({
+                code: code,
+                name: message,
+                message,
+            });
             logger.error('[Coinbase][getFiatUSDPrice]', fiat, error);
-            throw error;
+            throw newError;
         }
     };
 }

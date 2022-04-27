@@ -3,6 +3,9 @@ const logger = require('../utils/logger');
 const cache = require('../models/cache');
 const db = require('../models/db');
 const errors = require('../models/error');
+const {request} = require('../services/request');
+const web3Service = require('../services/web3');
+const Web3 = require('web3');
 
 /**
  * Returns currency's USD price from cache
@@ -83,11 +86,27 @@ const updateCommissions = (req, res) => {
     })();
 };
 
+const getEtherNarfexSupply = (req, res) => {
+    (async () => {
+        try {
+            const data = await request.get('https://api.etherscan.com/api?module=stats&action=tokensupply&contractaddress=0x155cd154b4c3Afc2719601b617e52526a520d301&apikey=KRQYJW6QSQYZP543KAA5YBGAP13NAVHZAY');
+            res.status(200).send(web3Service.fromWei(data.result));
+        } catch (error) {
+            logger.error('[ratesController][getEtherNarfexSupply]', error);
+            res.status(500).json({
+                name: error.name,
+                message: error.message,
+            });
+        }
+    })();
+};
+
 module.exports = {
     getCurrencyUSDPrice,
     getAllRates,
     getCommissions,
     updateCommissions,
+    getEtherNarfexSupply,
 };
 
 

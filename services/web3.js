@@ -19,6 +19,7 @@ class Web3Service {
                 defaultAddress, // Sender address
             } = config.networks[network];
             this.web3 = new Web3(providerAddress);
+            this.bn = this.web3.utils.BN;
             this.network = network;
             this.networkName = name;
             this.defaultToken = defaultToken;
@@ -192,9 +193,9 @@ class Web3Service {
                 .estimateGas({from});
         }
     };
-    fromWei = amount => this.web3.utils.fromWei(Number(amount).toString());
+    fromWei = amount => this.web3.utils.fromWei(new this.bn(amount));
     toWei = amount => this.web3.utils.toWei(Number(amount).toFixed(18));
-    fromGwei = amount => this.web3.utils.fromWei(Number(amount).toString(), 'Gwei');
+    fromGwei = amount => this.web3.utils.fromWei(new this.bn(amount), 'Gwei');
     toGwei = amount => this.web3.utils.toWei(Number(amount).toFixed(18), 'Gwei');
 
     /**

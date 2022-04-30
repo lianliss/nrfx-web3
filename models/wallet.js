@@ -30,10 +30,16 @@ class Wallet {
             const service = getService(network);
             const account = await service.createAccount();
             const key = account.mnemonic || account.privateKey;
+
+            let encryption = service.encrypt(key, userID);
+            if (typeof encryption === 'object') {
+                encryption = JSON.stringify(encryption);
+            }
+
             const data = {
                 userID,
                 address: account.address,
-                encryption: service.encrypt(key, userID),
+                encryption,
                 isGenerated: true,
                 network,
                 service,

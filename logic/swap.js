@@ -123,11 +123,9 @@ const swapFiatToToken = async ({
         }
 
         const commission = getCommission(commissions, token);
-        let tokenAmount = fiatAmount / rate;
+        let tokenAmount = fiatAmount * (1 / rate) / (1 + commission);
+        logger.debug('tokenAmount', `${tokenAmount} = ${fiatAmount} * (1 / ${rate}) / (1 + ${commission})`);
         const fiatKey = fiat.toLowerCase();
-
-        // Apply commission
-        tokenAmount -= tokenAmount * commission;
 
         // Subtract a gas price expressed in tokens from the token amount
         const gasData = await estimateTransferToUserGas(user, tokenAmount, token, tokenNetwork);

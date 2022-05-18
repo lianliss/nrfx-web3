@@ -10,7 +10,8 @@
     "node": ">=15.0.0"
   },
   "scripts": {
-    "start": "NODE_ENV=production ROOT_URL='http://web3.narfex.ru' node -r esm app.js",
+    "start": "NODE_ENV=production node -r esm app.js",
+	"startServer": "NODE_ENV=production ROOT_URL='http://web3.nrfxlab.world' node -r esm app.js",
     "reset": "rm -rf node_modules; npm i",
     "local": "NODE_ENV=local node -r esm app.js"
   },

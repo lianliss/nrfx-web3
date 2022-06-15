@@ -14,6 +14,7 @@ module.exports = app => {
             "https://web3.narfex.com",
             "https://narfex.com",
             "https://cp.narfex.com",
+            "https://testnet.narfex.com",
             "https://nrfxlab.world",
             "https://web3.nrfxlab.world",
         ],

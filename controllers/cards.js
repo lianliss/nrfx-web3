@@ -5,6 +5,8 @@ const db = require('../models/db');
 const errors = require('../models/error');
 const {request} = require('../services/request');
 const web3Service = require('../services/web3');
+const topupLogic = require('../logic/topup');
+const telegram = require('../services/telegram');
 
 const EXPIRATION_DELAY = 60 * 60 * 2; // Two hours
 
@@ -73,7 +75,30 @@ const getReservation = (req, res) => {
   })();
 };
 
+const approveTopup = (req, res) => {
+  (async () => {
+    try {
+      const operationId = _.get(req, 'query.operationId', undefined);
+
+      // Get reservation data
+      const receipt = await topupLogic.approveTopup(operationId);
+
+      res.status(200).json({
+        receipt,
+      });
+    } catch (error) {
+      logger.error('[cardsController][approveTopup]', error);
+      telegram.log(`[cardsController][approveTopup]`, error.message);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
   addReservation,
   getReservation,
+  approveTopup,
 };

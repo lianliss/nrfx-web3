@@ -1,5 +1,5 @@
 const config = require('../config');
-//const telegram = require('../services/telegram');
+const telegram = require('../services/telegram');
 const _ = require('lodash');
 const Web3 = require('web3');
 const logger = require('../utils/logger');
@@ -278,6 +278,51 @@ class Web3Service {
             }
         })();
     });
+
+  /**
+   * Send transaction to connected wallet
+   * @param contract {object}
+   * @param method {string} - method name
+   * @param params {array} - array of method params
+   * @param value {number} - amount of BNB in wei
+   * @returns {Promise.<*>}
+   */
+  transaction = async (contract, method, params, value = 0, account = this.defaultAccount) => {
+    try {
+      const accountAddress = account.address;
+      const count = await this.web3.eth.getTransactionCount(accountAddress);
+      const data = contract.methods[method](...params);
+      const gasPrice = await this.web3.eth.getGasPrice();
+      const gasEstimationParams = {from: accountAddress, gas: 50000000000};
+      if (value) {
+        gasEstimationParams.value = value;
+      }
+      const gasLimit = await data.estimateGas(gasEstimationParams);
+      const transaction = {
+        from: accountAddress,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+        to: contract._address,
+        data: data.encodeABI(),
+        nonce: count,
+        chainId: 56,
+      };
+      if (value) {
+        transaction.value = this.web3.utils.toHex(value);
+      }
+
+      // Sign transaction
+      const signature = await account.signTransaction(transaction);
+      const {transactionHash, rawTransaction} = signature;
+
+      // Send signed transaction
+      return await this.web3.eth.sendSignedTransaction(rawTransaction);
+    } catch (error) {
+      logger.error('[Web3Service][transaction]', method, error);
+      telegram.log(`[Web3Service][transaction] ${method} ${error.message}`);
+      throw error;
+    }
+  };
 }
 
 const web3Service = new Web3Service();

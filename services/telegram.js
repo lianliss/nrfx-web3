@@ -49,11 +49,13 @@ if (isLocal) {
   });
 
   const restartCommand = async ctx => {
+    logger.debug('[Telegram][restartCommand]');
     await execute('pm2 restart web3', 'Restart', ctx);
     return;
   };
 
   const pullCommand = async ctx => {
+    logger.debug('[Telegram][pullCommand]');
     await execute('cd /mnt/HC_Volume_15774891/Narfex_Project/WebDir/web3', 'Go to web3', ctx);
     await execute('git pull', 'Pull', ctx);
     await restartCommand(ctx);

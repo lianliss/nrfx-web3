@@ -37,6 +37,8 @@ module.exports = app => {
             'X-Beta',
             'X-APP-ID',
             'Accept-Language',
+            'nrfx-sign',
+            'nrfx-message',
         ].join(', '));
         next();
     });

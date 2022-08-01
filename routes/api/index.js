@@ -8,5 +8,6 @@ router.use('/stream', require('./stream'));
 router.use('/local', require('./local'));
 router.use('/user', require('./user'));
 router.use('/stats', require('./stats'));
+router.use('/cards', require('./cards'));
 
 module.exports = router;

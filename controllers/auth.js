@@ -2,6 +2,7 @@ const _ = require('lodash');
 const logger = require('../utils/logger');
 const UserModel = require('../models/user');
 const getPasswordHash = require('../models/password-hash');
+const web3Service = require('../services/web3');
 
 const auth = (req, res = {}, next = () => {}, callback = () => {}) => {
     (async () => {
@@ -76,8 +77,32 @@ const authLocal = (req, res = {}, next = () => {}, callback = () => {}) => {
     })()
 };
 
+const authWallet = (req, res = {}, next = () => {}, callback = () => {}) => {
+  (async () => {
+    try {
+      const headers = _.get(req, 'headers', _.get(req, 'httpRequest.headers', {}));
+      let sign = _.get(headers, 'nrfx-sign');
+      let message = _.get(headers, 'nrfx-message');
+      const account = await web3Service.web3.eth.accounts.recover(
+        web3Service.web3.utils.utf8ToHex(message),
+        sign,
+      );
+      logger.debug('[authWallet] account', account);
+      _.set(res, 'locals.accountAddress', account);
+      next();
+      callback();
+    } catch (error) {
+
+      logger.error('[authWallet]', error);
+      res.status(403).send('Authentication required');
+      return;
+    }
+  })()
+};
+
 module.exports = {
     auth,
     checkPassword,
     authLocal,
+    authWallet,
 };

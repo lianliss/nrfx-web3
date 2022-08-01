@@ -4,6 +4,10 @@ const db = require('../../services/mysql');
 const DataModel = require('./data-model');
 
 const model = new DataModel({
+    cardId: {
+      field: 'id',
+      type: 'number',
+    },
     expiresAt: {
         field: 'book_expiration',
         type: 'number',
@@ -67,10 +71,133 @@ const getExpiredReservations = async () => {
         logger.error('[getExpiredReservations]', error);
         return null;
     }
-}
+};
+
+const addCardReservationByWallet = async (cardId, accountAddress, amount, fee) => {
+  try {
+    return await db.query(`
+            INSERT INTO bank_cards_operations
+            (
+            card_id, user_id, account_address, operation, amount, status,
+            created_at_timestamp, updated_at_timestamp, fee
+            )
+            VALUES
+            (
+              ${cardId}, 0, '${accountAddress}', 'book', ${amount}, 'wait_for_pay',
+              ${Math.floor(Date.now() / 1000)}, ${Math.floor(Date.now() / 1000)}, ${fee}
+            );
+        `);
+  } catch (error) {
+    logger.error('[addCardReservationByWallet]', error);
+    return null;
+  }
+};
+
+const reserveTheCard = async (cardId, expiration) => {
+  try {
+    return await db.query(`
+            UPDATE bank_cards
+            SET book_expiration = ${expiration}, booked_by = 0
+            WHERE id = ${cardId};
+        `);
+  } catch (error) {
+    logger.error('[reserveTheCard]', error);
+    return null;
+  }
+};
+
+const getAvailableCards = async (currency, bank) => {
+  try {
+    return model.process(await db.query(`
+            SELECT id
+            FROM bank_cards
+            WHERE booked_by IS NULL
+            AND bank = '${bank}'
+            AND book_expiration IS NULL
+            AND active = 1
+            AND deleted_at IS NULL
+            AND currency = '${currency}'
+            ORDER BY updated_at_timestamp ASC;
+        `));
+  } catch (error) {
+    logger.error('[getAvailableCards]', error);
+    return null;
+  }
+};
+
+const getWalletReservation = async (accountAddress, currency) => {
+  try {
+    return await db.query(`
+            SELECT
+            ops.id AS operation_id,
+            cards.book_expiration,
+            cards.bank,
+            cards.number,
+            cards.holder_name,
+            ops.status, ops.amount
+            FROM bank_cards AS cards
+            INNER JOIN bank_cards_operations AS ops
+            ON cards.id = ops.card_id
+            WHERE cards.book_expiration > ${Date.now() / 1000}
+            AND cards.booked_by IS NOT NULL
+            AND ops.account_address = '${accountAddress}'
+            AND cards.currency = '${currency}';
+        `);
+  } catch (error) {
+    logger.error('[getWalletReservation]', error);
+    return null;
+  }
+};
+
+const cancelCardReservation = async (cardId) => {
+  try {
+    return await db.query(`
+            UPDATE band_cards
+            SET book_expiration = NULL, booked_by = NULL
+            WHERE id = ${cardId};
+        `);
+  } catch (error) {
+    logger.error('[cancelCardReservation]', error);
+    return null;
+  }
+};
+
+const cancelBooking = async (id) => {
+  try {
+    return await db.query(`
+            UPDATE band_cards_operations
+            SET status = 'cancelled',
+            updated_at_timestamp = ${Math.floor(Date.now / 1000)}
+            WHERE id = ${id};
+        `);
+  } catch (error) {
+    logger.error('[cancelBooking]', error);
+    return null;
+  }
+};
+
+const sendToReview = async (operationId, accountAddress) => {
+  try {
+    return await db.query(`
+            UPDATE bank_cards_operations
+            SET status = 'wait_for_review'
+            WHERE id = ${operationId} AND account_address = '${accountAddress}';
+        `);
+  } catch (error) {
+    logger.error('[sendToReview]', error);
+    return null;
+  }
+};
 
 module.exports = {
-    getExpiredBookingCards,
-    clearCardBookingByID,
-    getExpiredReservations,
+  getExpiredBookingCards,
+  clearCardBookingByID,
+  getExpiredReservations,
+  addCardReservationByWallet,
+  reserveTheCard,
+  getAvailableCards,
+  getWalletReservation,
+  cancelCardReservation,
+  cancelBooking,
+  sendToReview,
 };

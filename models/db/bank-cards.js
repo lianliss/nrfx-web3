@@ -138,14 +138,20 @@ const getWalletReservation = async (accountAddress, currency) => {
             cards.bank,
             cards.number,
             cards.holder_name,
-            ops.status, ops.amount
+            ops.status, ops.amount,
+            ops.fee
             FROM bank_cards AS cards
             INNER JOIN bank_cards_operations AS ops
             ON cards.id = ops.card_id
             WHERE cards.book_expiration > ${Date.now() / 1000}
             AND cards.booked_by IS NOT NULL
             AND ops.account_address = '${accountAddress}'
-            AND cards.currency = '${currency}';
+            AND cards.currency = '${currency}'
+            AND (
+              ops.status = 'wait_for_pay'
+              OR ops.status = 'wait_for_review'
+              OR ops.status = 'wait_for_admin_review'
+            );
         `);
   } catch (error) {
     logger.error('[getWalletReservation]', error);
@@ -171,9 +177,9 @@ const cancelCardReservation = async (cardId) => {
 const cancelBooking = async (id) => {
   try {
     return await db.query(`
-            UPDATE band_cards_operations
+            UPDATE bank_cards_operations
             SET status = 'cancelled',
-            updated_at_timestamp = ${Math.floor(Date.now / 1000)}
+            updated_at_timestamp = ${Math.floor(Date.now() / 1000)}
             WHERE id = ${id};
         `);
   } catch (error) {
@@ -233,6 +239,23 @@ const getReservationById = async (operationId) => {
   }
 };
 
+const getAvailableBanks = async () => {
+  try {
+    return await db.query(`
+            SELECT bank, currency
+            FROM bank_cards
+            WHERE booked_by IS NULL
+            AND book_expiration IS NULL
+            AND active = 1
+            AND deleted_at IS NULL;
+        `);
+  } catch (error) {
+    logger.error('[getAvailableBanks]', error);
+    telegram.log(`[getAvailableBanks] ${error.message}`);
+    return null;
+  }
+};
+
 module.exports = {
   getExpiredBookingCards,
   clearCardBookingByID,
@@ -246,4 +269,5 @@ module.exports = {
   sendToReview,
   approveReservation,
   getReservationById,
+  getAvailableBanks,
 };

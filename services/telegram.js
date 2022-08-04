@@ -70,15 +70,9 @@ if (isLocal) {
   telegram.command('start', startCommand);
   telegram.command('restart', restartCommand);
   telegram.command('pull', pullCommand);
-  telegram.command('update', updateCommand);
-  telegram.command('build', buildFrontCommand);
-  telegram.command('updatefront', updateFrontCommand);
 
   telegram.action('restart', restartCommand);
   telegram.action('pull', pullCommand);
-  telegram.action('update', updateCommand);
-  telegram.action('build', buildFrontCommand);
-  telegram.action('updatefront', updateFrontCommand);
 
   telegram.help((ctx) => {
     if (ctx.message.chat.id === config.telegram.chatId) {

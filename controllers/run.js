@@ -8,6 +8,7 @@ const pancake = require('../services/pancake');
 const coinbase = require('../services/coinbase');
 const swapLogic = require('../logic/swap');
 const tonService = require('../services/ton');
+const binance = require('../services/binance');
 
 const FAIL_RUN_TIMEOUT = 10000;
 

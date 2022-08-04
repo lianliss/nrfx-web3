@@ -18,10 +18,18 @@ if (isLocal) {
   const serverKeyboard = Markup.inlineKeyboard([
     Markup.button.callback('Restart', 'restart'),
     Markup.button.callback('Pull', 'pull'),
+    Markup.button.callback('Update', 'update'),
+    Markup.button.callback('Rebuild', 'build'),
+    Markup.button.callback('Update Frond', 'updatefront'),
   ]);
 
   const execOptions = {
     maxBuffer: 1024 * 1024 * 10,
+  };
+
+  const frontExecOptions = {
+    ...execOptions,
+    cwd: '/root/bot-ui',
   };
 
   const startCommand = ctx => {
@@ -49,24 +57,28 @@ if (isLocal) {
   });
 
   const restartCommand = async ctx => {
-    logger.debug('[Telegram][restartCommand]');
     await execute('pm2 restart web3', 'Restart', ctx);
-    return;
+
   };
 
   const pullCommand = async ctx => {
-    logger.debug('[Telegram][pullCommand]');
     await execute('cd /mnt/HC_Volume_15774891/Narfex_Project/WebDir/web3', 'Go to web3', ctx);
     await execute('git pull', 'Pull', ctx);
-    await restartCommand(ctx);
+    restartCommand(ctx);
   };
 
   telegram.command('start', startCommand);
   telegram.command('restart', restartCommand);
   telegram.command('pull', pullCommand);
+  telegram.command('update', updateCommand);
+  telegram.command('build', buildFrontCommand);
+  telegram.command('updatefront', updateFrontCommand);
 
   telegram.action('restart', restartCommand);
   telegram.action('pull', pullCommand);
+  telegram.action('update', updateCommand);
+  telegram.action('build', buildFrontCommand);
+  telegram.action('updatefront', updateFrontCommand);
 
   telegram.help((ctx) => {
     if (ctx.message.chat.id === config.telegram.chatId) {
@@ -106,10 +118,11 @@ if (isLocal) {
   });
 });
 
-process.once('unhandledRejection', (promise, reason) => {
+process.once('unhandledRejection', (reason, promise) => {
+  const code = _.get(reason, 'code', 'No code');
   const message = _.get(reason, 'message', 'No message');
-  logger.error('unhandledRejection', reason);
-  telegram.log(`unhandledRejection reason: ${reason} ${message}`, true);
+  logger.error('unhandledRejection', reason, promise);
+  telegram.log(`unhandledRejection reason: [${code}] ${message}`, true);
 });
 
 module.exports = telegram;

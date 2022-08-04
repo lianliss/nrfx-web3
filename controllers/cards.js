@@ -3,7 +3,6 @@ const logger = require('../utils/logger');
 const cache = require('../models/cache');
 const db = require('../models/db');
 const errors = require('../models/error');
-const {request} = require('../services/request');
 const web3Service = require('../services/web3');
 const topupLogic = require('../logic/topup');
 const telegram = require('../services/telegram');

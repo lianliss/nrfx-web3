@@ -31,7 +31,16 @@ const main = {
 	},
 	user: {
 		passSalt: 'eObeQi4MFUfx9UJRZllDu12xNHILXUPNy4fz3vBw',
-	}
+	},
+  binance: {
+    defaultSymbol: 'BNBUSDT',
+    env: {
+      url: 'https://api.binance.com',
+      socket: 'wss://stream.binance.com',
+      key: 'fVZhdsK63N4rAG7llb75hRW6pNDMLvsJp7CUXT8ktEjKVVyTdcPqsCySTLUydHdh',
+      secret: '7Z3LRzG4OBPtmOeajR3jHDHR3E6TUx2uZ19HvzhtSQ23wMDn0Sloi9kx3R3EisnL',
+    },
+  },
 };
 
 module.exports = {

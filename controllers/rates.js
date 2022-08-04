@@ -6,6 +6,7 @@ const errors = require('../models/error');
 const {request} = require('../utils/request');
 const web3Service = require('../services/web3');
 const Web3 = require('web3');
+const {binance} = require('../services/binance');
 
 /**
  * Returns currency's USD price from cache
@@ -101,12 +102,42 @@ const getEtherNarfexSupply = (req, res) => {
     })();
 };
 
+const getLimits = (req, res) => {
+  (async () => {
+    try {
+      res.status(200).json(binance.coins.map(coin => ({...coin, balance: null})));
+    } catch (error) {
+      logger.error('[ratesController][getLimits]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
+const getBinanceBalance = (req, res) => {
+  (async () => {
+    try {
+      res.status(200).json(binance.coins);
+    } catch (error) {
+      logger.error('[ratesController][getLimits]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
     getCurrencyUSDPrice,
     getAllRates,
     getCommissions,
     updateCommissions,
     getEtherNarfexSupply,
+    getLimits,
+    getBinanceBalance,
 };
 
 

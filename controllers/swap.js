@@ -96,8 +96,41 @@ const getFiatToTokenRate = (req, res) => {
     })();
 };
 
+const exchange = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const fiat = _.get(req, 'query.fiat');
+      const coin = _.get(req, 'query.coin');
+      const fiatAmount = Number(_.get(req, 'query.fiatAmount'));
+
+      if (!fiat || !coin || !fiatAmount) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Missing parameters',
+        });
+      }
+
+      const result = await swapLogic.exchange(
+        accountAddress,
+        fiat,
+        coin,
+        fiatAmount,
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      logger.error('[swapController][exchange]', error);
+      res.status(500).json({
+        name: _.get(error, 'data.code', error.name),
+        message: _.get(error, 'data.msg', error.message),
+      });
+    }
+  })();
+};
+
 module.exports = {
     swapFiatToToken,
     getFiatToTokenRate,
     estimateTransferToUserGas,
+    exchange,
 };

@@ -28,7 +28,7 @@ class Coinbase extends Request {
           return 1 / (await this.getFiatUSDPrice(fiat));
         } catch (error) {
           logger.warn('[Coinbase][updateRates]', fiat, error);
-          return 1;
+          return null;
         }
       })());
     })

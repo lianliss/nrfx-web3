@@ -8,6 +8,8 @@ router.get('/fiat', ratesController.getCurrencyUSDPrice);
 router.get('/token', ratesController.getCurrencyUSDPrice);
 router.get('/commissions', ratesController.getCommissions);
 router.get('/supply/ethernrfx', ratesController.getEtherNarfexSupply);
+router.get('/limits', ratesController.getLimits);
+router.get('/balance', auth, ratesController.getBinanceBalance);
 router.post('/commissions', auth, ratesController.updateCommissions);
 
 module.exports = router;

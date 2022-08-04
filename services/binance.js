@@ -9,7 +9,10 @@ const telegram = require('./telegram');
 const _ = require('lodash');
 const wait = require('../utils/timeout');
 const cache = require('../models/cache');
-const {GET_BINANCE_RATE_INTERVAL} = require('../const');
+const {
+  GET_BINANCE_RATE_INTERVAL,
+  GET_BINANCE_WITHDRAWS_INTERVAL,
+} = require('../const');
 
 const getEndpointUrl = endpoint => `${env.url}/sapi/v1${endpoint[0] === '/' ? endpoint : '/' + endpoint}`;
 const secondEndpointUrl = endpoint => `${env.url}/api/v3${endpoint[0] === '/' ? endpoint : '/' + endpoint}`;
@@ -35,11 +38,12 @@ class Binance extends Request {
 
     this.apiSecret = _.get(userCache, 'api_secret', env.secret);
     Promise.all([
-      this.getAllCoinsInfo(),
+      this.updateBalance(),
       this.exchangeInfo(),
     ]).then(data => {
       const coins = data[0];
       const exchange = data[1];
+      this.exchangeData = exchange;
       this.availableSymbols = coins.filter(token => token.coin !== 'USDT')
         .map(token => `${token.coin}USDT`)
         .filter(symbol => {
@@ -50,12 +54,13 @@ class Binance extends Request {
       logger.error(`[Binance] Can't start rates updates`, error);
       telegram.log(`[Binance] Can't start rates updates: ${error.message}`);
     });
-    this.getAllCoinsInfo().then(data => {
-
-    })
+    this.updateWithdraws();
   }
 
   availableSymbols = [];
+  coins = [];
+  pendingWithdraws = {};
+
   noKey = {tempInstance: axios};
   signParams = (params = {}) => {
     const data = {
@@ -186,7 +191,7 @@ class Binance extends Request {
   getWithdrawHistory = () => this.get('capital/withdraw/history', {
     isSign,
     params: {
-      limit: 5,
+      limit: 10,
     }
   });
 
@@ -242,10 +247,10 @@ class Binance extends Request {
         }
       });
       logger.debug('[updateRates]', updates, 'updates');
-      this.ratesInterval = setInterval(() => this.updateRates(symbols), GET_BINANCE_RATE_INTERVAL);
     } catch (error) {
       logger.error('[Binance][updateRates]', error);
     }
+    this.ratesTimeout = setTimeout(() => this.updateRates(symbols), GET_BINANCE_RATE_INTERVAL);
   };
 
   getRate = async coin => {
@@ -257,6 +262,76 @@ class Binance extends Request {
       logger.error('[Binance][getRate]', coin, error);
       return 1;
     }
+  };
+
+  updateBalance = async () => {
+    try {
+      const coins = await this.getAllCoinsInfo();
+      this.coins = coins.map(coin => {
+        const network = coin.networkList.find(n => n.network === 'BSC');
+        return {
+          coin: coin.coin,
+          name: coin.name,
+          balance: Number(coin.free) || 0,
+          minDecimals: Number(network.withdrawIntegerMultiple) || 0.0000000001,
+          fee: Number(network.withdrawFee) || 0,
+          min: Number(network.withdrawMin) * 2 || 0,
+          max: Number(network.withdrawMax) || Infinity,
+          time: Number(network.estimatedArrivalTime) || 5,
+        }
+      });
+      return coins;
+    } catch (error) {
+      logger.error('[Binance][updateBalance]', error);
+      return [];
+    }
+    this.balanceTimeout = setTimeout(() => this.updateBalance(), GET_BINANCE_RATE_INTERVAL);
+  };
+
+  // Withdraws checking loop
+  updateWithdraws = async () => {
+    try {
+      logger.debug('[updateWithdraws] list', this.pendingWithdraws);
+      if (Object.keys(this.pendingWithdraws).length) {
+        const history = await this.getWithdrawHistory();
+        Object.keys(this.pendingWithdraws).map(id => {
+          const promise = this.pendingWithdraws[id];
+          const withdraw = history.find(w => w.withdrawOrderId === id);
+          if (!withdraw) return;
+
+          const status = [
+            'Email Sent', 'Cancelled', 'Awaiting Approval', 'Rejected', 'Processing', 'Failure', 'Completed'
+          ];
+
+          switch (withdraw.status) {
+            case 6: // Completed
+              logger.info('[Binance][updateWithdraws]', id, status[withdraw.status]);
+              promise.fulfill({
+                ...withdraw,
+                status: status[withdraw.status],
+              });
+              delete this.pendingWithdraws[id];
+              return;
+            case 1: // Cancelled
+            case 3: // Rejected
+            case 5: // Failure
+              logger.warn('[Binance][updateWithdraws]', id, status[withdraw.status]);
+              promise.reject({
+                ...withdraw,
+                status: status[withdraw.status],
+              });
+              delete this.pendingWithdraws[id];
+              return;
+            default: // Email Send, Awaiting Approval or Processing
+              logger.debug('[Binance][updateWithdraws]', id, status[withdraw.status]);
+              return;
+          }
+        })
+      }
+    } catch (error) {
+      logger.error('[Binance][updateWithdraws]', error);
+    }
+    this.withdrawsTimeout = setTimeout(() => this.updateWithdraws(), GET_BINANCE_WITHDRAWS_INTERVAL);
   };
 
   request(rawUrl, origOptions = {}, attempt = 1) {

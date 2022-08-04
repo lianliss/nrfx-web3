@@ -97,6 +97,7 @@ if (isLocal) {
       config.telegram.chatId,
       message,
       {
+        parse_mode: 'HTML',
         disable_notification: isNotify,
       }
     );

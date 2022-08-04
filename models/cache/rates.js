@@ -45,7 +45,10 @@ class RatesCache {
     if (item && item.then) {
       this.promises[currency] = (async () => {
         try {
-          this.list[currency] = await item;
+          const newValue = await item;
+          if (newValue) {
+            this.list[currency] = await item;
+          }
           this.promises[currency] = null;
           return this.list[currency];
         } catch (error) {

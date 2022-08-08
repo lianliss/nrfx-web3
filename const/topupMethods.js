@@ -5,13 +5,28 @@ module.exports = [
     title: 'Tinkoff Bank',
   },
   {
-    currencies: ['UAH'],
+    currencies: ['RUB'],
     code: 'gazprombank',
     title: 'Газпромбанк',
   },
   {
     currencies: ['UAH'],
-    code: 'vostokbank',
-    title: 'Восток Банк',
+    code: 'privatbank',
+    title: 'ПриватБанк',
+  },
+  {
+    currencies: ['UAH'],
+    code: 'monobank',
+    title: 'monobank',
+  },
+  {
+    currencies: ['IDR'],
+    code: 'bni',
+    title: 'BNI',
+  },
+  {
+    currencies: ['IDR'],
+    code: 'permata',
+    title: 'Permata',
   },
 ];

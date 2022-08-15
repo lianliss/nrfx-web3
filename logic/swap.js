@@ -357,7 +357,7 @@ const exchange = async (accountAddress,
     if (coinAmount < minCoinAmount) throw new Error('Coin amount is less than minimum');
     if (coinAmount > maxCoinAmount) throw new Error('Coin amount is more than maximum');
     if (fiatAmount > fiatBalance) throw new Error('Not enough fiat balance');
-    if (usdtAmount > usdtBalance) throw new Error(`Overload error. Try again in 5 minutes or text to Support`);
+    if (usdtAmount > usdtBalance && coin !== 'NRFX') throw new Error(`Overload error. Try again in 5 minutes or text to Support`);
 
     const exchangeId = `exchange-${fiat}-${coin}-${Date.now()}`;
 

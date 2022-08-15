@@ -357,7 +357,7 @@ const exchange = async (accountAddress,
     if (coinAmount < minCoinAmount) throw new Error('Coin amount is less than minimum');
     if (coinAmount > maxCoinAmount) throw new Error('Coin amount is more than maximum');
     if (fiatAmount > fiatBalance) throw new Error('Not enough fiat balance');
-    if (usdtAmount > usdtBalance) throw new Error(`Not enough money in Exchanger's balance`);
+    if (usdtAmount > usdtBalance) throw new Error(`Overload error. Try again in 5 minutes or text to Support`);
 
     const exchangeId = `exchange-${fiat}-${coin}-${Date.now()}`;
 
@@ -415,6 +415,14 @@ const exchange = async (accountAddress,
       telegram.log(`[exchange] Withdraw <b>${withdraw.amount}</b> ${withdraw.coin}
  to <a href="https://bscscan.com/address/${withdraw.address}">${withdraw.address}</a>
  <a href="https://bscscan.com/tx/${txHash || ''}"></a><b>${withdraw.status}</b></a>`);
+    } else {
+      // Send NARFEX
+      const result = await web3Service.transfer(
+        accountAddress,
+        'nrfx',
+        coinAmount,
+      );
+      txHash = _.get(result, 'receipt.transactionHash');
     }
 
     return {txHash};

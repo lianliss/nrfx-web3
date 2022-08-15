@@ -257,6 +257,7 @@ class Web3Service {
                             fulfill({
                                 token,
                                 amount,
+                                receipt,
                             });
                         }
                     }).on('error', error => {

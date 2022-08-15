@@ -138,7 +138,6 @@ const getWalletReservation = async (accountAddress, currency) => {
             cards.bank,
             cards.number,
             cards.holder_name,
-            cartd.currency,
             ops.status, ops.amount,
             ops.fee
             FROM bank_cards AS cards

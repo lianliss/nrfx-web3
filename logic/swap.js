@@ -427,7 +427,7 @@ const exchange = async (accountAddress,
       logger.debug('withdraw', withdraw);
       telegram.log(`[exchange] Withdraw <b>${withdraw.amount}</b> ${withdraw.coin}
  to <a href="https://bscscan.com/address/${withdraw.address}">${withdraw.address}</a>
- <a href="https://bscscan.com/tx/${txHash || ''}"></a><b>${withdraw.status}</b></a>`);
+ <a href="https://bscscan.com/tx/${txHash || ''}"><b>${withdraw.status}</b></a>`);
     } else {
       // Send NARFEX
       try {
@@ -438,10 +438,9 @@ const exchange = async (accountAddress,
           coinAmount,
         );
         txHash = _.get(result, 'receipt.transactionHash');
-        logger.debug(`[exchange] Transfer ${accountAddress} ${coinAmount.toFixed(5)} NRFX`, txHash, result);
         telegram.log(`[exchange] Transfer <b>${coinAmount.toFixed(5)}</b> NRFX
  to <a href="https://bscscan.com/address/${accountAddress}">${accountAddress}</a>
- <a href="https://bscscan.com/tx/${txHash || ''}"></a><b>View details</b></a>`);
+ <a href="https://bscscan.com/tx/${txHash || ''}"><b>View details</b></a>`);
       } catch (error) {
         logger.error('[exchange] Transfer ERROR', error);
         telegram.log(`[exchange] Transfer ERROR <b>${coinAmount}</b> NRFX: ${error.message}`);

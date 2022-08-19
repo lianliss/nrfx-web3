@@ -337,7 +337,7 @@ const exchange = async (accountAddress,
     }
     const fiatCommission = (Number(_.get(commissions, `${fiat.toLowerCase()}`, 0)) || 0) / 100;
     const coinCommission = getCommission(commissions, coin.toLowerCase());
-    const rate = (fiatPrice - (1 - fiatCommission)) / coinPrice;
+    const rate = (fiatPrice * (1 - fiatCommission)) / coinPrice;
     const fiatAmount = Number(amount) || 0;
 
     // Calculate coin amount
@@ -355,15 +355,15 @@ const exchange = async (accountAddress,
       decimals,
     });
     telegram.log(`[exchange] Details:
-User balance: ${fiatBalance.toFixed(2)} ${fiat}
-${fiatAmount.toFixed(2)} ${fiat}
-${coinAmount.toFixed(2)} ${coin}
-Equivalently: ${usdtAmount.toFixed(2)} USDT
-Binance USDT balance: ${usdtBalance} USDT
-Fiat commission: ${fiatCommission * 100}%
-Rate: ${rate.toFixed(5)}
-Coin commission: ${coinCommission * 100}%
-Minimum: ${minCoinAmount.toFixed(2)} ${coin} 
+<b>User balance:</b> ${fiatBalance.toFixed(2)} ${fiat}
+<b>Fiat:</b> ${fiatAmount.toFixed(2)} ${fiat}
+<b>Coin:</b> ${coinAmount.toFixed(2)} ${coin}
+<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT
+<b>Binance USDT balance:</b> ${usdtBalance} USDT
+<b>Fiat commission:</b> ${fiatCommission * 100}%
+<b>Rate:</b> ${rate.toFixed(5)}
+<b>Coin commission:</b> ${coinCommission * 100}%
+<b>Minimum:</b> ${minCoinAmount.toFixed(2)} ${coin} 
 `);
 
     // limits

@@ -438,7 +438,8 @@ const exchange = async (accountAddress,
           coinAmount,
         );
         txHash = _.get(result, 'receipt.transactionHash');
-        telegram.log(`[exchange] Transfer <b>${coinAmount}</b> NRFX
+        logger.debug(`[exchange] Transfer ${accountAddress} ${coinAmount.toFixed(5)} NRFX`, txHash, result);
+        telegram.log(`[exchange] Transfer <b>${coinAmount.toFixed(5)}</b> NRFX
  to <a href="https://bscscan.com/address/${accountAddress}">${accountAddress}</a>
  <a href="https://bscscan.com/tx/${txHash || ''}"></a><b>View details</b></a>`);
       } catch (error) {

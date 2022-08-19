@@ -431,6 +431,7 @@ const exchange = async (accountAddress,
     } else {
       // Send NARFEX
       try {
+        await wait(5000);
         const result = await web3Service.transfer(
           accountAddress,
           'nrfx',

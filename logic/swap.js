@@ -441,6 +441,7 @@ const exchange = async (accountAddress,
  to <a href="https://bscscan.com/address/${accountAddress}">${accountAddress}</a>
  <a href="https://bscscan.com/tx/${txHash || ''}"></a><b>View details</b></a>`);
       } catch (error) {
+        logger.error('[exchange] Transfer ERROR', error);
         telegram.log(`[exchange] Transfer ERROR <b>${coinAmount}</b> NRFX: ${error.message}`);
         throw new Error(error.message);
       }

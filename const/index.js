@@ -12,6 +12,8 @@ module.exports = {
     'rub',
     'idr',
     'uah',
+    'cny',
+    'idr',
   ],
   GET_RATE_INTERVAL: 60 * 1000,
   GET_BINANCE_RATE_INTERVAL: 60 * 2 * 1000,

@@ -335,17 +335,18 @@ const exchange = async (accountAddress,
     } catch (error) {
       logger.warn('Commissions in not JSON format', commissions);
     }
-    const commission = getCommission(commissions, coin.toLowerCase());
-    const rate = fiatPrice / coinPrice;
+    const fiatCommission = (Number(_.get(commissions, `${fiat.toLowerCase()}`, 0)) || 0) / 100;
+    const coinCommission = getCommission(commissions, coin.toLowerCase());
+    const rate = (fiatPrice - (1 - fiatCommission)) / coinPrice;
     const fiatAmount = Number(amount) || 0;
 
     // Calculate coin amount
-    let coinAmount = fiatAmount * rate * (1 - commission);
+    let coinAmount = fiatAmount * rate * (1 - coinCommission);
     coinAmount = Number(coinAmount.toFixed(decimals)); // Round value
     let usdtAmount = coin === 'USDT' ? coinAmount : coinAmount * coinPrice;
     usdtAmount = Number(usdtAmount.toFixed(decimals)); // Round value
     logger.debug('commissions', {
-      commission,
+      coinCommission,
       rate,
       fiatAmount,
       coinAmount,
@@ -417,12 +418,20 @@ const exchange = async (accountAddress,
  <a href="https://bscscan.com/tx/${txHash || ''}"></a><b>${withdraw.status}</b></a>`);
     } else {
       // Send NARFEX
-      const result = await web3Service.transfer(
-        accountAddress,
-        'nrfx',
-        coinAmount,
-      );
-      txHash = _.get(result, 'receipt.transactionHash');
+      try {
+        const result = await web3Service.transfer(
+          accountAddress,
+          'nrfx',
+          coinAmount,
+        );
+        txHash = _.get(result, 'receipt.transactionHash');
+        telegram.log(`[exchange] Transfer <b>${coinAmount}</b> NRFX
+ to <a href="https://bscscan.com/address/${accountAddress}">${accountAddress}</a>
+ <a href="https://bscscan.com/tx/${txHash || ''}"></a><b>${Success}</b></a>`);
+      } catch (error) {
+        telegram.log(`[exchange] Transfer ERROR <b>${coinAmount}</b> NRFX: ${error.message}`);
+        throw new Error(error.message);
+      }
     }
 
     return {txHash};

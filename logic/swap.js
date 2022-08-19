@@ -345,7 +345,8 @@ const exchange = async (accountAddress,
     coinAmount = Number(coinAmount.toFixed(decimals)); // Round value
     let usdtAmount = coin === 'USDT' ? coinAmount : coinAmount * coinPrice;
     usdtAmount = Number(usdtAmount.toFixed(decimals)); // Round value
-    logger.debug('commissions', {
+    logger.debug('[exchange] Details', {
+      fiatCommission,
       coinCommission,
       rate,
       fiatAmount,
@@ -353,9 +354,20 @@ const exchange = async (accountAddress,
       usdtAmount,
       decimals,
     });
+    telegram.log(`[exchange] Details:
+User balance: ${fiatBalance.toFixed(2)} ${fiat}
+${fiatAmount.toFixed(2)} ${fiat}
+${coinAmount.toFixed(2)} ${coin}
+Equivalently: ${usdtAmount.toFixed(2)} USDT
+Binance USDT balance: ${usdtBalance} USDT
+Fiat commission: ${fiatCommission * 100}%
+Rate: ${rate.toFixed(5)}
+Coin commission: ${coinCommission * 100}%
+Minimum: ${minCoinAmount.toFixed(2)} ${coin} 
+`);
 
     // limits
-    if (coinAmount < minCoinAmount) throw new Error('Coin amount is less than minimum');
+    if (coinAmount < minCoinAmount) throw new Error(`Coin amount is less than minimum`);
     if (coinAmount > maxCoinAmount) throw new Error('Coin amount is more than maximum');
     if (fiatAmount > fiatBalance) throw new Error('Not enough fiat balance');
     if (usdtAmount > usdtBalance && coin !== 'NRFX') throw new Error(`Overload error. Try again in 5 minutes or text to Support`);

@@ -154,7 +154,11 @@ const getAvailableBanks = (req, res) => {
             title: b.bank,
           };
           const bank = topupMethods.find(m => m.code === b.bank);
-          if (bank) banks[b.bank].title = bank.title;
+          if (bank) {
+            banks[b.bank].title = bank.title;
+            banks[b.bank].minAmount = bank.minAmount;
+            banks[b.bank].maxAmount = bank.maxAmount;
+          }
         }
         banks[b.bank].currencies[b.currency] = true;
       });

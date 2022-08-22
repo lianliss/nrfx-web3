@@ -82,7 +82,7 @@ const authWallet = (req, res = {}, next = () => {}, callback = () => {}) => {
     try {
       const headers = _.get(req, 'headers', _.get(req, 'httpRequest.headers', {}));
       let sign = _.get(headers, 'nrfx-sign');
-      let message = _.get(headers, 'nrfx-message');
+      let message = `Sign up with code ${_.get(headers, 'nrfx-message', '')}`;
       const account = await web3Service.web3.eth.accounts.recover(
         web3Service.web3.utils.utf8ToHex(message),
         sign,

@@ -245,7 +245,6 @@ const getAvailableBanks = async () => {
             SELECT bank, currency
             FROM bank_cards
             WHERE booked_by IS NULL
-            AND book_expiration IS NULL
             AND active = 1
             AND deleted_at IS NULL;
         `);

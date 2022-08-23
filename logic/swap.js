@@ -401,7 +401,7 @@ const exchange = async (accountAddress,
     // Send coins to user
     let txHash;
     if (coin !== 'NRFX') {
-      await wait(2000); // Wait after swap
+      await wait(10000); // Wait after swap
       const withdrawId = await binance.applyWithdraw(
         coin,
         accountAddress,

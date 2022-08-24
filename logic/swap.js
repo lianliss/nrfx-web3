@@ -2,7 +2,6 @@ const _ = require('lodash');
 const logger = require('../utils/logger');
 
 const pancake = require('../services/pancake');
-const coinbase = require('../services/coinbase');
 const web3Service = require('../services/web3');
 const tonService = require('../services/ton');
 const db = require('../models/db');

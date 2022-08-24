@@ -14,8 +14,8 @@ class Coinbase extends Request {
       maxAttempts: 1,
       ...config,
     });
-    this.updateRates();
-    this.interval = setInterval(this.updateRates, GET_RATE_INTERVAL);
+    //this.updateRates();
+    //this.interval = setInterval(this.updateRates, GET_RATE_INTERVAL);
   };
 
   /**

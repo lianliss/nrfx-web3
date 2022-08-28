@@ -19,13 +19,15 @@ module.exports = {
                 ...reservations.map(res => db.expireBankCardOperation(Number(res.operation_id))),
             ]);
 
-            return {
-                cards: cards.length,
-                operations: reservations.length,
-            }
+            return !!cards.length || !!reservations.length
+                ? {
+                    cards: cards.length,
+                    operations: reservations.length,
+                }
+                : null;
         } catch (error) {
             logger.error('Job Bank cards reservations clean', error);
-            return {};
+            return null;
         }
     }
 };

@@ -26,12 +26,12 @@ const addReservation = (req, res) => {
       const availableCards = data[0];
       const settings = data[1];
       const feeMultiplier = _.get(settings, 'rub_refill_percent_fee', 2) / 100;
-      logger.debug('[addReservation] availableCards', availableCards);
       if (!availableCards.length) {
         res.status(400).json({
           name: 'no_cards_available',
           message: 'no_cards_available',
         });
+        return;
       }
       const {cardId} = availableCards[0];
 

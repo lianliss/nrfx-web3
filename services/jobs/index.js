@@ -30,7 +30,9 @@ class Job {
                 // It action is a Promise lets wait for it
                 action = await action;
             }
-            logger.info('[Job]', this.name, 'executed', action);
+            if (action) {
+                logger.info('[Job]', this.name, 'executed', action);
+            }
         } catch (error) {
             const isLastFail = ++this.failsCount >= this.maxFailsCount;
             const loggerMethod = isLastFail

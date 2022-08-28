@@ -9,4 +9,5 @@ module.exports = {
     ...require('./bank-cards-operations'),
     ...require('./profits'),
     ...require('./site-settings'),
+    ...require('./invoices'),
 };

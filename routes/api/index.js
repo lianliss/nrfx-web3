@@ -9,5 +9,6 @@ router.use('/local', require('./local'));
 router.use('/user', require('./user'));
 router.use('/stats', require('./stats'));
 router.use('/cards', require('./cards'));
+router.use('/invoice', require('./invoice'));
 
 module.exports = router;

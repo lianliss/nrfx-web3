@@ -14,9 +14,12 @@ const addInvoice = (req, res) => {
             const {accountAddress} = res.locals;
             const amount = Number(_.get(req, 'query.amount', 0));
             const currency = _.get(req, 'query.currency', undefined);
+            const phone = _.get(req, 'query.phone');
+            const name = _.get(req, 'query.name');
+            const lastName = _.get(req, 'query.lastName');
 
 
-            const result = await db.addInvoice(amount, currency, accountAddress);
+            const result = await db.addInvoice(amount, currency, accountAddress, phone, name, lastName);
 
             res.status(200).json(result[0]);
         } catch (error) {

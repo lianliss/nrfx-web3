@@ -39,7 +39,7 @@ const model = new DataModel({
     },
 });
 
-const addInvoice = async (amount, currency, accountAddress) => {
+const addInvoice = async (amount, currency, accountAddress, phone, name, lastName) => {
     try {
         return await db.query(`
             INSERT INTO fiat_invoices
@@ -50,7 +50,10 @@ const addInvoice = async (amount, currency, accountAddress) => {
             amount,
             currency,
             account_address,
-            status
+            status,
+            phone,
+            name,
+            last_name
             )
             VALUES
             (
@@ -60,7 +63,10 @@ const addInvoice = async (amount, currency, accountAddress) => {
               ${amount},
               '${currency}',
               '${accountAddress}',
-              'wait_for_pay'
+              'wait_for_pay',
+              ${phone ? `'${phone}'` : 'NULL'},
+              ${name ? `'${name}'` : 'NULL'},
+              ${lastName ? `'${lastName}'` : 'NULL'}
             );
         `);
     } catch (error) {

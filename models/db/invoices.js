@@ -85,6 +85,21 @@ const getInvoice = async (accountAddress) => {
     }
 };
 
+const getInvoiceById = async (id) => {
+  try {
+    return model.process(await db.query(`
+            SELECT id, invoice_id, status, amount, currency
+            FROM fiat_invoices
+            WHERE id = id
+            AND status IN ('wait_for_pay', 'wait_for_review');
+        `));
+  } catch (error) {
+    logger.error('[getInvoiceById]', error);
+    telegram.log(`[getInvoiceById] ${error.message}`);
+    return null;
+  }
+};
+
 const cancelInvoice = async (id) => {
     try {
         return await db.query(`
@@ -130,6 +145,7 @@ const confirmInvoice = async (id) => {
 module.exports = {
     addInvoice,
     getInvoice,
+    getInvoiceById,
     cancelInvoice,
     reviewInvoice,
     confirmInvoice,

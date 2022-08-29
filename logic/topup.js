@@ -7,7 +7,7 @@ const telegram = require('../services/telegram');
 const {FIAT_FACTORY, ZERO_ADDRESS} = require('../const');
 const wei = require('../utils/wei');
 
-const approveTopup = async (operationId) => {
+const approveTopup = async (operationId, isSwift = false, _amount) => {
   try {
     // Get the operation data
     const operation = (await db.getReservationById(operationId))[0];
@@ -56,6 +56,53 @@ const approveTopup = async (operationId) => {
   }
 };
 
+const approveInvoice = async (id, amount) => {
+    try {
+        // Get the operation data
+        const invoice = (await db.getInvoiceById(id))[0];
+        logger.debug('[approveInvoice] invoice', invoice);
+        if (!invoice) throw new Error(`No invoice with ID = ${id}`);
+
+        const {status, currency} = operation;
+        const accountAddress = _.get(operation, 'account_address');
+        if (status !== 'wait_for_review'
+            && status !== 'wait_for_pay') throw new Error('Invoice is not in review');
+        if (!accountAddress) throw new Error('Account address is undefined');
+
+        const tokenAmount = amount;
+
+        // Get fiat contract address from the factory
+        const factoryContract = new (web3Service.web3.eth.Contract)(
+            require('../const/ABI/fiatFactory'),
+            FIAT_FACTORY,
+        );
+        const fiatAddress = await factoryContract.methods.fiats(currency.toUpperCase()).call();
+        logger.debug('[approveInvoice] fiatAddress', currency, fiatAddress);
+        if (fiatAddress === ZERO_ADDRESS) throw new Error(`NarfexFiat for ${currency} is not deployed yet`);
+
+        // Mint tokens to address
+        const fiatContract = new (web3Service.web3.eth.Contract)(
+            require('../const/ABI/fiat'),
+            fiatAddress,
+        );
+        const receipt = await web3Service.transaction(fiatContract, 'mintTo', [
+            accountAddress,
+            wei.to(tokenAmount),
+        ]);
+
+        // Mark operation as confirmed
+        await db.confirmInvoice(id);
+
+        telegram.log(`[approveInvoice] Confirmed invoice #${id}: ${tokenAmount} ${currency} to ${accountAddress}`);
+
+        return receipt;
+    } catch (error) {
+        logger.error('[approveInvoice]', error);
+        throw error;
+    }
+};
+
 module.exports = {
   approveTopup,
+  approveInvoice,
 };

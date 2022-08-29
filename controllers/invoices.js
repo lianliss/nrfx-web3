@@ -94,11 +94,11 @@ const confirmInvoice = (req, res) => {
     (async () => {
         try {
             const id = Number(_.get(req, 'query.id'));
+            const amount = Number(_.get(req, 'query.amount'));
 
+            const receipt = await topupLogic.approveInvoice(id, amount);
 
-            const result = await db.confirmInvoice(id);
-
-            res.status(200).json(result[0]);
+            res.status(200).json(receipt);
         } catch (error) {
             logger.error('[invoiceController][confirmInvoice]', error);
             res.status(500).json({

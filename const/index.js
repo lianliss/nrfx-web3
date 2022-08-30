@@ -19,6 +19,7 @@ module.exports = {
     IDR: ['BANK'],
     UAH: ['PrivatBank', 'Monobank'],
     CNY: ['BANK'],
+    USD: ['BANK'],
   },
   GET_RATE_INTERVAL: 60 * 1000,
   GET_BINANCE_RATE_INTERVAL: 60 * 2 * 1000,

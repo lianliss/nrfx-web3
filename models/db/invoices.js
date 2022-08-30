@@ -94,7 +94,7 @@ const getInvoice = async (accountAddress) => {
 const getInvoiceById = async (id) => {
   try {
     return model.process(await db.query(`
-            SELECT id, invoice_id, status, amount, currency
+            SELECT id, invoice_id, status, amount, currency, account_address
             FROM fiat_invoices
             WHERE id = id
             AND status IN ('wait_for_pay', 'wait_for_review');

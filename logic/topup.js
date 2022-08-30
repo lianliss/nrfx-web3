@@ -64,7 +64,7 @@ const approveInvoice = async (id, amount) => {
         if (!invoice) throw new Error(`No invoice with ID = ${id}`);
 
         const {status, currency} = invoice;
-        const accountAddress = _.get(invoice, 'account_address');
+        const accountAddress = _.get(invoice, 'accountAddress');
         if (status !== 'wait_for_review'
             && status !== 'wait_for_pay') throw new Error('Invoice is not in review');
         if (!accountAddress) throw new Error('Account address is undefined');

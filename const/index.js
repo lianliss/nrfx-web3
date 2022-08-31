@@ -15,7 +15,7 @@ module.exports = {
     'cny',
   ],
   FIATS_PAYTYPES: {
-    RUB: ['Tinkoff'],
+    RUB: ['TinkoffNew'],
     IDR: ['BANK'],
     UAH: ['PrivatBank', 'Monobank'],
     CNY: ['BANK'],

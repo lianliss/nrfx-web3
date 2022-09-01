@@ -7,6 +7,7 @@ const web3Service = require('../services/web3');
 const topupLogic = require('../logic/topup');
 const telegram = require('../services/telegram');
 const topupMethods = require('../const/topupMethods');
+const invoiceLogic = require('../logic/invoice');
 
 const addInvoice = (req, res) => {
     (async () => {
@@ -112,10 +113,35 @@ const confirmInvoice = (req, res) => {
     })();
 };
 
+const getPDF = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const data = await invoiceLogic.getPDF(accountAddress);
+
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-disposition': 'attachment;filename=' + 'invoice.pdf',
+        'Content-Length': data.length
+      });
+      res.end(Buffer.from(data, 'binary'));
+    } catch (error) {
+      logger.error('[invoiceController][getPDF]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
+
+
 module.exports = {
     addInvoice,
     getInvoice,
     cancelInvoice,
     reviewInvoice,
     confirmInvoice,
+  getPDF,
 };

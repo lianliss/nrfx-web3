@@ -8,7 +8,6 @@ const topupLogic = require('../logic/topup');
 const telegram = require('../services/telegram');
 const topupMethods = require('../const/topupMethods');
 const invoiceLogic = require('../logic/invoice');
-const fs = require('fs');
 
 const addInvoice = (req, res) => {
     (async () => {
@@ -120,17 +119,12 @@ const getPDF = (req, res) => {
       const {accountAddress} = res.locals;
       const data = await invoiceLogic.getPDF(accountAddress);
 
-      const fileContents  = Buffer.from(data, 'binary');
-      const savedFilePath = `/temp/invoice${Date.now()}.pdf`;
-      fs.writeFile(savedFilePath, fileContents, function() {
-        res.status(200).download(savedFilePath, 'invoice.pdf');
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-disposition': 'attachment;filename=' + 'invoice.pdf',
+        'Content-Length': data.length
       });
-      // res.writeHead(200, {
-      //   'Content-Type': 'application/pdf',
-      //   'Content-disposition': 'attachment;filename=' + 'invoice.pdf',
-      //   'Content-Length': data.length
-      // });
-      // res.end(Buffer.from(data, 'binary'));
+      res.end(Buffer.from(data, 'binary'));
     } catch (error) {
       logger.error('[invoiceController][getPDF]', error);
       res.status(500).json({

@@ -14,7 +14,9 @@ const main = {
 		level: process.env.LOGGER_LEVEL || 'DEBUG'
 	},
 	telegram: {
-        token: '1985945484:AAH0ZCBZUJ-UqJhFArhoZHeH9gt0YjAFuqk',
+     token: process.env.ROOT_URL === 'http://web3.nrfxlab.world'
+			 ? '5715042098:AAFwIFbmEQHfWO5RumgIW_-1mo_hQVoPHS8' // Stage
+			 : '1985945484:AAH0ZCBZUJ-UqJhFArhoZHeH9gt0YjAFuqk', // Production
 		chatId: 162131210,
 	},
 	mysql: {

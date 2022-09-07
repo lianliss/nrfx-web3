@@ -55,4 +55,25 @@ module.exports = [
     minAmount: 500,
     maxAmount: 10000,
   },
+  {
+    currencies: ['PLN'],
+    code: 'bankpekao',
+    title: 'Bank Pekao',
+    minAmount: 500,
+    maxAmount: 100000,
+  },
+  {
+    currencies: ['THB'],
+    code: 'krungsribank',
+    title: 'Krungsri bank',
+    minAmount: 500,
+    maxAmount: 100000,
+  },
+  {
+    currencies: ['CAD'],
+    code: 'rotalbankofcanada',
+    title: 'Royal Bank of Canada',
+    minAmount: 500,
+    maxAmount: 10000,
+  },
 ];

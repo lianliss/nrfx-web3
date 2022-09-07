@@ -103,6 +103,7 @@ const exchange = (req, res) => {
       const fiat = _.get(req, 'query.fiat');
       const coin = _.get(req, 'query.coin');
       const fiatAmount = Number(_.get(req, 'query.fiatAmount'));
+      const fiatToBNBAmount = Number(_.get(req, 'query.fiatToBNBAmount'));
 
       if (!fiat || !coin || !fiatAmount) {
         return res.status(400).json({
@@ -116,6 +117,7 @@ const exchange = (req, res) => {
         fiat,
         coin,
         fiatAmount,
+        fiatToBNBAmount,
       );
       res.status(200).json(result);
     } catch (error) {

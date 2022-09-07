@@ -281,10 +281,94 @@ const swapFiatToToken = async ({
   }
 };
 
+/**
+ * Calculate coin amount based on fiat amount
+ * @param fiat {string} fiat symbol uppercase
+ * @param coin {string} coin symbol uppercase
+ * @param fiatAmount {number} amount of fiat
+ * @param decimals {int} amount of decimals (optional) (default: 8)
+ * @param _commissions {object} commissions object (optional)
+ * @returns {Promise.<{fiatPrice: *, coinPrice: *, fiatCommission: number, coinCommission: *, rate: number, coinAmount: number, usdtAmount: number}>}
+ */
+const getCoinAmount = async (fiat, coin, fiatAmount, decimals = 8, _commissions) => {
+  try {
+    const fiatPrice = await rates.get(fiat.toLowerCase());
+    let coinPrice;
+    switch (coin) {
+      case 'NRFX': coinPrice = await rates.get('nrfx'); break;
+      case 'USDT': coinPrice = 1; break;
+      default: coinPrice = await rates.get(`${coin}USDT`);
+    }
+    logger.debug('fiatPrice and coinPrice', fiatPrice, coinPrice);
+
+    // Request commissions if it's undefined
+    let commissions = _commissions;
+    if (!commissions) {
+      commissions = (await db.getSiteSettings()).commissions;
+      try {
+        commissions = JSON.parse(commissions);
+      } catch (error) {
+        logger.warn('Commissions in not JSON format', commissions);
+      }
+    }
+
+    const fiatCommission = (Number(_.get(commissions, `${fiat.toLowerCase()}`, 0)) || 0) / 100;
+    const coinCommission = getCommission(commissions, coin.toLowerCase());
+    const rate = (fiatPrice * (1 - fiatCommission)) / coinPrice;
+
+    // Calculate coin amount
+    let coinAmount = fiatAmount * rate * (1 - coinCommission);
+    coinAmount = Number(coinAmount.toFixed(decimals)); // Round value
+    let usdtAmount = coin === 'USDT' ? coinAmount : coinAmount * coinPrice;
+    usdtAmount = Number(usdtAmount.toFixed(decimals)); // Round value
+
+    return {
+      fiatPrice, coinPrice,
+      fiatCommission, coinCommission,
+      rate,
+      coinAmount, usdtAmount,
+    };
+  } catch (error) {
+    logger.error('[getCoinAmount]', error);
+    telegram.log(`[getCoinAmount] Error ${error.message}`);
+    throw error;
+  }
+};
+
+const mintFiatBackToAddress = async (fiat, accountAddress, burned) => {
+  try {
+    // Get fiat
+    const factoryContract = new (web3Service.web3.eth.Contract)(
+      require('../const/ABI/fiatFactory'),
+      FIAT_FACTORY,
+    );
+    const fiatAddress = await factoryContract.methods.fiats(fiat.toUpperCase()).call();
+    if (fiatAddress === ZERO_ADDRESS) throw new Error(`NarfexFiat for ${fiat} is not deployed yet`);
+    const fiatContract = new (web3Service.web3.eth.Contract)(
+      require('../const/ABI/fiat'),
+      fiatAddress,
+    );
+    const mintReceipt = await web3Service.transaction(fiatContract, 'mintTo', [
+      accountAddress,
+      wei.to(burned),
+    ]);
+    logger.debug('minted', burned, fiat, 'on', accountAddress);
+    telegram.log(`[exchange] <a href="https://bscscan.com/tx/${burnReceipt.transactionHash}">Mint</a>
+ <b>${burned}</b> ${fiat} to ${accountAddress}`);
+    return mintReceipt;
+  } catch (error) {
+    logger.error(`[mintFiatBackToAddress] Error ${burned.toFixed(4)} ${fiat} ${accountAddress}`, error);
+    telegram.log(`[mintFiatBackToAddress] Error ${burned.toFixed(4)} ${fiat} ${accountAddress}: ${error.message}`);
+  }
+};
+
 const exchange = async (accountAddress,
                         fiat,
                         coin,
-                        amount,) => {
+                        amount,
+                        fiatToBNBAmount = 0,
+                        ) => {
+  let burned = 0;
   try {
     // Get fiat
     const factoryContract = new (web3Service.web3.eth.Contract)(
@@ -317,15 +401,10 @@ const exchange = async (accountAddress,
     const usdtBalance = _.get(usdt, 'balance', 0);
     logger.debug('coinBalance', coinBalance, 'usdtBalance', usdtBalance);
 
-    // Get prices
-    const fiatPrice = await rates.get(fiat.toLowerCase());
-    let coinPrice;
-    switch (coin) {
-      case 'NRFX': coinPrice = await rates.get('nrfx'); break;
-      case 'USDT': coinPrice = 1; break;
-      default: coinPrice = await rates.get(`${coin}USDT`);
+    let fiatAmount = Number(amount) || 0;
+    if (fiatToBNBAmount) {
+      fiatAmount -= fiatToBNBAmount;
     }
-    logger.debug('fiatPrice and coinPrice', fiatPrice, coinPrice);
 
     // Get commission
     let commissions = data[1].commissions;
@@ -334,16 +413,15 @@ const exchange = async (accountAddress,
     } catch (error) {
       logger.warn('Commissions in not JSON format', commissions);
     }
-    const fiatCommission = (Number(_.get(commissions, `${fiat.toLowerCase()}`, 0)) || 0) / 100;
-    const coinCommission = getCommission(commissions, coin.toLowerCase());
-    const rate = (fiatPrice * (1 - fiatCommission)) / coinPrice;
-    const fiatAmount = Number(amount) || 0;
 
-    // Calculate coin amount
-    let coinAmount = fiatAmount * rate * (1 - coinCommission);
-    coinAmount = Number(coinAmount.toFixed(decimals)); // Round value
-    let usdtAmount = coin === 'USDT' ? coinAmount : coinAmount * coinPrice;
-    usdtAmount = Number(usdtAmount.toFixed(decimals)); // Round value
+    // Get prices
+    let {
+      fiatPrice, coinPrice,
+      fiatCommission, coinCommission,
+      rate,
+      coinAmount, usdtAmount,
+    } = await getCoinAmount(fiat, coin, fiatAmount, decimals, commissions);
+
     logger.debug('[exchange] Details', {
       fiatCommission,
       coinCommission,
@@ -354,6 +432,7 @@ const exchange = async (accountAddress,
       decimals,
     });
     telegram.log(`[exchange] Details:
+${accountAddress}
 <b>User balance:</b> ${fiatBalance.toFixed(2)} ${fiat}
 <b>Fiat:</b> ${fiatAmount.toFixed(2)} ${fiat}
 <b>Coin:</b> ${coinAmount.toFixed(2)} ${coin}
@@ -376,11 +455,12 @@ const exchange = async (accountAddress,
     // Burn fiat
     const burnReceipt = await web3Service.transaction(fiatContract, 'burnFrom', [
       accountAddress,
-      wei.to(fiatAmount),
+      wei.to(fiatAmount + fiatToBNBAmount),
     ]);
-    logger.debug('burned', fiatAmount, fiat, 'on', accountAddress);
+    burned = fiatAmount + fiatToBNBAmount;
+    logger.debug('burned', burned, fiat, 'on', accountAddress);
     telegram.log(`[exchange] <a href="https://bscscan.com/tx/${burnReceipt.transactionHash}">Burn</a>
- <b>${fiatAmount}</b> ${fiat} from ${accountAddress}`);
+ <b>${burned}</b> ${fiat} from ${accountAddress}`);
 
     // Swap on Binance
     if (coin !== 'USDT' && coin !== 'NRFX') {
@@ -438,7 +518,7 @@ const exchange = async (accountAddress,
         );
         txHash = _.get(result, 'receipt.transactionHash');
         telegram.log(`[exchange] Transfer <b>${coinAmount.toFixed(5)}</b> NRFX
- to <a href="https://bscscan.com/address/${accountAddress}">${accountAddress}</a>
+ to ${accountAddress} [<a href="https://bscscan.com/address/${accountAddress}">Scan</a>]
  <a href="https://bscscan.com/tx/${txHash || ''}"><b>View details</b></a>`);
       } catch (error) {
         logger.error('[exchange] Transfer ERROR', error);
@@ -447,10 +527,32 @@ const exchange = async (accountAddress,
       }
     }
 
+    if (fiatToBNBAmount) {
+      try {
+        const bnbOperation = await getCoinAmount(fiat, 'BNB', fiatToBNBAmount, decimals, commissions);
+        const bnbAmount = bnbOperation.coinAmount;
+        await wait(5000);
+        const bnbResult = await web3Service.transfer(
+          accountAddress,
+          'bnb',
+          bnbAmount,
+        );
+        const bnbHash = _.get(bnbResult, 'receipt.transactionHash');
+        telegram.log(`[exchange] Transfer <b>${bnbAmount.toFixed(5)}</b> BNB
+ to ${accountAddress} [<a href="https://bscscan.com/address/${accountAddress}">Scan</a>]
+ <a href="https://bscscan.com/tx/${bnbHash || ''}"><b>View details</b></a>`);
+      } catch (error) {
+        logger.error(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}`, error);
+        telegram.log(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}: ${error.message}`);
+        mintFiatBackToAddress(fiat, accountAddress, fiatToBNBAmount);
+      }
+    }
+
     return {txHash};
   } catch (error) {
-    logger.error('[SwapLogic][exchange]', error);
-    telegram.log(`[SwapLogic][exchange] Error (${_.get(error, 'data.code', error.name).code}) ${_.get(error, 'data.msg', error.message)}`);
+    logger.error(`[SwapLogic][exchange] Error ${accountAddress} ${amount} ${fiat} to ${coin} `, error);
+    telegram.log(`[SwapLogic][exchange] Error ${accountAddress} ${amount} ${fiat} to ${coin} 
+    (${_.get(error, 'data.code', error.name).code}) ${_.get(error, 'data.msg', error.message)}`);
     throw error;
   }
 };

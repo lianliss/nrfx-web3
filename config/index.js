@@ -13,14 +13,6 @@ const main = {
 	logger: {
 		level: process.env.LOGGER_LEVEL || 'DEBUG'
 	},
-	telegram: {
-     token: process.env.ROOT_URL === 'http://web3.nrfxlab.world'
-			 ? '5715042098:AAFwIFbmEQHfWO5RumgIW_-1mo_hQVoPHS8' // Stage
-			 : process.env.NODE_ENV === 'local'
-         ? '5729634716:AAHxCk2hPWQmMXVkGpjznf8P15zI0P7X1C0' // Local
-         : '1985945484:AAH0ZCBZUJ-UqJhFArhoZHeH9gt0YjAFuqk', // Production
-		chatId: 162131210,
-	},
 	mysql: {
 		host: 'localhost',
 		user: 'root',
@@ -47,7 +39,34 @@ const main = {
   },
 };
 
+let telegram = {
+  chatId: 162131210,
+};
+switch (true) {
+	case process.env.ROOT_URL === 'http://web3.nrfxlab.world': // Stage
+		telegram = {
+			...telegram,
+			token: '5715042098:AAFwIFbmEQHfWO5RumgIW_-1mo_hQVoPHS8',
+			cdCommand: 'cd /var/Stage/Narfex_Project/WebDir/web3',
+		};
+		break;
+	case process.env.NODE_ENV === 'local': // Local
+    telegram = {
+      ...telegram,
+      token: '5729634716:AAHxCk2hPWQmMXVkGpjznf8P15zI0P7X1C0',
+      cdCommand: 'cd ./',
+    };
+		break;
+	default: // Production
+    telegram = {
+      ...telegram,
+      token: '1985945484:AAH0ZCBZUJ-UqJhFArhoZHeH9gt0YjAFuqk',
+      cdCommand: 'cd /mnt/HC_Volume_15774891/Narfex_Project/WebDir/web3',
+    };
+}
+
 module.exports = {
 	...main,
+	telegram,
 	networks,
 };

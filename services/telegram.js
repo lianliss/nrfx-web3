@@ -40,21 +40,31 @@ if (isLocal) {
   };
 
   const execute = (command, name, ctx) => new Promise((fulfill, reject) => {
-    if (ctx.chat.id === config.telegram.chatId) {
-      ctx.reply(`${name}...`);
-      exec(command, (err, stdout, stderr) => {
-        if (err) {
-          logger.error('[telegram][execute]', command, err);
-          ctx.reply(`Can't execute ${name}`);
-          reject(`Can't execute ${name}`);
-        } else {
-          ctx.reply(stdout);
-          fulfill(stdout);
-        }
-      });
-    } else {
-      ctx.reply(`You have no permission`);
-      reject('You have no permission');
+    try {
+      if (ctx.chat.id === config.telegram.chatId) {
+        ctx.reply(`${name}...`);
+        exec(command, (err, stdout, stderr) => {
+          if (err) {
+            logger.error('[telegram][execute]', command, err);
+            ctx.reply(`Can't execute ${name}`);
+            reject(`Can't execute ${name}`);
+          } else {
+            if (stdout && stdout.length) {
+              ctx.reply(stdout);
+            } else {
+              ctx.reply('Done.');
+            }
+            fulfill(stdout);
+          }
+        });
+      } else {
+        ctx.reply(`You have no permission`);
+        reject('You have no permission');
+      }
+    } catch (error) {
+      logger.error('[Telegram][execute]', name, error);
+      telegram.log(`[execute] ${name} Error: ${error.message}`);
+      reject(error.message);
     }
   });
 
@@ -64,7 +74,7 @@ if (isLocal) {
   };
 
   const pullCommand = async ctx => {
-    await execute('cd /mnt/HC_Volume_15774891/Narfex_Project/WebDir/web3', 'Go to web3', ctx);
+    await execute(config.telegram.cdCommand, 'Go to web3', ctx);
     await execute('git pull', 'Pull', ctx);
     restartCommand(ctx);
   };

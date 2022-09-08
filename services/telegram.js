@@ -1,5 +1,5 @@
 const config = require('../config/');
-const {Telegraf, Markup} = require('telegraf');
+const {Telegraf, Markup, Extra} = require('telegraf');
 const logger = require('../utils/logger');
 const {exec} = require('child_process');
 const isLocal = false && process.env.NODE_ENV === 'local';
@@ -106,6 +106,7 @@ if (isLocal) {
         {
           parse_mode: 'HTML',
           disable_notification: isNotify,
+          link_preview: false,
         }
       );
     } catch (error) {

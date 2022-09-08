@@ -102,8 +102,8 @@ const exchange = (req, res) => {
       const {accountAddress} = res.locals;
       const fiat = _.get(req, 'query.fiat');
       const coin = _.get(req, 'query.coin');
-      const fiatAmount = Number(_.get(req, 'query.fiatAmount'));
-      const fiatToBNBAmount = Number(_.get(req, 'query.fiatToBNBAmount'));
+      const fiatAmount = Number(_.get(req, 'query.fiatAmount')) || 0;
+      const fiatToBNBAmount = Number(_.get(req, 'query.fiatToBNBAmount')) || 0;
 
       if (!fiat || !coin || !fiatAmount) {
         return res.status(400).json({

@@ -16,7 +16,9 @@ const main = {
 	telegram: {
      token: process.env.ROOT_URL === 'http://web3.nrfxlab.world'
 			 ? '5715042098:AAFwIFbmEQHfWO5RumgIW_-1mo_hQVoPHS8' // Stage
-			 : '1985945484:AAH0ZCBZUJ-UqJhFArhoZHeH9gt0YjAFuqk', // Production
+			 : process.env.NODE_ENV === 'local'
+         ? '5729634716:AAHxCk2hPWQmMXVkGpjznf8P15zI0P7X1C0' // Local
+         : '1985945484:AAH0ZCBZUJ-UqJhFArhoZHeH9gt0YjAFuqk', // Production
 		chatId: 162131210,
 	},
 	mysql: {

@@ -2,7 +2,7 @@ const config = require('../config/');
 const {Telegraf, Markup} = require('telegraf');
 const logger = require('../utils/logger');
 const {exec} = require('child_process');
-const isLocal = process.env.NODE_ENV === 'local';
+const isLocal = false && process.env.NODE_ENV === 'local';
 const _ = require('lodash');
 
 let telegram;
@@ -14,6 +14,8 @@ if (isLocal) {
 } else {
 
   telegram = new Telegraf(config.telegram.token);
+  telegram.hears('hi', (ctx) => ctx.reply('Hey there'));
+  telegram.launch();
 
   const serverKeyboard = Markup.inlineKeyboard([
     Markup.button.callback('Restart', 'restart'),
@@ -87,14 +89,18 @@ if (isLocal) {
 
   telegram.log = (message, isNotify = false) => {
     if (isLocal) return;
-    telegram.telegram.sendMessage(
-      config.telegram.chatId,
-      message,
-      {
-        parse_mode: 'HTML',
-        disable_notification: isNotify,
-      }
-    );
+    try {
+      telegram.telegram.sendMessage(
+        config.telegram.chatId,
+        message,
+        {
+          parse_mode: 'HTML',
+          disable_notification: isNotify,
+        }
+      );
+    } catch (error) {
+      logger.error(`[telegram] Can't send message`, config.telegram.chatId, message);
+    }
   };
 }
 

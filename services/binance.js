@@ -246,7 +246,6 @@ class Binance extends Request {
           logger.warn('[updateRates]', item);
         }
       });
-      logger.debug('[updateRates]', updates, 'updates');
     } catch (error) {
       logger.error('[Binance][updateRates]', error);
     }
@@ -291,7 +290,6 @@ class Binance extends Request {
   // Withdraws checking loop
   updateWithdraws = async () => {
     try {
-      logger.debug('[updateWithdraws] list', this.pendingWithdraws);
       if (Object.keys(this.pendingWithdraws).length) {
         const history = await this.getWithdrawHistory();
         Object.keys(this.pendingWithdraws).map(id => {

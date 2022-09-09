@@ -3,6 +3,7 @@ const _ = require('lodash');
 const db = require('./db');
 const cache = require('./cache');
 const Wallet = require('./wallet');
+const telegram = require('../services/telegram');
 
 class User {
 
@@ -162,7 +163,9 @@ class User {
       if (user.telegramID) {
         delete cache.usersByTelegram[user.telegramID];
       }
-      await db.setUserTelegramID(this.userID, telegramID);
+      const result = await db.setUserTelegramID(this.userID, telegramID);
+      telegram.log(`setTelegramID ${this.userID} ${telegramID}`);
+      this.telegramID = telegramID;
       cache.usersByTelegram[telegramID] = this;
       return true;
     } catch (error) {

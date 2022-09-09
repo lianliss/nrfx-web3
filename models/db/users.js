@@ -118,12 +118,11 @@ const setReferPercent = async (userID, referPercent) => {
 const setUserTelegramID = async (userID, telegramID) => {
   try {
     const data = model.encode({userID, telegramID});
-    await db.query(`
+    return await db.query(`
         UPDATE users
-        SET telegram_id = ${data['telegram_id']}
+        SET telegram_id = ${telegramID}
         WHERE id = ${userID};
         `);
-    return true;
   } catch (error) {
     logger.error('[setUserTelegramID]', error);
     return false;

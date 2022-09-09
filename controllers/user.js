@@ -50,7 +50,35 @@ const setReferPercent = (req, res) => {
     })();
 };
 
+const setUserTelegramID = (req, res) => {
+  (async () => {
+    try {
+      const {user} = res.locals;
+      const telegramID = Number(_.get(req, 'query.telegramID'));
+      if (!telegramID) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Missing parameters',
+        });
+      }
+
+      await user.setTelegramID(telegramID);
+
+      res.status(200).json({
+        userID: user.userID,
+      });
+    } catch (error) {
+      logger.error('[userController][setUserTelegramID]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
     getUserData,
     setReferPercent,
+    setUserTelegramID,
 };

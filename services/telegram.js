@@ -14,7 +14,8 @@ if (isLocal) {
 } else {
 
   telegram = new Telegraf(config.telegram.token);
-  telegram.hears('hi', (ctx) => ctx.reply('Hey there'));
+  const bot = telegram;
+
   telegram.launch();
 
   const serverKeyboard = Markup.inlineKeyboard([
@@ -24,6 +25,15 @@ if (isLocal) {
     Markup.button.callback('Rebuild', 'build'),
     Markup.button.callback('Update Frond', 'updatefront'),
   ]);
+
+  const testKeyboard = Markup.keyboard([
+    [
+      '1', '2', '3',
+    ],
+    [
+      'Да ну нахуй',
+    ]
+  ]).placeholder('Заебись?').oneTime();
 
   const execOptions = {
     maxBuffer: 1024 * 1024 * 10,
@@ -91,7 +101,7 @@ if (isLocal) {
       ctx.telegram.sendMessage(
         ctx.from.id,
         'There is a commands',
-        serverKeyboard)
+        testKeyboard)
     } else {
       ctx.reply(`You have no permission`);
     }

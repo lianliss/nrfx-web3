@@ -67,6 +67,7 @@ const setUserTelegramID = (req, res) => {
       res.status(200).json({
         userID: user.userID,
         result,
+        telegramID,
       });
     } catch (error) {
       logger.error('[userController][setUserTelegramID]', error);

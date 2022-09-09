@@ -164,12 +164,12 @@ class User {
         delete cache.usersByTelegram[user.telegramID];
       }
       const result = await db.setUserTelegramID(this.userID, telegramID);
-      telegram.log(`setTelegramID ${this.userID} ${telegramID} ${JSON.stringify(result)}`);
       this.telegramID = telegramID;
       cache.usersByTelegram[telegramID] = this;
       return result;
     } catch (error) {
       logger.error('[User][setTelegramID]', error);
+      throw error;
     }
   };
 

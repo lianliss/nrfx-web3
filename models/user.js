@@ -160,8 +160,9 @@ class User {
    */
   setTelegramID = async telegramID => {
     try {
-      if (user.telegramID) {
-        delete cache.usersByTelegram[user.telegramID];
+      if (this.telegramID) {
+        delete cache.usersByTelegram[this.telegramID];
+        this.telegramID = null;
       }
       const result = await db.setUserTelegramID(this.userID, telegramID);
       this.telegramID = telegramID;

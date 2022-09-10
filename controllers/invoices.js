@@ -19,7 +19,8 @@ const addInvoice = (req, res) => {
       const name = _.get(req, 'query.name');
       const lastName = _.get(req, 'query.lastName');
 
-      const invoice = await db.addInvoice(amount, currency, accountAddress, phone, name, lastName);
+      const insert = await db.addInvoice(amount, currency, accountAddress, phone, name, lastName);
+      const invoice = (await db.getInvoiceById(insert.insertId))[0];
 
       const admins = await db.getAdminsWithTelegram();
       admins.map(user => {

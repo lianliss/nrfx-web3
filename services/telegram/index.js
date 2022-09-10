@@ -7,6 +7,7 @@ const _ = require('lodash');
 const cardReviewScene = require('./cardReviewScene');
 const UserModel = require('../../models/user');
 const db = require('../../models/db');
+const keyboards = require('./keyboards');
 
 let telegram;
 
@@ -137,13 +138,13 @@ if (isLocal) {
         user.telegramID,
         user.isAdmin
           ? `<b>New topup operation #${operation.id}</b>\n${operation.account_address}\n`
-          + `<b>Card:</b> ${operation.number}\n<b>Holder: </b>`
+          + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
           + (operation.telegram_id
-            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name} ${operation.last_name}</a>`
-            : `${operation.first_name} ${operation.last_name}`)
+            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
+            : `${operation.first_name || ''} ${operation.last_name || ''}`)
           + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}`
           : `<b>New topup operation #${operation.id}</b>\n${operation.account_address}\n`
-          + `<b>Card:</b> ${operation.number}`,
+          + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n`,
         {
           parse_mode: 'HTML',
           ...Markup.inlineKeyboard([
@@ -187,6 +188,30 @@ if (isLocal) {
       logger.error('[Telegram] Action', ctx, error);
       telegram.log(`Action error approve_card_operation ${error.message}`);
     }
+  });
+
+  telegram.command('menu', ctx => {
+    ctx.replyWithSticker('CAACAgIAAxkBAAEX9PNjHPUBaeZbpNcDFZMJwd_tpwu4MgACNwwAAiHRMUlAzx0V3wssFSkE',
+      {
+        parse_mode: 'HTML',
+        ...keyboards.mainScreen,
+      });
+  });
+
+  telegram.hears(keyboards.buttons.balance, async ctx => {
+    ctx.telegram.sendChatAction(ctx.message.chat.id, 'typing');
+    const balance = await telegram.narfexLogic.getBinanceBalance();
+    ctx.reply(
+      `<b>Binance</b> (BEP20)\n`
+      + `<code>${config.binance.address}</code>\n`
+      + `${balance.usdt.toFixed(2)} USDT\n\n`
+      + `<b>Wallet</b> (BEP20)\n`
+      + `<code>${config.web3.defaultAddress}</code>\n`
+      + `${balance.bnb.toFixed(4)} BNB\n`
+      + `${balance.nrfx.toFixed()} NRFX`,
+      {
+        parse_mode: 'HTML',
+      })
   });
 }
 

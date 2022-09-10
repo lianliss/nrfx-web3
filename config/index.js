@@ -24,6 +24,7 @@ const main = {
 		testNet: 'https://data-seed-prebsc-1-s1.binance.org:8545',
 		// Do not change the seed! It used to decrypt user privateKey
 		seed: 'cebfcc51ecfee65df758c4ab7cda1818ad89204ec26150eedc7c5a55517be58e',
+		defaultAddress: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',
 	},
 	user: {
 		passSalt: 'eObeQi4MFUfx9UJRZllDu12xNHILXUPNy4fz3vBw',
@@ -36,6 +37,7 @@ const main = {
       key: 'fVZhdsK63N4rAG7llb75hRW6pNDMLvsJp7CUXT8ktEjKVVyTdcPqsCySTLUydHdh',
       secret: '7Z3LRzG4OBPtmOeajR3jHDHR3E6TUx2uZ19HvzhtSQ23wMDn0Sloi9kx3R3EisnL',
     },
+		address: '0x1c1dc05d3f7df354a1b6a1d1b5ef1870beb3f91d',
   },
 };
 

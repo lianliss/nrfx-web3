@@ -230,6 +230,7 @@ const getReservationById = async (operationId) => {
             ops.status, ops.amount,
             ops.fee,
             cards.number,
+            cards.holder_name,
             cards.id as cardId,
             cards.managed_by,
             cards.currency,

@@ -2,6 +2,7 @@ const {Scenes, Markup} = require('telegraf');
 const logger = require('../../utils/logger');
 const _ = require('lodash');
 const db = require('../../models/db');
+const keyboards = require('./keyboards');
 
 const cardReviewScene = new Scenes.WizardScene(
   'CARD_REVIEW_SCENE_ID',
@@ -58,10 +59,10 @@ const cardReviewScene = new Scenes.WizardScene(
           const newMessage = await ctx.telegram.sendMessage(
             message.chatID,
             `<b>⚠️ Operation is pending admin review #${operation.id}</b>\n${operation.account_address}\n`
-            + `<b>Card:</b> ${operation.number}\n<b>Holder: </b>`
+            + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
             + (operation.telegram_id
-            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name} ${operation.last_name}</a>`
-            : `${operation.first_name} ${operation.last_name}`)
+            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
+            : `${operation.first_name || ''} ${operation.last_name || ''}`)
             + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}`,
             {
               parse_mode: 'HTML',
@@ -88,7 +89,8 @@ const cardReviewScene = new Scenes.WizardScene(
     // Process approve
     const chat = ctx.wizard.ctx.message.chat;
     await approveTopup(operation.id, chat);
-    ctx.replyWithSticker('CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE');
+    ctx.replyWithSticker('CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE',
+      keyboards.mainScreen);
 
     return ctx.scene.leave();
   }

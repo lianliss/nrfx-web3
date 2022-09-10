@@ -2,6 +2,7 @@ const {Scenes, Markup} = require('telegraf');
 const logger = require('../../utils/logger');
 const _ = require('lodash');
 const db = require('../../models/db');
+const keyboards = require('./keyboards');
 
 const cardDeclineScene = new Scenes.WizardScene(
   'CARD_DECLINE_SCENE_ID',

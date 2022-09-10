@@ -59,13 +59,14 @@ const approveTopup = async (operationId, chat) => {
           message.messageID,
           undefined,
           (!!chat
-            ? `<b>✅ Topup #${operation.id} approved by <a href="tg://user?id=${chat.id}">${chat.first_name} ${chat.last_name}</a></b>\n`
+            ? `<b>✅ Topup #${operation.id} approved by `
+            + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
             : `<b>✅ Topup #${operation.id} approved</b>\n`)
           + `${operation.account_address}\n`
-          + `<b>Card:</b> ${operation.number}\n<b>Holder: </b>`
+          + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
           + (operation.telegram_id
-            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name} ${operation.last_name}</a>`
-            : `${operation.first_name} ${operation.last_name}`)
+            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
+            : `${operation.first_name || ''} ${operation.last_name || ''}`)
           + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}\n`
           + `<a href="https://bscscan.com/tx/${txHash}">View mint transaction</a>`,
           {

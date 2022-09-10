@@ -362,6 +362,27 @@ const mintFiatBackToAddress = async (fiat, accountAddress, burned) => {
   }
 };
 
+const getBinanceBalance = async () => {
+  try {
+    const data = await Promise.all([
+      web3Service.getDefaultAccountBalances(),
+      binance.updateBalance(),
+    ]);
+    const usdt = binance.coins.find(c => c.coin === 'USDT');
+    const usdtBalance = _.get(usdt, 'balance', 0);
+    const balance = data[0];
+    return {
+      bnb: wei.from(balance.bnb),
+      nrfx: wei.from(balance.nrfx),
+      usdt: usdtBalance,
+    };
+  } catch (error) {
+    logger.error('[getBinanceBalance]', error);
+    telegram.log(`[getBinanceBalance] Error ${error.message}`);
+  }
+};
+telegram.narfexLogic.getBinanceBalance = getBinanceBalance;
+
 const exchange = async (accountAddress,
                         fiat,
                         coin,

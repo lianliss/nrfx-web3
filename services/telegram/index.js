@@ -271,6 +271,7 @@ if (isLocal) {
   });
 
   telegram.hears(keyboards.buttons.pull, pullCommand);
+  telegram.hears(keyboards.buttons.restart, restartCommand);
 }
 
 

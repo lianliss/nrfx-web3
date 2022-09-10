@@ -4,6 +4,7 @@ const config = require('../../config/');
 const buttons = {
   balance: '💼 Balance',
   pull: '🚧 Pull',
+  restart: '♻️Restart',
   yes: '✅ Yes',
   no: '⛔️ No'
 };
@@ -15,7 +16,7 @@ const mainScreen = chatID => {
 
   if (chatID === config.telegram.chatId) {
     keyboard.push([
-      buttons.pull,
+      buttons.restart, buttons.pull,
     ]);
   }
 

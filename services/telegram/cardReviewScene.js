@@ -22,6 +22,7 @@ const cardReviewScene = new Scenes.WizardScene(
   },
   async ctx => {
     const {operation, approveTopup, user} = ctx.wizard.state;
+    const chat = ctx.wizard.ctx.message.chat;
     const amount = Number(ctx.message.text);
     if (amount !== operation.amount && !user.isAdmin) {
       if (operation.status === 'wait_for_admin_review') {
@@ -80,12 +81,12 @@ const cardReviewScene = new Scenes.WizardScene(
       return;
     } else {
       if (user.isAdmin && ctx.message.text !== keyboards.buttons.yes) {
+        ctx.reply('Go back', keyboards.mainScreen(chat.id));
         return ctx.scene.leave();
       }
     }
 
     // Process approve
-    const chat = ctx.wizard.ctx.message.chat;
     await approveTopup(operation.id, chat);
     ctx.replyWithSticker('CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE',
       keyboards.mainScreen(chat.id));

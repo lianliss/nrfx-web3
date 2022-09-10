@@ -15,9 +15,14 @@ const invoiceReviewScene = new Scenes.WizardScene(
   },
   async ctx => {
     const {invoice, approveInvoice, user} = ctx.wizard.state;
+    const chat = ctx.wizard.ctx.message.chat;
+
+    if (!user.isAdmin || ctx.message.text !== keyboards.buttons.yes) {
+      ctx.reply('Go back', keyboards.mainScreen(chat.id));
+      return ctx.scene.leave();
+    }
 
     // Process approve
-    const chat = ctx.wizard.ctx.message.chat;
     ctx.reply(`INVOICE ${invoice.id}`)
     await approveInvoice(invoice.id, invoice.amount, chat);
     ctx.replyWithSticker('CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE',

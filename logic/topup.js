@@ -136,7 +136,7 @@ const approveInvoice = async (id, amount, chat) => {
               ? `<b>✅ SWIFT invoice #${invoice.id} approved by `
               + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
               : `<b>✅ SWIFT invoice #${invoice.id} approved</b>\n`)
-            + `<code>${invoice.account_address}</code>\n`
+            + `<code>${invoice.accountAddress}</code>\n`
             + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
             + `<b>Phone:</b> ${invoice.phone || ''}\n`
             + `<b>Amount:</b> ${invoice.amount} ${invoice.currency}\n`

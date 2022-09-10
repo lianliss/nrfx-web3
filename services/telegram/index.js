@@ -196,7 +196,7 @@ if (isLocal) {
     try {
       const message = await telegram.telegram.sendMessage(
         user.telegramID,
-        `New SWIFT invoice #<code>${invoice.id}</code>\n`
+        `<b>New SWIFT invoice #<code>${invoice.id}</code></b>\n`
         + `<code>${invoice.accountAddress}</code>\n`
         + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
         + `<b>Phone:</b> ${invoice.phone || ''}\n`

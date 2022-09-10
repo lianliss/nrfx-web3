@@ -22,7 +22,7 @@ const addInvoice = (req, res) => {
 
             const result = await db.addInvoice(amount, currency, accountAddress, phone, name, lastName);
 
-            res.status(200).json(result[0]);
+            res.status(200).json(result);
         } catch (error) {
             logger.error('[invoiceController][addInvoice]', error);
             res.status(500).json({

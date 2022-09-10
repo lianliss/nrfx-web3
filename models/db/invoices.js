@@ -2,7 +2,6 @@ const _ = require('lodash');
 const logger = require('../../utils/logger');
 const db = require('../../services/mysql');
 const DataModel = require('./data-model');
-const telegram = require('../../services/telegram');
 
 const model = new DataModel({
     id: {
@@ -79,7 +78,6 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
         `);
     } catch (error) {
         logger.error('[addInvoice]', error);
-        telegram.log(`[addInvoice] ${error.message}`);
         return null;
     }
 };
@@ -94,7 +92,6 @@ const getInvoice = async (accountAddress) => {
         `));
     } catch (error) {
         logger.error('[getInvoice]', error);
-        telegram.log(`[getInvoice] ${error.message}`);
         return null;
     }
 };
@@ -109,7 +106,6 @@ const getInvoiceById = async (id) => {
         `));
   } catch (error) {
     logger.error('[getInvoiceById]', error);
-    telegram.log(`[getInvoiceById] ${error.message}`);
     return null;
   }
 };
@@ -123,7 +119,6 @@ const cancelInvoice = async (id) => {
         `);
     } catch (error) {
         logger.error('[cancelInvoice]', error);
-        telegram.log(`[cancelInvoice] ${error.message}`);
         return null;
     }
 };
@@ -137,7 +132,6 @@ const reviewInvoice = async (id) => {
         `);
     } catch (error) {
         logger.error('[reviewInvoice]', error);
-        telegram.log(`[reviewInvoice] ${error.message}`);
         return null;
     }
 };
@@ -151,7 +145,6 @@ const confirmInvoice = async (id) => {
         `);
     } catch (error) {
         logger.error('[confirmInvoice]', error);
-        telegram.log(`[confirmInvoice] ${error.message}`);
         return null;
     }
 };

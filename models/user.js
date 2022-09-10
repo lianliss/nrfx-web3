@@ -3,13 +3,18 @@ const _ = require('lodash');
 const db = require('./db');
 const cache = require('./cache');
 const Wallet = require('./wallet');
-const telegram = require('../services/telegram');
 
 class User {
 
   constructor(userData) {
     Object.assign(this, userData);
-    this.isAdmin = _.includes(userData.roles, 'admin');
+
+    this.roles = _.get(userData, 'roles', '').split(',');
+    this.permissions = _.get(userData, 'permissions', '').split(',');
+
+    this.isAdmin = _.includes(this.roles, 'admin');
+    this.isManager = _.includes(this.roles, 'bank_cards_manager')
+      || _.includes(this.permissions, 'bank_card_manage');
   }
 
   tokens = [];
@@ -124,6 +129,7 @@ class User {
       const userData = data[0];
       const settings = data[1];
       if (userData) {
+        const userID = userData.id;
         // Check refer percent value
         if (!_.isNumber(userData.referPercent)) {
           userData.referPercent = Number(settings.default_refer_percent) || 0;
@@ -137,7 +143,7 @@ class User {
             ...userData,
           });
 
-        if (!cache.users[userID]) {
+        if (!cache.users[userData.userID]) {
           await user.loadWallets();
         }
         // Update the cache

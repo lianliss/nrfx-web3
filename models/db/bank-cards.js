@@ -2,7 +2,6 @@ const _ = require('lodash');
 const logger = require('../../utils/logger');
 const db = require('../../services/mysql');
 const DataModel = require('./data-model');
-const telegram = require('../../services/telegram');
 
 const model = new DataModel({
     cardId: {
@@ -90,7 +89,6 @@ const addCardReservationByWallet = async (cardId, accountAddress, amount, fee) =
         `);
   } catch (error) {
     logger.error('[addCardReservationByWallet]', error);
-    telegram.log(`[addCardReservationByWallet] ${error.message}`);
     return null;
   }
 };
@@ -104,7 +102,6 @@ const reserveTheCard = async (cardId, expiration) => {
         `);
   } catch (error) {
     logger.error('[reserveTheCard]', error);
-    telegram.log(`[reserveTheCard] ${error.message}`);
     return null;
   }
 };
@@ -124,7 +121,6 @@ const getAvailableCards = async (currency, bank) => {
         `));
   } catch (error) {
     logger.error('[getAvailableCards]', error);
-    telegram.log(`[getAvailableCards] ${error.message}`);
     return null;
   }
 };
@@ -155,7 +151,6 @@ const getWalletReservation = async (accountAddress, currency) => {
         `);
   } catch (error) {
     logger.error('[getWalletReservation]', error);
-    telegram.log(`[getWalletReservation] ${error.message}`);
     return null;
   }
 };
@@ -169,7 +164,6 @@ const cancelCardReservation = async (cardId) => {
         `);
   } catch (error) {
     logger.error('[cancelCardReservation]', error);
-    telegram.log(`[cancelCardReservation] ${error.message}`);
     return null;
   }
 };
@@ -184,7 +178,6 @@ const cancelBooking = async (id) => {
         `);
   } catch (error) {
     logger.error('[cancelBooking]', error);
-    telegram.log(`[cancelBooking] ${error.message}`);
     return null;
   }
 };
@@ -198,7 +191,19 @@ const sendToReview = async (operationId, accountAddress) => {
         `);
   } catch (error) {
     logger.error('[sendToReview]', error);
-    telegram.log(`[sendToReview] ${error.message}`);
+    return null;
+  }
+};
+
+const sendToAdminReview = async (operationId, accountAddress) => {
+  try {
+    return await db.query(`
+            UPDATE bank_cards_operations
+            SET status = 'wait_for_admin_review'
+            WHERE id = ${operationId} AND account_address = '${accountAddress}';
+        `);
+  } catch (error) {
+    logger.error('[sendToAdminReview]', error);
     return null;
   }
 };
@@ -212,7 +217,6 @@ const approveReservation = async (operationId) => {
         `);
   } catch (error) {
     logger.error('[approveReservation]', error);
-    telegram.log(`[approveReservation] ${error.message}`);
     return null;
   }
 };
@@ -221,20 +225,27 @@ const getReservationById = async (operationId) => {
   try {
     return await db.query(`
             SELECT
+            ops.id,
             ops.account_address,
             ops.status, ops.amount,
             ops.fee,
+            cards.number,
             cards.id as cardId,
+            cards.managed_by,
             cards.currency,
-            cards.bank
+            cards.bank,
+            users.first_name,
+            users.last_name,
+            users.telegram_id
             FROM bank_cards AS cards
             INNER JOIN bank_cards_operations AS ops
             ON cards.id = ops.card_id
+            INNER JOIN users
+            ON cards.managed_by = users.id
             WHERE ops.id = ${operationId};
         `);
   } catch (error) {
     logger.error('[getReservationById]', error);
-    telegram.log(`[getReservationById] ${error.message}`);
     return null;
   }
 };
@@ -250,7 +261,19 @@ const getAvailableBanks = async () => {
         `);
   } catch (error) {
     logger.error('[getAvailableBanks]', error);
-    telegram.log(`[getAvailableBanks] ${error.message}`);
+    return null;
+  }
+};
+
+const getCardData = async cardID => {
+  try {
+    return await db.query(`
+            SELECT bank, number, managed_by
+            FROM bank_cards
+            WHERE id = ${cardID};
+        `);
+  } catch (error) {
+    logger.error('[getCardData]', error);
     return null;
   }
 };
@@ -269,4 +292,6 @@ module.exports = {
   approveReservation,
   getReservationById,
   getAvailableBanks,
+  getCardData,
+  sendToAdminReview,
 };

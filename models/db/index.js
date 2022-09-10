@@ -10,4 +10,5 @@ module.exports = {
     ...require('./profits'),
     ...require('./site-settings'),
     ...require('./invoices'),
+    ...require('./telegram-messages'),
 };

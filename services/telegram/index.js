@@ -1,9 +1,12 @@
-const config = require('../config/');
-const {Telegraf, Markup, Extra} = require('telegraf');
-const logger = require('../utils/logger');
+const config = require('../../config/');
+const {Telegraf, Markup, Extra, Scenes, session} = require('telegraf');
+const logger = require('../../utils/logger');
 const {exec} = require('child_process');
 const isLocal = false && process.env.NODE_ENV === 'local';
 const _ = require('lodash');
+const cardReviewScene = require('./cardReviewScene');
+const UserModel = require('../../models/user');
+const db = require('../../models/db');
 
 let telegram;
 
@@ -14,6 +17,7 @@ if (isLocal) {
 } else {
 
   telegram = new Telegraf(config.telegram.token);
+  telegram.narfexLogic = {};
   const bot = telegram;
 
   telegram.launch();
@@ -61,8 +65,6 @@ if (isLocal) {
           } else {
             if (stdout && stdout.length) {
               ctx.reply(stdout);
-            } else {
-              ctx.reply('Done.');
             }
             fulfill(stdout);
           }
@@ -116,13 +118,76 @@ if (isLocal) {
         {
           parse_mode: 'HTML',
           disable_notification: isNotify,
-          link_preview: false,
+          disable_web_page_preview: false,
         }
       );
     } catch (error) {
       logger.error(`[telegram] Can't send message`, config.telegram.chatId, message);
     }
   };
+
+  const stage = new Scenes.Stage([cardReviewScene]);
+  telegram.use(session());
+  telegram.use(stage.middleware());
+
+  telegram.sendCardOperation = async (user, operation) => {
+    if (!user.telegramID) return;
+    try {
+      const message = await telegram.telegram.sendMessage(
+        user.telegramID,
+        user.isAdmin
+          ? `<b>New topup operation #${operation.id}</b>\n${operation.account_address}\n`
+          + `<b>Card:</b> ${operation.number}\n<b>Holder: </b>`
+          + (operation.telegram_id
+            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name} ${operation.last_name}</a>`
+            : `${operation.first_name} ${operation.last_name}`)
+          + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}`
+          : `<b>New topup operation #${operation.id}</b>\n${operation.account_address}\n`
+          + `<b>Card:</b> ${operation.number}`,
+        {
+          parse_mode: 'HTML',
+          ...Markup.inlineKeyboard([
+            Markup.button.callback('Decline', `decline_card_operation_${operation.id}`),
+            Markup.button.callback('Approve', `approve_card_operation_${operation.id}`),
+          ])
+        });
+      await db.putOperationMessage(operation.id, user.telegramID, message.message_id);
+    } catch (error) {
+      logger.error('[Telegram][sendCardOperation]', user.telegramID, error);
+    }
+  };
+
+  telegram.action(/^approve_card_operation_(\d+)$/, async ctx => {
+    try {
+      const operationID = ctx.match[1];
+      const message = ctx.callbackQuery.message;
+      const telegramID = message.chat.id;
+      const data = await Promise.all([
+        UserModel.getByTelegramID(telegramID),
+        db.getReservationById(operationID),
+      ]);
+      const user = data[0];
+      const operation = data[1][0];
+
+      if (!user || !(user.isAdmin || operation.managed_by === user.userID)) {
+        return ctx.reply(`You don't have permissions for that operation`);
+      }
+      if (!operation
+        || !_.includes(['wait_for_review', 'wait_for_admin_review'], operation.status)) {
+        return ctx.reply(`Operation is not under review`);
+      }
+
+      ctx.scene.enter('CARD_REVIEW_SCENE_ID', {
+        operationID,
+        operation,
+        user,
+        approveTopup: telegram.narfexLogic.approveTopup,
+      });
+    } catch (error) {
+      logger.error('[Telegram] Action', ctx, error);
+      telegram.log(`Action error approve_card_operation ${error.message}`);
+    }
+  });
 }
 
 

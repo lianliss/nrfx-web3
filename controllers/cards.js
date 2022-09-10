@@ -7,6 +7,7 @@ const web3Service = require('../services/web3');
 const topupLogic = require('../logic/topup');
 const telegram = require('../services/telegram');
 const topupMethods = require('../const/topupMethods');
+const UserModel = require('../models/user');
 
 const EXPIRATION_DELAY = 60 * 60 * 2; // Two hours
 
@@ -104,7 +105,33 @@ const sendToReview = (req, res) => {
       const {accountAddress} = res.locals;
       const operationId = _.get(req, 'query.operationId', undefined);
 
-      db.sendToReview(operationId, accountAddress);
+      const reservation = (await db.getReservationById(operationId))[0];
+      if (!reservation) {
+        res.status(400).json({
+          name: 'No reservation',
+          message: 'There is no reservation',
+        });
+        return;
+      }
+
+      const data = await Promise.all([
+        db.sendToReview(operationId, accountAddress),
+        db.getCardData(reservation.cardId),
+        db.getAdminsWithTelegram(),
+      ]);
+      // Get manager and admins
+      const cardData = data[1][0];
+      const manager = await UserModel.getByID(cardData.managed_by);
+      const usersIDs = data[2].map(admin => admin.id);
+      if (!manager.isAdmin) usersIDs.push(manager.userID);
+      const users = await Promise.all(usersIDs.map(id => UserModel.getByID(id)));
+
+      // Send messages to all interested users
+      users.map(user => {
+        telegram.sendCardOperation(user, reservation);
+      });
+
+
       res.status(200).json({status: 'Ok'});
     } catch (error) {
       logger.error('[cardsController][confirmPayment]', error);

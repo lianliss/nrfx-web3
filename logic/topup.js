@@ -7,7 +7,7 @@ const telegram = require('../services/telegram');
 const {FIAT_FACTORY, ZERO_ADDRESS} = require('../const');
 const wei = require('../utils/wei');
 
-const approveTopup = async (operationId, isSwift = false, _amount) => {
+const approveTopup = async (operationId, chat) => {
   try {
     // Get the operation data
     const operation = (await db.getReservationById(operationId))[0];
@@ -40,14 +40,42 @@ const approveTopup = async (operationId, isSwift = false, _amount) => {
       accountAddress,
       wei.to(tokenAmount),
     ]);
+    const txHash = _.get(receipt, 'transactionHash');
 
     // Mark operation as confirmed
-    await Promise.all([
+    const data = await Promise.all([
       db.approveReservation(operationId),
       db.cancelCardReservation(cardId),
+      db.getOperationMessages(operation.id),
     ]);
 
     telegram.log(`[approveTopup] Confirmed operation #${operationId}: ${tokenAmount} ${currency} to ${accountAddress}`);
+
+    const messages = data[2];
+    messages.map(async message => {
+      try {
+        telegram.telegram.editMessageText(
+          message.chatID,
+          message.messageID,
+          undefined,
+          (!!chat
+            ? `<b>✅ Topup #${operation.id} approved by <a href="tg://user?id=${chat.id}">${chat.first_name} ${chat.last_name}</a></b>\n`
+            : `<b>✅ Topup #${operation.id} approved</b>\n`)
+          + `${operation.account_address}\n`
+          + `<b>Card:</b> ${operation.number}\n<b>Holder: </b>`
+          + (operation.telegram_id
+            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name} ${operation.last_name}</a>`
+            : `${operation.first_name} ${operation.last_name}`)
+          + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}\n`
+          + `<a href="https://bscscan.com/tx/${txHash}">View mint transaction</a>`,
+          {
+            parse_mode: 'HTML',
+            disable_web_page_preview: false,
+          });
+      } catch (error) {
+        logger.error('[approveTopup] editMessageText', error);
+      }
+    });
 
     return receipt;
   } catch (error) {
@@ -55,6 +83,7 @@ const approveTopup = async (operationId, isSwift = false, _amount) => {
     throw error;
   }
 };
+telegram.narfexLogic.approveTopup = approveTopup;
 
 const approveInvoice = async (id, amount) => {
     try {

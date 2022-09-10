@@ -43,6 +43,7 @@ const model = new DataModel({
         type: 'number',
     },
     roles: {},
+    permissions: {},
     telegramID: {
         field: 'telegram_id',
         type: 'number',
@@ -54,7 +55,7 @@ const getUserByID = async userID => {
         const data = await db.query(`
             SELECT
             id, first_name, last_name, login, email, role, active, password, _delete, ban_id,
-            refer, bonus_received, roles, telegram_id
+            refer, bonus_received, roles, permissions, telegram_id
             FROM users
             WHERE id = ${userID};
         `);
@@ -72,7 +73,7 @@ const getUserByTelegramID = async telegramID => {
     const data = await db.query(`
             SELECT
             id, first_name, last_name, login, email, role, active, password, _delete, ban_id,
-            refer, bonus_received, roles, telegram_id
+            refer, bonus_received, roles, permissions, telegram_id
             FROM users
             WHERE telegram_id = ${telegramID};
         `);
@@ -81,6 +82,25 @@ const getUserByTelegramID = async telegramID => {
       : null;
   } catch (error) {
     logger.error('[getUserByTelegramID]', error);
+    return null;
+  }
+};
+
+const getAdminsWithTelegram = async () => {
+  try {
+    const data = await db.query(`
+            SELECT
+            id, first_name, last_name, login, email, role, active, password, _delete, ban_id,
+            refer, bonus_received, roles, permissions, telegram_id
+            FROM users
+            WHERE telegram_id IS NOT NULL
+            AND roles LIKE '%admin%';
+        `);
+    return data.length
+      ? model.process(data)
+      : null;
+  } catch (error) {
+    logger.error('[getAdminsWithTelegram]', error);
     return null;
   }
 };
@@ -134,4 +154,5 @@ module.exports = {
     setReferPercent,
     getUserByTelegramID,
     setUserTelegramID,
+    getAdminsWithTelegram,
 };

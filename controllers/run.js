@@ -9,6 +9,7 @@ const binanceP2P = require('../services/binance-p2p');
 const swapLogic = require('../logic/swap');
 const tonService = require('../services/ton');
 const binance = require('../services/binance');
+const db = require('../models/db');
 
 const FAIL_RUN_TIMEOUT = 10000;
 
@@ -18,6 +19,16 @@ const run = async () => {
         require('../services/stream');
 
         telegram.log('Started');
+
+        // try {
+        //   const data = await Promise.all([
+        //     User.getByTelegramID(162131210),
+        //     db.getReservationById(1325),
+        //   ]);
+        //   await telegram.sendCardOperation(data[0], data[1][0]);
+        // } catch (error) {
+        //   logger.error('RUN test', error);
+        // }
 
         // Run jobs
         const jobs = require('../services/jobs');

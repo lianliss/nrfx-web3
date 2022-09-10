@@ -83,6 +83,11 @@ const reviewInvoice = (req, res) => {
 
             const result = await db.reviewInvoice(invoice.id);
 
+            const admins = await db.getAdminsWithTelegram();
+            admins.map(user => {
+                telegram.sendInvoice(user, invoice);
+            });
+
             res.status(200).json(result[0]);
         } catch (error) {
             logger.error('[invoiceController][reviewInvoice]', error);

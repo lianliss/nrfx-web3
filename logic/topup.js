@@ -49,8 +49,6 @@ const approveTopup = async (operationId, chat) => {
       db.getOperationMessages(operation.id),
     ]);
 
-    telegram.log(`[approveTopup] Confirmed operation #${operationId}: ${tokenAmount} ${currency} to ${accountAddress}`);
-
     const messages = data[2];
     messages.map(async message => {
       try {
@@ -62,7 +60,7 @@ const approveTopup = async (operationId, chat) => {
             ? `<b>✅ Topup #${operation.id} approved by `
             + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
             : `<b>✅ Topup #${operation.id} approved</b>\n`)
-          + `${operation.account_address}\n`
+          + `<code>${operation.account_address}</code>\n`
           + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
           + (operation.telegram_id
             ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
@@ -86,7 +84,7 @@ const approveTopup = async (operationId, chat) => {
 };
 telegram.narfexLogic.approveTopup = approveTopup;
 
-const approveInvoice = async (id, amount) => {
+const approveInvoice = async (id, amount, chat) => {
     try {
         // Get the operation data
         const invoice = (await db.getInvoiceById(id))[0];
@@ -119,11 +117,38 @@ const approveInvoice = async (id, amount) => {
             accountAddress,
             wei.to(tokenAmount),
         ]);
+        const txHash = _.get(receipt, 'transactionHash');
 
         // Mark operation as confirmed
-        await db.confirmInvoice(id);
+        const data = await Promise.all([
+          db.confirmInvoice(id),
+          db.getInvoiceMessages(id),
+        ]);
 
-        telegram.log(`[approveInvoice] Confirmed invoice #${id}: ${tokenAmount} ${currency} to ${accountAddress}`);
+      const messages = data[1];
+      messages.map(async message => {
+        try {
+          telegram.telegram.editMessageText(
+            message.chatID,
+            message.messageID,
+            undefined,
+            (!!chat
+              ? `<b>✅ SWIFT invoice #${invoice.id} approved by `
+              + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
+              : `<b>✅ SWIFT invoice #${invoice.id} approved</b>\n`)
+            + `<code>${invoice.account_address}</code>\n`
+            + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
+            + `<b>Phone:</b> ${invoice.phone || ''}\n`
+            + `<b>Amount:</b> ${invoice.amount} ${invoice.currency}\n`
+            + `<a href="https://bscscan.com/tx/${txHash}">View mint transaction</a>`,
+            {
+              parse_mode: 'HTML',
+              disable_web_page_preview: false,
+            });
+        } catch (error) {
+          logger.error('[approveInvoice] editMessageText', error);
+        }
+      });
 
         return receipt;
     } catch (error) {
@@ -131,6 +156,7 @@ const approveInvoice = async (id, amount) => {
         throw error;
     }
 };
+telegram.narfexLogic.approveInvoice = approveInvoice;
 
 module.exports = {
   approveTopup,

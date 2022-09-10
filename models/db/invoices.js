@@ -44,6 +44,10 @@ const model = new DataModel({
     field: 'last_name',
     type: 'string',
   },
+  phone: {
+    field: 'phone',
+    type: 'string',
+  },
 });
 
 const addInvoice = async (amount, currency, accountAddress, phone, name, lastName) => {

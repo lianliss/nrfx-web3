@@ -16,6 +16,10 @@ const model = new DataModel({
     field: 'operation_id',
     type: 'number',
   },
+  invoiceID: {
+    field: 'invoice_id',
+    type: 'number',
+  },
 });
 
 const getOperationMessages = async operationID => {
@@ -73,6 +77,61 @@ const getOperationAdminMessages = async operationID => {
   }
 };
 
+const getInvoiceMessages = async invoiceID => {
+  try {
+    const data = await db.query(`
+            SELECT
+            *
+            FROM telegram_messages
+            WHERE invoice_id = ${invoiceID};
+        `);
+    return data.length
+      ? model.process(data)
+      : null;
+  } catch (error) {
+    logger.error('[getInvoiceMessages]', error);
+    return null;
+  }
+};
+
+const putInvoiceMessage = async (invoiceID, chatID, messageID) => {
+  try {
+    await db.query(`
+            INSERT INTO telegram_messages
+            (invoice_id, chat_id, message_id)
+            VALUES
+            (${invoiceID}, ${chatID}, ${messageID});
+        `);
+    return true;
+  } catch (error) {
+    logger.error('[putInvoiceMessage]', error);
+    return null;
+  }
+};
+
+const getInvoiceAdminMessages = async invoiceID => {
+  try {
+    const data = await db.query(`
+            SELECT
+            telegram_messages.id,
+            telegram_messages.chat_id,
+            telegram_messages.message_id,
+            telegram_messages.invoice_id
+            FROM telegram_messages
+            INNER JOIN users
+            ON telegram_messages.chat_id = users.telegram_id
+            WHERE invoice_id = ${invoiceID}
+            AND users.roles LIKE '%admin%';
+        `);
+    return data.length
+      ? model.process(data)
+      : null;
+  } catch (error) {
+    logger.error('[getInvoiceAdminMessages]', error);
+    return null;
+  }
+};
+
 const deleteMessage = async id => {
   try {
     await db.query(`
@@ -90,5 +149,8 @@ module.exports = {
   getOperationMessages,
   putOperationMessage,
   getOperationAdminMessages,
+  getInvoiceMessages,
+  putInvoiceMessage,
+  getInvoiceAdminMessages,
   deleteMessage,
 };

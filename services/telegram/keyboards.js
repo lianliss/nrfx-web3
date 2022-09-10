@@ -3,7 +3,9 @@ const config = require('../../config/');
 
 const buttons = {
   balance: '💼 Balance',
-  pull: '🚧 Pull'
+  pull: '🚧 Pull',
+  yes: '✅ Yes',
+  no: '⛔️ No'
 };
 
 const mainScreen = chatID => {
@@ -17,10 +19,17 @@ const mainScreen = chatID => {
     ]);
   }
 
-  return Markup.keyboard(keyboard).resize().oneTime()
+  return Markup.keyboard(keyboard).resize().oneTime();
+};
+
+const yesNo = () => {
+  return Markup.keyboard([
+    [buttons.no, buttons.yes],
+  ]).resize().oneTime();
 };
 
 module.exports = {
   buttons,
   mainScreen,
+  yesNo,
 };

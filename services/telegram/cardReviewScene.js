@@ -11,9 +11,7 @@ const cardReviewScene = new Scenes.WizardScene(
     if (user.isAdmin) {
       ctx.reply(
         `Are you sure to approve?`,
-        Markup.keyboard([
-          ['No', 'Yes']
-        ]).resize().oneTime(),
+        keyboards.yesNo(),
       );
     } else {
       ctx.reply(
@@ -81,7 +79,7 @@ const cardReviewScene = new Scenes.WizardScene(
       operation.status = 'wait_for_admin_review';
       return;
     } else {
-      if (user.isAdmin && ctx.message.text !== 'Yes') {
+      if (user.isAdmin && ctx.message.text !== keyboards.buttons.yes) {
         return ctx.scene.leave();
       }
     }

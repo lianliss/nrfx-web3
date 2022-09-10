@@ -90,7 +90,7 @@ const cardReviewScene = new Scenes.WizardScene(
     const chat = ctx.wizard.ctx.message.chat;
     await approveTopup(operation.id, chat);
     ctx.replyWithSticker('CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE',
-      keyboards.mainScreen);
+      keyboards.mainScreen(chat.id));
 
     return ctx.scene.leave();
   }

@@ -194,7 +194,7 @@ if (isLocal) {
     ctx.replyWithSticker('CAACAgIAAxkBAAEX9PNjHPUBaeZbpNcDFZMJwd_tpwu4MgACNwwAAiHRMUlAzx0V3wssFSkE',
       {
         parse_mode: 'HTML',
-        ...keyboards.mainScreen,
+        ...keyboards.mainScreen(ctx.chat.id),
       });
   });
 
@@ -213,6 +213,8 @@ if (isLocal) {
         parse_mode: 'HTML',
       })
   });
+
+  telegram.hears(keyboards.buttons.pull, pullCommand);
 }
 
 

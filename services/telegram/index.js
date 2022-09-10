@@ -225,6 +225,7 @@ if (isLocal) {
       ]);
       const user = data[0];
       const invoice = data[1][0];
+      ctx.reply(`TRY TO APPOVE INVOICE ${invoiceID} ${invoice.id}`);
 
       if (!user || !user.isAdmin) {
         return ctx.reply(`You don't have permissions for that operation`);

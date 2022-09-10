@@ -18,6 +18,7 @@ const invoiceReviewScene = new Scenes.WizardScene(
 
     // Process approve
     const chat = ctx.wizard.ctx.message.chat;
+    ctx.reply(`INVOICE ${invoice.id}`)
     await approveInvoice(invoice.id, invoice.amount, chat);
     ctx.replyWithSticker('CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE',
       keyboards.mainScreen(chat.id));

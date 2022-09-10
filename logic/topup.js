@@ -50,7 +50,7 @@ const approveTopup = async (operationId, chat) => {
     ]);
 
     const messages = data[2];
-    messages.map(async message => {
+    if (messages && messages.length) messages.map(async message => {
       try {
         telegram.telegram.editMessageText(
           message.chatID,
@@ -126,7 +126,7 @@ const approveInvoice = async (id, amount, chat) => {
         ]);
 
       const messages = data[1];
-      messages.map(async message => {
+      if (messages && messages.length) messages.map(async message => {
         try {
           telegram.telegram.editMessageText(
             message.chatID,

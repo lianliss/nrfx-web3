@@ -89,7 +89,7 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
 const getInvoice = async (accountAddress) => {
     try {
         return model.process(await db.query(`
-            SELECT id, invoice_id, status, amount, currency, name, last_name, created_at_timestamp
+            SELECT id, invoice_id, status, amount, currency, name, last_name, phone, created_at_timestamp
             FROM fiat_invoices
             WHERE account_address = '${accountAddress}'
             AND status IN ('wait_for_pay', 'wait_for_review');
@@ -103,7 +103,7 @@ const getInvoice = async (accountAddress) => {
 const getInvoiceById = async (id) => {
   try {
     return model.process(await db.query(`
-            SELECT id, invoice_id, status, amount, currency, account_address
+            SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone
             FROM fiat_invoices
             WHERE id = id
             AND status IN ('wait_for_pay', 'wait_for_review');

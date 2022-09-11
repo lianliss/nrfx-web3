@@ -231,7 +231,7 @@ if (isLocal) {
       }
       if (!invoice
         || !_.includes(['wait_for_review', 'wait_for_admin_review'], invoice.status)) {
-        return ctx.reply(`Invoice is not under review`);
+        return ctx.reply(`Invoice #${invoiceID} is not under review`);
       }
 
       ctx.scene.enter('INVOICE_REVIEW_SCENE_ID', {

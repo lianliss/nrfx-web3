@@ -246,6 +246,62 @@ if (isLocal) {
     }
   });
 
+  telegram.sendWithdraw = async (user, withdraw) => {
+    if (!user.telegramID) return;
+    try {
+      const message = await telegram.telegram.sendMessage(
+        user.telegramID,
+        `<b>New withdraw request #<code>${withdraw.id}</code></b>\n`
+        + `<code>${withdraw.accountAddress}</code>\n`
+        + `<b>Bank:</b> ${withdraw.bank.toUpperCase()}\n`
+        + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
+        + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
+        + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}`,
+        {
+          parse_mode: 'HTML',
+          ...Markup.inlineKeyboard([
+            Markup.button.callback('Decline', `decline_withdraw_${withdraw.id}`),
+            Markup.button.callback('Sent', `approve_withdraw_${withdraw.id}`),
+          ])
+        });
+      await db.putWithdrawMessage(withdraw.id, user.telegramID, message.message_id);
+    } catch (error) {
+      logger.error('[Telegram][sendWithdraw]', user.telegramID, error);
+    }
+  };
+
+  telegram.action(/^approve_withdraw_(\d+)$/, async ctx => {
+    try {
+      const withdrawID = ctx.match[1];
+      const message = ctx.callbackQuery.message;
+      const telegramID = message.chat.id;
+      const data = await Promise.all([
+        UserModel.getByTelegramID(telegramID),
+        db.getWithdrawById(withdrawID),
+      ]);
+      const user = data[0];
+      const withdraw = data[1][0];
+
+      if (!user || !user.isAdmin) {
+        return ctx.reply(`You don't have permissions for that operation`);
+      }
+      if (!withdraw
+        || withdraw.status !== 2) {
+        return ctx.reply(`Withdraw #${withdrawID} is not under review`);
+      }
+
+      ctx.scene.enter('WITHDRAW_CONFIRM_SCENE_ID', {
+        withdrawID,
+        withdraw,
+        user,
+        approveWithdraw: telegram.narfexLogic.approveWithdraw,
+      });
+    } catch (error) {
+      logger.error('[Telegram] Action', ctx, error);
+      telegram.log(`Action error approve_withdraw ${error.message}`);
+    }
+  });
+
   telegram.command('menu', ctx => {
     ctx.replyWithSticker('CAACAgIAAxkBAAEX9PNjHPUBaeZbpNcDFZMJwd_tpwu4MgACNwwAAiHRMUlAzx0V3wssFSkE',
       {

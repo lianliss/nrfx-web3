@@ -20,6 +20,10 @@ const model = new DataModel({
     field: 'invoice_id',
     type: 'number',
   },
+  withdrawID: {
+    field: 'withdraw_id',
+    type: 'number',
+  },
 });
 
 const getOperationMessages = async operationID => {
@@ -132,6 +136,61 @@ const getInvoiceAdminMessages = async invoiceID => {
   }
 };
 
+const getWithdrawMessages = async withdrawID => {
+  try {
+    const data = await db.query(`
+            SELECT
+            *
+            FROM telegram_messages
+            WHERE withdraw_id = ${withdrawID};
+        `);
+    return data.length
+      ? model.process(data)
+      : null;
+  } catch (error) {
+    logger.error('[getWithdrawMessages]', error);
+    return null;
+  }
+};
+
+const putWithdrawMessage = async (withdrawID, chatID, messageID) => {
+  try {
+    await db.query(`
+            INSERT INTO telegram_messages
+            (withdraw_id, chat_id, message_id)
+            VALUES
+            (${withdrawID}, ${chatID}, ${messageID});
+        `);
+    return true;
+  } catch (error) {
+    logger.error('[putWithdrawMessage]', error);
+    return null;
+  }
+};
+
+const getWithdrawAdminMessages = async withdrawID => {
+  try {
+    const data = await db.query(`
+            SELECT
+            telegram_messages.id,
+            telegram_messages.chat_id,
+            telegram_messages.message_id,
+            telegram_messages.invoice_id
+            FROM telegram_messages
+            INNER JOIN users
+            ON telegram_messages.chat_id = users.telegram_id
+            WHERE withdraw_id = ${withdrawID}
+            AND users.roles LIKE '%admin%';
+        `);
+    return data.length
+      ? model.process(data)
+      : null;
+  } catch (error) {
+    logger.error('[getWithdrawAdminMessages]', error);
+    return null;
+  }
+};
+
 const deleteMessage = async id => {
   try {
     await db.query(`
@@ -152,5 +211,8 @@ module.exports = {
   getInvoiceMessages,
   putInvoiceMessage,
   getInvoiceAdminMessages,
+  getWithdrawMessages,
+  putWithdrawMessage,
+  getWithdrawAdminMessages,
   deleteMessage,
 };

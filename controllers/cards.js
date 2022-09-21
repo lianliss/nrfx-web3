@@ -173,7 +173,6 @@ const getAvailableBanks = (req, res) => {
   (async () => {
     try {
       const data = await db.getAvailableBanks();
-      logger.debug('[getAvailableBanks]', data);
       const banks = {};
       data.map(b => {
         if (!banks[b.bank]) {

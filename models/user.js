@@ -9,8 +9,8 @@ class User {
   constructor(userData) {
     Object.assign(this, userData);
 
-    this.roles = _.get(userData, 'roles', '').split(',');
-    this.permissions = _.get(userData, 'permissions', '').split(',');
+    this.roles = (_.get(userData, 'roles', '') || '').split(',');
+    this.permissions = (_.get(userData, 'permissions', '') || '').split(',');
 
     this.isAdmin = _.includes(this.roles, 'admin');
     this.isManager = _.includes(this.roles, 'bank_cards_manager')

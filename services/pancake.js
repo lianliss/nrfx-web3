@@ -54,7 +54,7 @@ class Pancake extends Request {
       const response = await this.get(`tokens/${address}`);
       return response.data;
     } catch (error) {
-      logger.error('[Pancake][getTokenInfo]', token, network, error);
+      //logger.error('[Pancake][getTokenInfo]', token, network, error);
       throw error;
     }
   };

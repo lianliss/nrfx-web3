@@ -292,7 +292,10 @@ const swapFiatToToken = async ({
  */
 const getCoinAmount = async (fiat, coin, fiatAmount, decimals = 8, _commissions) => {
   try {
-    const fiatPrice = await rates.get(fiat.toLowerCase());
+    const fiatPrice = fiat === 'USD'
+      ? 1
+      : await rates.get(fiat.toLowerCase());
+
     let coinPrice;
     switch (coin) {
       case 'NRFX': coinPrice = await rates.get('nrfx'); break;

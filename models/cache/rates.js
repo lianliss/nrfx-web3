@@ -13,6 +13,8 @@ class RatesCache {
     const item = this.list[currency];
     const promise = this.promises[currency];
 
+    if (typeof promise === 'undefined') return null;
+
     if (item) {
       try {
         return item.then ? await item : item || null;

@@ -1,5 +1,4 @@
 const config = require('../config');
-const telegram = require('../services/telegram');
 const _ = require('lodash');
 const Web3 = require('web3');
 const logger = require('../utils/logger');
@@ -320,7 +319,6 @@ class Web3Service {
       return await this.web3.eth.sendSignedTransaction(rawTransaction);
     } catch (error) {
       logger.error('[Web3Service][transaction]', method, error);
-      telegram.log(`[Web3Service][transaction] ${method} ${error.message}`);
       throw error;
     }
   };

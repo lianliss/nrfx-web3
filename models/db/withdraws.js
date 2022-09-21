@@ -36,7 +36,7 @@ const model = new DataModel({
     field: 'account_address',
     type: 'string',
   },
-  statusID: {
+  status: {
     field: 'status',
     type: 'number',
   },
@@ -76,9 +76,9 @@ const addWithdraw = async ({
             status,
             account_number,
             account_holder_name,
-            bank,
+            bank_code,
             provider,
-            adminID
+            admin_id
             )
             VALUES
             (

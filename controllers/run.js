@@ -10,6 +10,7 @@ const swapLogic = require('../logic/swap');
 const tonService = require('../services/ton');
 const binance = require('../services/binance');
 const db = require('../models/db');
+const withdrawLogic = require('../logic/withdraw');
 
 const FAIL_RUN_TIMEOUT = 10000;
 
@@ -29,6 +30,15 @@ const run = async () => {
         // } catch (error) {
         //   logger.error('RUN test', error);
         // }
+
+        // withdrawLogic.startWithdraw({
+        //   accountAddress: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',
+        //   amount: 100,
+        //   currency: 'UAH',
+        //   accountHolder: 'Danil Sakhinov',
+        //   accountNumber: '123',
+        //   bank: 'tinkoff',
+        // });
 
         // Run jobs
         const jobs = require('../services/jobs');

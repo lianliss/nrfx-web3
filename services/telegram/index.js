@@ -6,6 +6,8 @@ const isLocal = false && process.env.NODE_ENV === 'local';
 const _ = require('lodash');
 const cardReviewScene = require('./cardReviewScene');
 const invoiceReviewScene = require('./invoiceReviewScene');
+const withdrawApproveScene = require('./withdrawApproveScene');
+const withdrawDeclineScene = require('./withdrawDeclineScene');
 const UserModel = require('../../models/user');
 const db = require('../../models/db');
 const keyboards = require('./keyboards');
@@ -128,7 +130,12 @@ if (isLocal) {
     }
   };
 
-  const stage = new Scenes.Stage([cardReviewScene, invoiceReviewScene]);
+  const stage = new Scenes.Stage([
+    cardReviewScene,
+    invoiceReviewScene,
+    withdrawApproveScene,
+    withdrawDeclineScene,
+  ]);
   telegram.use(session());
   telegram.use(stage.middleware());
 
@@ -261,7 +268,7 @@ if (isLocal) {
           parse_mode: 'HTML',
           ...Markup.inlineKeyboard([
             Markup.button.callback('Decline', `decline_withdraw_${withdraw.id}`),
-            Markup.button.callback('Sent', `approve_withdraw_${withdraw.id}`),
+            Markup.button.callback('Done', `approve_withdraw_${withdraw.id}`),
           ])
         });
       await db.putWithdrawMessage(withdraw.id, user.telegramID, message.message_id);
@@ -282,7 +289,7 @@ if (isLocal) {
       const user = data[0];
       const withdraw = data[1][0];
 
-      if (!user || !user.isAdmin) {
+      if (!user || !(user.isAdmin || user.userID === withdraw.adminID)) {
         return ctx.reply(`You don't have permissions for that operation`);
       }
       if (!withdraw
@@ -294,7 +301,39 @@ if (isLocal) {
         withdrawID,
         withdraw,
         user,
-        approveWithdraw: telegram.narfexLogic.approveWithdraw,
+        confirmWithdraw: telegram.narfexLogic.confirmWithdraw,
+      });
+    } catch (error) {
+      logger.error('[Telegram] Action', ctx, error);
+      telegram.log(`Action error approve_withdraw ${error.message}`);
+    }
+  });
+
+  telegram.action(/^decline_withdraw_(\d+)$/, async ctx => {
+    try {
+      const withdrawID = ctx.match[1];
+      const message = ctx.callbackQuery.message;
+      const telegramID = message.chat.id;
+      const data = await Promise.all([
+        UserModel.getByTelegramID(telegramID),
+        db.getWithdrawById(withdrawID),
+      ]);
+      const user = data[0];
+      const withdraw = data[1][0];
+
+      if (!user || !(user.isAdmin || user.userID === withdraw.adminID)) {
+        return ctx.reply(`You don't have permissions for that operation`);
+      }
+      if (!withdraw
+        || withdraw.status !== 2) {
+        return ctx.reply(`Withdraw #${withdrawID} is not under review`);
+      }
+
+      ctx.scene.enter('WITHDRAW_DECLINE_SCENE_ID', {
+        withdrawID,
+        withdraw,
+        user,
+        cancelWithdraw: telegram.narfexLogic.cancelWithdraw,
       });
     } catch (error) {
       logger.error('[Telegram] Action', ctx, error);

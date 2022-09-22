@@ -159,7 +159,8 @@ const cancelCardReservation = async (cardId) => {
   try {
     return await db.query(`
             UPDATE bank_cards
-            SET book_expiration = NULL, booked_by = NULL
+            SET book_expiration = NULL, booked_by = NULL,
+            updated_at_timestamp = ${Math.floor(Date.now() / 1000)}
             WHERE id = ${cardId};
         `);
   } catch (error) {

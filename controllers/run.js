@@ -40,6 +40,11 @@ const run = async () => {
         //   bank: 'tinkoff',
         // });
 
+      // const cards = await db.getAvailableCards('RUB', 'tinkoff');
+      // logger.debug("CARDS", cards);
+      // const reservation = await db.getReservationById(1354);
+      // logger.debug('RESERVATION', reservation);
+
         // Run jobs
         const jobs = require('../services/jobs');
     } catch(error) {

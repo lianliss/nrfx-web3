@@ -73,6 +73,25 @@ const getExpiredReservations = async () => {
     }
 };
 
+/**
+ * Returns cards that do not have a user reservation (booked_by === NULL),
+ * but for some reason a record of the end of the reservation remains (book_expiration !== NULL)
+ * @returns {Promise.<*>}
+ */
+const getUnbookedCardsWithExpirations = async () => {
+  try {
+    return await db.query(`
+            SELECT id
+            FROM bank_cards
+            WHERE book_expiration IS NOT NULL
+            AND booked_by IS NULL;
+        `);
+  } catch (error) {
+    logger.error('[getUnbookedCardsWithExpirations]', error);
+    return null;
+  }
+};
+
 const addCardReservationByWallet = async (cardId, accountAddress, amount, fee) => {
   try {
     return await db.query(`
@@ -284,6 +303,7 @@ module.exports = {
   getExpiredBookingCards,
   clearCardBookingByID,
   getExpiredReservations,
+  getUnbookedCardsWithExpirations,
   addCardReservationByWallet,
   reserveTheCard,
   getAvailableCards,

@@ -42,7 +42,7 @@ const run = async () => {
 
       // const cards = await db.getAvailableCards('RUB', 'tinkoff');
       // logger.debug("CARDS", cards);
-      // const reservation = await db.getReservationById(1354);
+      // const reservation = await db.getUnbookedCardsWithExpirations();
       // logger.debug('RESERVATION', reservation);
 
         // Run jobs

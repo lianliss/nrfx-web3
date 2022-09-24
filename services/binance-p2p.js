@@ -67,10 +67,14 @@ class BinanceP2P extends Request {
       if (message) throw new Error(`[${code}] ${message}`);
 
       let price = 0;
-      data.map(item => {
+      const cuttedArray = data.length > 1
+        ? _.drop(data, 1)
+        : data;
+        
+      cuttedArray.map(item => {
         price += Number(_.get(item, 'adv.price'));
       });
-      price /= data.length;
+      price /= cuttedArray.length;
 
       return price;
     } catch (error) {

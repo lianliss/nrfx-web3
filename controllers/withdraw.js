@@ -38,7 +38,7 @@ const addWithdraw = (req, res) => {
 const getWithdrawalBanks = (req, res) => {
   (async () => {
     try {
-      res.status(200).json(WITHDRAWAL_BANKS);
+      res.status(200).json(withdrawLogic.WITHDRAWAL_BANKS);
     } catch (error) {
       logger.error('[withdrawController][getWithdrawalBanks]', error);
       res.status(500).json({

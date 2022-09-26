@@ -29,6 +29,12 @@ const WITHDRAWAL_BANKS = {
   ]
 };
 
+const getBankTitle = (bank, currency) => {
+  const bankRecord = _.get(WITHDRAWAL_BANKS, currency, [])
+    .find(b => b.code === bank);
+  return _.get(bankRecord, 'title', bank);
+};
+
 const startWithdraw = async (props) => {
   const {
     accountAddress,
@@ -129,7 +135,7 @@ const cancelWithdraw = async (withdraw, chat) => {
             : `<b>✖️ Withdraw cancelled #${withdraw.id}</b>\n`)
           + `<code>${withdraw.accountAddress}</code>\n`
           + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
-          + `<b>Bank:</b> ${withdraw.bank.toUpperCase()}\n`
+          + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
           + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
           + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
           + `<b>Phone:</b> ${withdraw.phone}`,
@@ -170,7 +176,7 @@ const confirmWithdraw = async (withdraw, chat) => {
             : `<b>✅ Withdraw completed #${withdraw.id}</b>\n`)
           + `<code>${withdraw.accountAddress}</code>\n`
           + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
-          + `<b>Bank:</b> ${withdraw.bank.toUpperCase()}\n`
+          + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
           + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
           + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
           + `<b>Phone:</b> ${withdraw.phone}`,
@@ -189,6 +195,7 @@ const confirmWithdraw = async (withdraw, chat) => {
   }
 };
 telegram.narfexLogic.confirmWithdraw = confirmWithdraw;
+telegram.narfexLogic.getBankTitle = getBankTitle;
 
 module.exports = {
   startWithdraw,

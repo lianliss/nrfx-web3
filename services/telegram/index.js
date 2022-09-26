@@ -256,12 +256,13 @@ if (isLocal) {
   telegram.sendWithdraw = async (user, withdraw) => {
     if (!user.telegramID) return;
     try {
+      const {getBankTitle} = telegram.narfexLogic;
       const message = await telegram.telegram.sendMessage(
         user.telegramID,
         `<b>New withdraw request #<code>${withdraw.id}</code></b>\n`
         + `<code>${withdraw.accountAddress}</code>\n`
         + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
-        + `<b>Bank:</b> ${withdraw.bank.toUpperCase()}\n`
+        + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
         + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
         + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
         + `<b>Phone:</b> ${withdraw.phone}`,

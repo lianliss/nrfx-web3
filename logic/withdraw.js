@@ -37,6 +37,7 @@ const startWithdraw = async (props) => {
     accountNumber,
     accountHolder,
     bank,
+    phone,
   } = props;
   try {
     // Check the manager is available
@@ -62,10 +63,11 @@ const startWithdraw = async (props) => {
       wei.to(amount),
     ]);
     const txHash = _.get(receipt, 'transactionHash');
-    telegram.log(`[startWithdraw] Burn <code>${txHash}</code>\n`
-      + `Amount ${amount.toFixed(2)} ${currency}`
-      + `From <code>${accountAddress}</code>\n`
-      + `For ${accountHolder} ${accountNumber}`);
+    telegram.log(`Burn <code>${txHash}</code>\n`
+      + `<b>Reason:</b> withdraw`
+      + `<b>Amount:</b> ${amount.toFixed(2)} ${currency}\n`
+      + `<b>From:</b> <code>${accountAddress}</code>\n`
+      + `<b>For:</b> ${accountHolder} ${accountNumber}`);
 
     // Add to DB
     await db.addWithdraw({
@@ -126,10 +128,11 @@ const cancelWithdraw = async (withdraw, chat) => {
             + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
             : `<b>✖️ Withdraw cancelled #${withdraw.id}</b>\n`)
           + `<code>${withdraw.accountAddress}</code>\n`
+          + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
           + `<b>Bank:</b> ${withdraw.bank.toUpperCase()}\n`
           + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
           + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
-          + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}`,
+          + `<b>Phone:</b> ${withdraw.phone}`,
           {
             parse_mode: 'HTML',
             disable_web_page_preview: false,
@@ -166,10 +169,11 @@ const confirmWithdraw = async (withdraw, chat) => {
             + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
             : `<b>✅ Withdraw completed #${withdraw.id}</b>\n`)
           + `<code>${withdraw.accountAddress}</code>\n`
+          + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
           + `<b>Bank:</b> ${withdraw.bank.toUpperCase()}\n`
           + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
           + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
-          + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}`,
+          + `<b>Phone:</b> ${withdraw.phone}`,
           {
             parse_mode: 'HTML',
             disable_web_page_preview: false,

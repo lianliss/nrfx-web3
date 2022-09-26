@@ -260,10 +260,11 @@ if (isLocal) {
         user.telegramID,
         `<b>New withdraw request #<code>${withdraw.id}</code></b>\n`
         + `<code>${withdraw.accountAddress}</code>\n`
+        + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
         + `<b>Bank:</b> ${withdraw.bank.toUpperCase()}\n`
         + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
         + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
-        + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}`,
+        + `<b>Phone:</b> ${withdraw.phone}`,
         {
           parse_mode: 'HTML',
           ...Markup.inlineKeyboard([

@@ -123,30 +123,24 @@ const cancelWithdraw = async (withdraw, chat) => {
       + `For ${accountHolder} ${accountNumber}`);
 
     const messages = await db.getWithdrawMessages(withdraw.id);
-    if (messages && messages.length) messages.map(async message => {
-      try {
-        telegram.telegram.editMessageText(
-          message.chatID,
-          message.messageID,
-          undefined,
-          (!!chat
-            ? `<b>✖️ Withdraw cancelled #${withdraw.id} by `
-            + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
-            : `<b>✖️ Withdraw cancelled #${withdraw.id}</b>\n`)
-          + `<code>${withdraw.accountAddress}</code>\n`
-          + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
-          + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
-          + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
-          + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
-          + `<b>Phone:</b> ${withdraw.phone}`,
-          {
-            parse_mode: 'HTML',
-            disable_web_page_preview: false,
-          });
-      } catch (error) {
-        logger.error('[confirmWithdraw] editMessageText', error);
-      }
-    });
+    messages && telegram.updateMessages(
+      messages,
+      (!!chat
+        ? `<b>✖️ Withdraw cancelled #${withdraw.id} by `
+        + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
+        : `<b>✖️ Withdraw cancelled #${withdraw.id}</b>\n`)
+      + `<code>${withdraw.accountAddress}</code>\n`
+      + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
+      + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
+      + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
+      + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
+      + `<b>Phone:</b> ${withdraw.phone}`,
+      {
+        links: [
+          {title: 'View mint back', url: `https://bscscan.com/tx/${txHash}`}
+        ]
+      },
+    );
 
     return txHash;
   } catch (error) {
@@ -164,30 +158,19 @@ const confirmWithdraw = async (withdraw, chat) => {
       db.getWithdrawMessages(withdraw.id),
     ]);
     const messages = data[1];
-    if (messages && messages.length) messages.map(async message => {
-      try {
-        telegram.telegram.editMessageText(
-          message.chatID,
-          message.messageID,
-          undefined,
-          (!!chat
-            ? `<b>✅ Withdraw completed #${withdraw.id} by `
-            + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
-            : `<b>✅ Withdraw completed #${withdraw.id}</b>\n`)
-          + `<code>${withdraw.accountAddress}</code>\n`
-          + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
-          + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
-          + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
-          + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
-          + `<b>Phone:</b> ${withdraw.phone}`,
-          {
-            parse_mode: 'HTML',
-            disable_web_page_preview: false,
-          });
-      } catch (error) {
-        logger.error('[confirmWithdraw] editMessageText', error);
-      }
-    });
+    messages && telegram.updateMessages(
+      messages,
+      (!!chat
+        ? `<b>✅ Withdraw completed #${withdraw.id} by `
+        + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
+        : `<b>✅ Withdraw completed #${withdraw.id}</b>\n`)
+      + `<code>${withdraw.accountAddress}</code>\n`
+      + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
+      + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
+      + `<b>Account:</b> <code>${withdraw.accountNumber}</code>\n`
+      + `<b>Holder name:</b> ${withdraw.accountHolder.toUpperCase()}\n`
+      + `<b>Phone:</b> ${withdraw.phone}`
+    );
   } catch (error) {
     logger.error('[confirmWithdraw]', withdraw.id, withdraw.accountAddress, error);
     telegram.log(`[confirmWithdraw] Error #${withdraw.id} for ${withdraw.accountAddress}: ${error.message}`);

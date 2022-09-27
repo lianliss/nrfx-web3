@@ -532,7 +532,14 @@ ${accountAddress}
     // limits
     if (coinAmount < minCoinAmount) throw new Error(`Coin amount is less than minimum`);
     if (coinAmount > maxCoinAmount) throw new Error('Coin amount is more than maximum');
-    if (usdtAmount > usdtBalance && coin !== 'NRFX') throw new Error(`Overload error. Try again in 5 minutes or text to Support`);
+    if (usdtAmount > usdtBalance && coin !== 'NRFX') {
+      telegram.sendToAdmins(
+        `<b>🔺​ Exchange error: </b> Not enough Binance balance\n`
+        + `<b>Binance balance</b> ${usdtBalance.toFixed(2)} USDT\n`
+        + `<b>Asked amount</b> ${usdtAmount.toFixed(2)} USDT\n`
+      );
+      throw new Error(`Overload error. Try again in 5 minutes or text to Support`);
+    };
     if (fiatAmount > fiatBalance) throw new Error('Not enough fiat balance');
 
     const exchangeId = `exchange-${fiatSymbol}-${coinSymbol}-${Date.now()}`;
@@ -587,10 +594,6 @@ ${accountAddress}
         throw new Error(withdraw.info);
       }
       txHash = withdraw.txId;
-      logger.debug('withdraw', withdraw);
-      telegram.log(`[exchange] Withdraw <b>${withdraw.amount}</b> ${withdraw.coin}
- to <a href="https://bscscan.com/address/${withdraw.address}">${withdraw.address}</a>
- <a href="https://bscscan.com/tx/${txHash || ''}"><b>${withdraw.status}</b></a>`);
     } else {
       // Send NARFEX
       try {
@@ -601,15 +604,25 @@ ${accountAddress}
           coinAmount,
         );
         txHash = _.get(result, 'receipt.transactionHash');
-        telegram.log(`[exchange] Transfer <b>${coinAmount.toFixed(5)}</b> NRFX
- to ${accountAddress} [<a href="https://bscscan.com/address/${accountAddress}">Scan</a>]
- <a href="https://bscscan.com/tx/${txHash || ''}"><b>View details</b></a>`);
       } catch (error) {
         logger.error('[exchange] Transfer ERROR', error);
         telegram.log(`[exchange] Transfer ERROR <b>${coinAmount}</b> NRFX: ${error.message}`);
         throw new Error(error.message);
       }
     }
+
+    telegram.sendToAdmins(`<b>🔄 Exchange:</b> fiat to crypto\n`
+      + `<b>Account: </b><code>${accountAddress}</code>\n`
+      + `<b>From: </b> ${fiatAmount.toFixed(5)} ${fiatSymbol}\n`
+      + `<b>To: </b> ${coinAmount.toFixed(5)} ${coinSymbol}\n`
+      + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`
+      + `<b>Fiat commission:</b> ${fiatCommission * 100}%\n`
+      + `<b>Coin commission:</b> ${coinCommission * 100}%\n`
+      + `<b>Rate:</b> ${rate.toFixed(5)}\n`, {
+      links: [
+        {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
+      ]
+    });
 
     if (fiatToBNBAmount) {
       try {

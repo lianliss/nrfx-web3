@@ -172,7 +172,7 @@ if (isLocal) {
    * @param params {object} - message params
    * @returns {Promise.<Array>}
    */
-  telegram.sendMultipleMessages = async (chats, text, params) => {
+  telegram.sendMultipleMessages = async (chats, text, params = {}) => {
     try {
       const options = prepareOptions(params);
 
@@ -197,7 +197,7 @@ if (isLocal) {
    * @param params {object} - Message params
    * @returns {Promise.<Array>}
    */
-  telegram.sendToAdmins = async (text, params) => {
+  telegram.sendToAdmins = async (text, params = {}) => {
     try {
       const admins = await db.getAdminsWithTelegram();
       return await telegram.sendMultipleMessages(
@@ -217,7 +217,7 @@ if (isLocal) {
    * @param params {object} - message params with keyboard buttons
    * @returns {Promise.<Array>}
    */
-  telegram.updateMessages = async (messages, text, params) => {
+  telegram.updateMessages = async (messages, text, params = {}) => {
     try {
       const options = prepareOptions(params);
 

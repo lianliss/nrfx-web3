@@ -139,6 +139,75 @@ if (isLocal) {
   telegram.use(session());
   telegram.use(stage.middleware());
 
+  /**
+   * Process message params before use it in message. Build inline keyboards
+   * @param params {object}
+   * @returns {{parse_mode: string}}
+   */
+  const prepareOptions = params => {
+    const options = {
+      parse_mode: 'HTML',
+    };
+    if (params.actions || params.links) {
+      const markup = [];
+      _.isArray(params.actions) && params.actions.map(button => {
+        const {title, action} = button;
+        if (!title || !action) return;
+        markup.push(Markup.button.callback(title, action));
+      });
+      _.isArray(params.links) && params.links.map(link => {
+        const {title, url} = link;
+        if (!title || !url) return;
+        markup.push(Markup.button.url(title, url));
+      });
+      Object.assign(options, Markup.inlineKeyboard(markup));
+    }
+    return options;
+  };
+
+  /**
+   * Send a message to a multiple chats
+   * @param chats {array} - chat IDs
+   * @param message {string} - HTML-style message
+   * @param params {object} - message params
+   * @returns {Promise.<Array>}
+   */
+  telegram.sendMultipleMessages = async (chats, message, params) => {
+    try {
+      const options = prepareOptions(params);
+
+      // Send messages and get results
+      const result = await Promise.allSettled(chats.map(chatID => {
+        return telegram.telegram.sendMessage(
+          chatID,
+          message,
+          options);
+      }));
+      // Filter successful messages and returns it ID's
+      return result.filter(r => r.status === 'fulfilled')
+        .map(r => r.value.message_id);
+    } catch (error) {
+      logger.error('[telegram][sendToAdmins]', error);
+    }
+  };
+
+  /**
+   * Send a specific message to a multiple admins
+   * @param message {string} - HTML-style message
+   * @param params {object} - Message params
+   * @returns {Promise.<Array>}
+   */
+  telegram.sentToAdmins = async (message, params) => {
+    try {
+      const admins = await db.getAdminsWithTelegram();
+      return await telegram.sendMultipleMessages(
+        admins.filter(a => !!a.telegramID).map(a => a.telegramID),
+        message,
+        params,
+      )
+    }
+  };
+
   telegram.sendCardOperation = async (user, operation) => {
     if (!user.telegramID) return;
     try {

@@ -473,12 +473,12 @@ const exchangeFiatToCrypto = async (accountAddress,
       binance.updateBalance(),
       db.getSiteSettings(),
     ]);
-    const limits = binance.coins.find(c => c.coin === coin);
+    const limits = binance.coins.find(c => c.coin === coinSymbol);
     const usdt = binance.coins.find(c => c.coin === 'USDT');
     const minCoinAmount = _.get(limits, 'min', 0);
     const maxCoinAmount = _.get(limits, 'max', Infinity);
     const minDecimals = _.get(limits, 'minDecimals', 0.0000000001);
-    const exchangeData = binance.exchangeData.symbols.find(s => s.symbol === `${coin}USDT`);
+    const exchangeData = binance.exchangeData.symbols.find(s => s.symbol === `${coinSymbol}USDT`);
     const decimals = _.get(exchangeData, 'baseAssetPrecision', 8);
     const coinBalance = _.get(limits, 'balance', 0);
     const usdtBalance = _.get(usdt, 'balance', 0);

@@ -290,9 +290,16 @@ class Web3Service {
   transaction = async (contract, method, params, value = 0, account = this.defaultAccount) => {
     try {
       const accountAddress = account.address;
-      const count = await this.web3.eth.getTransactionCount(accountAddress);
       const data = contract.methods[method](...params);
-      const gasPrice = await this.web3.eth.getGasPrice();
+      const preflight = await Promise.all([
+        this.web3.eth.getTransactionCount(accountAddress),
+        this.web3.eth.getGasPrice(),
+        this.web3.eth.getBlock('latest'),
+      ]);
+      const count = preflight[0];
+      const gasPrice = preflight[1];
+      const block = preflight[2];
+      logger.debug('BLOCK', block);
       const gasEstimationParams = {from: accountAddress, gas: 50000000000};
       if (value) {
         gasEstimationParams.value = value;

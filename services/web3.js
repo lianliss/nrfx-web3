@@ -300,7 +300,7 @@ class Web3Service {
       const gasPrice = preflight[1];
       const block = preflight[2];
       logger.debug('BLOCK', block);
-      const gasEstimationParams = {from: accountAddress, gas: 50000000000};
+      const gasEstimationParams = {from: accountAddress, gas: block.gasLimit};
       if (value) {
         gasEstimationParams.value = value;
       }

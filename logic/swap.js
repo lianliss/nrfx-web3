@@ -540,9 +540,8 @@ ${accountAddress}
       wei.to(fiatAmount + fiatToBNBAmount),
     ]);
     burned = fiatAmount + fiatToBNBAmount;
-    logger.debug('burned', burned, fiat, 'on', accountAddress);
     telegram.log(`[exchange] <a href="https://bscscan.com/tx/${burnReceipt.transactionHash}">Burn</a>
- <b>${burned}</b> ${fiat} from ${accountAddress}`);
+ <b>${burned}</b> ${fiatSymbol} from ${accountAddress}`);
 
     // Swap on Binance
     if (coinSymbol !== 'USDT' && coinSymbol !== 'NRFX') {
@@ -632,8 +631,8 @@ ${accountAddress}
 
     return {txHash};
   } catch (error) {
-    logger.error(`[SwapLogic][exchangeFiatToCrypto] Error ${accountAddress} ${amount} ${fiat} to ${coin} `, error);
-    telegram.log(`[SwapLogic][exchangeFiatToCrypto] Error ${accountAddress} ${amount} ${fiat} to ${coin} 
+    logger.error(`[SwapLogic][exchangeFiatToCrypto] Error ${accountAddress} ${amount} ${fiatContract.symbol} to ${coinContract.symbol} `, error);
+    telegram.log(`[SwapLogic][exchangeFiatToCrypto] Error ${accountAddress} ${amount} ${fiatContract.symbol} to ${coinContract.symbol} 
     (${_.get(error, 'data.code', error.name).code}) ${_.get(error, 'data.msg', error.message)}`);
     throw error;
   }

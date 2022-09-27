@@ -314,15 +314,17 @@ async function getTokenPrice(tokenSymbol, isFiat = false) {
  * @param _commissions {object} commissions object (optional)
  * @returns {Promise.<{fiatPrice: *, coinPrice: *, fiatCommission: number, coinCommission: *, rate: number, coinAmount: number, usdtAmount: number}>}
  */
-const getCoinAmount = async (fiat, coin, fiatAmount, decimals = 8, _commissions) => {
+const getCoinAmount = async (fiatContract, coinContract, fiatAmount, decimals = 8, _commissions) => {
   try {
+    const fiatSymbol = fiatContract.symbol;
+    const coinSymbol = coinContract.symbol;
     const prices = await Promise.all([
-      getTokenPrice(fiat),
-      getTokenPrice(coin),
+      getTokenPrice(fiatSymbol, fiatContract.isFiat),
+      getTokenPrice(coinSymbol, coinContract.isFiat),
     ]);
     const fiatPrice = prices[0];
     const coinPrice = prices[1];
-    logger.debug('getCoinAmount', fiat, coin, fiatAmount, prices);
+    logger.debug('getCoinAmount', fiatSymbol, coinSymbol, fiatAmount, prices);
 
     // Request commissions if it's undefined
     let commissions = _commissions;
@@ -335,14 +337,14 @@ const getCoinAmount = async (fiat, coin, fiatAmount, decimals = 8, _commissions)
       }
     }
 
-    const fiatCommission = (Number(_.get(commissions, `${fiat.toLowerCase()}`, 0)) || 0) / 100;
-    const coinCommission = getCommission(commissions, coin.toLowerCase());
+    const fiatCommission = (Number(_.get(commissions, `${fiatSymbol.toLowerCase()}`, 0)) || 0) / 100;
+    const coinCommission = getCommission(commissions, coinSymbol.toLowerCase());
     const rate = (fiatPrice * (1 - fiatCommission)) / coinPrice;
 
     // Calculate coin amount
     let coinAmount = fiatAmount * rate * (1 - coinCommission);
     coinAmount = Number(coinAmount.toFixed(decimals)); // Round value
-    let usdtAmount = coin === 'USDT' ? coinAmount : coinAmount * coinPrice;
+    let usdtAmount = coinSymbol === 'USDT' ? coinAmount : coinAmount * coinPrice;
     usdtAmount = Number(usdtAmount.toFixed(decimals)); // Round value
 
     return {
@@ -503,7 +505,7 @@ const exchangeFiatToCrypto = async (accountAddress,
       fiatCommission, coinCommission,
       rate,
       coinAmount, usdtAmount,
-    } = await getCoinAmount(fiatSymbol, coinSymbol, fiatAmount, decimals, commissions);
+    } = await getCoinAmount(fiatContract, coinContract, fiatAmount, decimals, commissions);
 
     logger.debug('[exchange] Details', {
       fiatCommission,
@@ -611,7 +613,12 @@ ${accountAddress}
 
     if (fiatToBNBAmount) {
       try {
-        const bnbOperation = await getCoinAmount(fiatSymbol, 'BNB', fiatToBNBAmount, decimals, commissions);
+        const bnbOperation = await getCoinAmount(
+          fiatContract,
+          'BNB',
+          fiatToBNBAmount,
+          decimals,
+          commissions);
         const bnbAmount = bnbOperation.coinAmount;
         await wait(5000);
         const bnbResult = await web3Service.transfer(
@@ -688,7 +695,7 @@ const exchange = async (accountAddress,
       fiatCommission, coinCommission,
       rate,
       coinAmount, usdtAmount,
-    } = await getCoinAmount(fiatSymbol, coinSymbol, fiatAmount, undefined, commissions);
+    } = await getCoinAmount(fiatContract, coinContract, fiatAmount, undefined, commissions);
 
     logger.debug('[exchange] Details', {
       fiatCommission,

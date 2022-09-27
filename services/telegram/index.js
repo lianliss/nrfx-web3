@@ -197,7 +197,7 @@ if (isLocal) {
    * @param params {object} - Message params
    * @returns {Promise.<Array>}
    */
-  telegram.sentToAdmins = async (message, params) => {
+  telegram.sendToAdmins = async (message, params) => {
     try {
       const admins = await db.getAdminsWithTelegram();
       return await telegram.sendMultipleMessages(

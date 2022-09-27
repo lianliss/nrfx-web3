@@ -298,6 +298,8 @@ class Web3Service {
         gasEstimationParams.value = value;
       }
       const gasLimit = await data.estimateGas(gasEstimationParams);
+      logger.debug('transaction account', account);
+      logger.debug('transaction data', data);
       const transaction = {
         from: accountAddress,
         gasPrice: gasPrice,

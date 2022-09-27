@@ -296,6 +296,7 @@ async function getTokenPrice(tokenSymbol, isFiat = false) {
         ? await rates.get(tokenSymbol.toLowerCase())
         : await rates.get(`${tokenSymbol.toUpperCase()}USDT`);
     }
+    telegram.log(`[getTokenPrice] ${tokenSymbol} ${isFiat} ${price.toFixed(4)}`);
     return price;
   } catch (error) {
     logger.error('[getTokenPrice]', tokenSymbol, isFiat, error);

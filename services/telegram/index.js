@@ -187,7 +187,7 @@ if (isLocal) {
       return result.filter(r => r.status === 'fulfilled')
         .map(r => r.value.message_id);
     } catch (error) {
-      logger.error('[telegram][sendToAdmins]', error);
+      logger.error('[telegram][sendMultipleMessages]', error);
     }
   };
 
@@ -205,6 +205,8 @@ if (isLocal) {
         message,
         params,
       )
+    } catch (error) {
+      logger.error('[telegram][sendToAdmins]', error);
     }
   };
 

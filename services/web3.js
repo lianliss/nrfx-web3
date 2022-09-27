@@ -305,13 +305,13 @@ class Web3Service {
       }
       logger.debug('transaction account', account);
       logger.debug('transaction gasEstimationParams', gasEstimationParams);
-      logger.debug('transaction data', data);
-      // const gasLimit = await data.estimateGas(gasEstimationParams);
-      // logger.debug('transaction gasLimit', gasLimit);
+      logger.debug('transaction contract', contract);
+      const gasLimit = await data.estimateGas(gasEstimationParams);
+      logger.debug('transaction gasLimit', gasLimit);
       const transaction = {
         from: accountAddress,
         gasPrice: gasPrice,
-        gasLimit: 104557,
+        gasLimit: gasLimit,
         to: contract._address,
         data: data.encodeABI(),
         nonce: count,

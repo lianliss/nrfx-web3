@@ -659,7 +659,7 @@ const exchange = async (accountAddress,
     ]);
     const routerContract = new (web3Service.web3.eth.Contract)(
       exchangeRouterABI,
-      FIAT_FACTORY,
+      EXCHANGE_ROUTER,
     );
     const fiatContract = contracts[0];
     const coinContract = contracts[1];

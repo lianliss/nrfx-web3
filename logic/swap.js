@@ -558,7 +558,7 @@ ${accountAddress}
       coinAmount = Number(swapResult.executedQty);
       // Lower amount by 0.3% to avoid insufficient balance error
       //coinAmount = Math.floor(coinAmount * 0.997 / minDecimals) * minDecimals; // Round value
-      telegram.log(`[exchange] Swap <b>${usdtAmount}</b> USDT to <b>${coinAmount}</b> ${coin}`);
+      telegram.log(`[exchange] Swap <b>${usdtAmount}</b> USDT to <b>${coinAmount}</b> ${coinSymbol}`);
     }
 
     // Send coins to user
@@ -566,7 +566,7 @@ ${accountAddress}
     if (coinSymbol !== 'NRFX') {
       await wait(10000); // Wait after swap
       const withdrawId = await binance.applyWithdraw(
-        coin,
+        coinSymbol,
         accountAddress,
         coinAmount,
         exchangeId,

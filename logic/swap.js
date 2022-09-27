@@ -435,7 +435,7 @@ const getTokenContract = async token => {
       // If token === tokenSymbol
       tokenAddress = await factoryContract.methods.fiats(token.toUpperCase()).call();
       if (tokenAddress === ZERO_ADDRESS) {
-        throw new Error(`NarfexFiat for ${fiat} is not deployed yet`);
+        throw new Error(`NarfexFiat for ${token} is not deployed yet`);
       } else {
         const fiatContract = new (web3Service.web3.eth.Contract)(
           fiatABI,

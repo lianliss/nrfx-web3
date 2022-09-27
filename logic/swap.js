@@ -716,6 +716,13 @@ ${accountAddress}
 <b>Coin commission:</b> ${coinCommission * 100}% 
 `);
 
+    logger.debug('exchange transaction', method, [
+      accountAddress,
+      fiatContract.options.address,
+      coinContract.options.address,
+      wei.to(fiatAmount),
+      wei.to(coinAmount),
+    ]);
     const receipt = await web3Service.transaction(routerContract, method, [
       accountAddress,
       fiatContract.options.address,

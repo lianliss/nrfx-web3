@@ -299,7 +299,7 @@ class Web3Service {
       const count = preflight[0];
       const gasPrice = preflight[1];
       const block = preflight[2];
-      const gasEstimationParams = {from: accountAddress.toLowerCase(), gas: block.gasLimit};
+      const gasEstimationParams = {};
       if (value) {
         gasEstimationParams.value = value;
       }

@@ -287,7 +287,6 @@ const swapFiatToToken = async ({
 
 async function getTokenPrice(tokenSymbol, isFiat = false) {
   try {
-    const rates = useSelector(web3RatesSelector);
     let price;
     switch (tokenSymbol) {
       case 'NRFX': price = await rates.get('nrfx'); break;

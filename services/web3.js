@@ -299,19 +299,18 @@ class Web3Service {
       const count = preflight[0];
       const gasPrice = preflight[1];
       const block = preflight[2];
-      logger.debug('BLOCK', block);
       const gasEstimationParams = {from: accountAddress, gas: block.gasLimit};
       if (value) {
         gasEstimationParams.value = value;
       }
       logger.debug('transaction account', account);
       logger.debug('transaction gasEstimationParams', gasEstimationParams);
-      // const gasLimit = await data.estimateGas(gasEstimationParams);
-      // logger.debug('transaction gasLimit', gasLimit);
+      const gasLimit = await data.estimateGas(gasEstimationParams);
+      logger.debug('transaction gasLimit', gasLimit);
       const transaction = {
         from: accountAddress,
         gasPrice: gasPrice,
-        gasLimit: block.gasLimit,
+        gasLimit: gasLimit,
         to: contract._address,
         data: data.encodeABI(),
         nonce: count,

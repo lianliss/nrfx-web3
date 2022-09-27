@@ -731,7 +731,7 @@ ${accountAddress}
       wei.to(coinAmount),
     ]);
     const txHash = _.get(receipt, 'transactionHash');
-    telegram.sendToAdmins(`<b>Exchange:</b> ${fiatContract.isFiat ? 'fiat to fiat' : 'crypto to fiat'}\n`
+    telegram.sendToAdmins(`<b>💱 Exchange:</b> ${fiatContract.isFiat ? 'fiat to fiat' : 'crypto to fiat'}\n`
       + `<b>Account: </b><code>${accountAddress}</code>\n`
       + `<b>From: </b> ${fiatAmount.toFixed(5)} ${fiatSymbol}\n`
       + `<b>To: </b> ${coinAmount.toFixed(5)} ${coinSymbol}\n`

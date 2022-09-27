@@ -168,11 +168,11 @@ if (isLocal) {
   /**
    * Send a message to a multiple chats
    * @param chats {array} - chat IDs
-   * @param message {string} - HTML-style message
+   * @param text {string} - HTML-style message
    * @param params {object} - message params
    * @returns {Promise.<Array>}
    */
-  telegram.sendMultipleMessages = async (chats, message, params) => {
+  telegram.sendMultipleMessages = async (chats, text, params) => {
     try {
       const options = prepareOptions(params);
 
@@ -180,7 +180,7 @@ if (isLocal) {
       const result = await Promise.allSettled(chats.map(chatID => {
         return telegram.telegram.sendMessage(
           chatID,
-          message,
+          text,
           options);
       }));
       // Filter successful messages and returns it ID's
@@ -193,20 +193,51 @@ if (isLocal) {
 
   /**
    * Send a specific message to a multiple admins
-   * @param message {string} - HTML-style message
+   * @param text {string} - HTML-style message
    * @param params {object} - Message params
    * @returns {Promise.<Array>}
    */
-  telegram.sendToAdmins = async (message, params) => {
+  telegram.sendToAdmins = async (text, params) => {
     try {
       const admins = await db.getAdminsWithTelegram();
       return await telegram.sendMultipleMessages(
         admins.filter(a => !!a.telegramID).map(a => a.telegramID),
-        message,
+        text,
         params,
       )
     } catch (error) {
       logger.error('[telegram][sendToAdmins]', error);
+    }
+  };
+
+  /**
+   * Update messages text
+   * @param messages {array} - Array of objects with keys messageID and chatID
+   * @param text {string} - new text
+   * @param params {object} - message params with keyboard buttons
+   * @returns {Promise.<Array>}
+   */
+  telegram.updateMessages = async (messages, text, params) => {
+    try {
+      const options = prepareOptions(params);
+
+      // Send messages and get results
+      const result = await Promise.allSettled(messages.map(message => {
+        const {chatID, messageID} = message;
+        if (!chatID || !messageID) return;
+
+        return telegram.telegram.editMessageText(
+          chatID,
+          messageID,
+          undefined,
+          text,
+          options);
+      }));
+      // Filter successful messages and returns it ID's
+      return result.filter(r => r.status === 'fulfilled')
+        .map(r => ({chatID: r.value.chat_id, messageID: r.value.message_id}));
+    } catch (error) {
+      logger.error('[telegram][updateMessages]', error);
     }
   };
 

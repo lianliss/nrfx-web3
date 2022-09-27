@@ -50,31 +50,26 @@ const approveTopup = async (operationId, chat) => {
     ]);
 
     const messages = data[2];
-    if (messages && messages.length) messages.map(async message => {
-      try {
-        telegram.telegram.editMessageText(
-          message.chatID,
-          message.messageID,
-          undefined,
-          (!!chat
-            ? `<b>✅ Topup #${operation.id} approved by `
-            + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
-            : `<b>✅ Topup #${operation.id} approved</b>\n`)
-          + `<code>${operation.account_address}</code>\n`
-          + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
-          + (operation.telegram_id
-            ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
-            : `${operation.first_name || ''} ${operation.last_name || ''}`)
-          + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}\n`
-          + `<a href="https://bscscan.com/tx/${txHash}">View mint transaction</a>`,
-          {
-            parse_mode: 'HTML',
-            disable_web_page_preview: false,
-          });
-      } catch (error) {
-        logger.error('[approveTopup] editMessageText', error);
-      }
-    });
+    if (messages) {
+      telegram.updateMessages(
+        messages,
+        (!!chat
+          ? `<b>✅ Topup #${operation.id} approved by `
+          + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
+          : `<b>✅ Topup #${operation.id} approved</b>\n`)
+        + `<code>${operation.account_address}</code>\n`
+        + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
+        + (operation.telegram_id
+        ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
+        : `${operation.first_name || ''} ${operation.last_name || ''}`)
+        + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}\n`,
+        {
+          links: [
+            {title: 'View mint transaction', url: `https://bscscan.com/tx/${txHash}`}
+          ]
+        },
+      )
+    }
 
     return receipt;
   } catch (error) {

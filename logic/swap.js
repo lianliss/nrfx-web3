@@ -322,6 +322,7 @@ const getCoinAmount = async (fiat, coin, fiatAmount, decimals = 8, _commissions)
     ]);
     const fiatPrice = prices[0];
     const coinPrice = prices[1];
+    logger.debug('getCoinAmount', fiat, coin, fiatAmount, prices);
 
     // Request commissions if it's undefined
     let commissions = _commissions;

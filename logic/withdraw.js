@@ -10,7 +10,8 @@ const userModel = require('../models/user');
 
 const WITHDRAWAL_MANAGERS = {
   RUB: 3765, // Eugene Golikov
-  UAH: 4279, // Danil Sakhinov
+  UAH: 3751, // Danil Sakhinov
+  IDR: 6287, // Kris
 };
 
 const WITHDRAWAL_BANKS = {
@@ -26,7 +27,47 @@ const WITHDRAWAL_BANKS = {
     {code: 'Otkrytie', title: 'Банк "Открытие"'},
     {code: 'Sovkombank', title: 'Совкомбанк'},
     {code: 'Raiffaizen', title: 'Райффайзенбанк'},
-  ]
+  ],
+  UAH: [
+    {code: 'Monobank', title: 'Монобанк'},
+    {code: 'Raiffaizen', title: 'Райффайзен банк Аваль'},
+    {code: 'CreditAgricole', title: 'Креді Агріколь Банк'},
+    {code: 'Ukrsibbank', title: 'Ukrsibbank'},
+    {code: 'PrivatBank', title: 'ПриватБанк'},
+    {code: 'Oschadbank', title: 'Ощадбанк'},
+    {code: 'Ukreksimbank', title: 'Укрексімбанк'},
+    {code: 'Credobank', title: 'Кредобанк'},
+    {code: 'Ukrgazbank', title: 'Укргазбанк'},
+    {code: 'OTPBank', title: 'ОТП Банк'},
+    {code: 'ProCreditBank', title: 'ПроКредит Банк'},
+    {code: 'CitiBank', title: 'СІТІбанк Україна'},
+    {code: 'INGBank', title: 'ІНГ Банк Україна'},
+    {code: 'PravexBank', title: 'Правекс-банк'},
+    {code: 'PUMB', title: 'ПУМБ'},
+    {code: 'UniversalBank', title: 'Універсал Банк'},
+  ],
+  IDR: [
+    {code: 'BCA', title: 'Bank Central Asia (BCA)'},
+    {code: 'BankDBS', title: 'Bank DBS Indonesia'},
+    {code: 'Mandiri', title: 'Bank Mandiri'},
+    {code: 'OUB', title: 'United Overseas Bank'},
+    {code: 'BankSyariah', title: 'Bank Syariah Indonesia'},
+    {code: 'Citibank', title: 'Citibank'},
+    {code: 'BankJago', title: 'Bank Jago'},
+    {code: 'BCASyariah', title: 'BCA Syariah'},
+    {code: 'HSBC', title: 'HSBC Holdings'},
+    {code: 'Bank Negara Indonesia', title: 'Bank Negara Indonesia (BNI)'},
+    {code: 'PaninBank', title: 'Panin Bank'},
+    {code: 'BRI', title: 'BRI'},
+    {code: 'BNC', title: 'Bank Neo Commerce (BNC)'},
+    {code: 'Maybank', title: 'Maybank'},
+    {code: 'DKI', title: 'Bank DKI'},
+    {code: 'OCBCNISP', title: 'OCBC NISP'},
+    {code: 'CIMBNiaga', title: 'CIMB Niaga'},
+    {code: 'Permata', title: 'Bank Permata'},
+    {code: 'Jenius', title: 'Jenius'},
+    {code: 'BTPN', title: 'Bank Tabungan Pensiunan Nasional (BTPN)'},
+  ],
 };
 
 const getBankTitle = (bank, currency) => {

@@ -296,11 +296,10 @@ async function getTokenPrice(tokenSymbol, isFiat = false) {
         ? await rates.get(tokenSymbol.toLowerCase())
         : await rates.get(`${tokenSymbol.toUpperCase()}USDT`);
     }
-    telegram.log(`[getTokenPrice] ${tokenSymbol} ${isFiat} ${price.toFixed(4)}`);
     return price;
   } catch (error) {
     logger.error('[getTokenPrice]', tokenSymbol, isFiat, error);
-    telegram.log(`[getTokenPrice] ${tokenSymbol} ${isFiat} ${error.message}`);
+    telegram.log(`[getTokenPrice] error: ${tokenSymbol} ${isFiat} ${error.message}`);
     return 0;
   }
 }
@@ -317,14 +316,13 @@ async function getTokenPrice(tokenSymbol, isFiat = false) {
 const getCoinAmount = async (fiatContract, coinContract, fiatAmount, decimals = 8, _commissions) => {
   try {
     const fiatSymbol = fiatContract.symbol;
-    const coinSymbol = coinContract.symbol;
+    const coinSymbol = coinContract === 'BNB' ? 'BNB' : coinContract.symbol;
     const prices = await Promise.all([
       getTokenPrice(fiatSymbol, fiatContract.isFiat),
-      getTokenPrice(coinSymbol, coinContract.isFiat),
+      getTokenPrice(coinSymbol, coinSymbol === 'BNB' ? false : coinContract.isFiat),
     ]);
     const fiatPrice = prices[0];
     const coinPrice = prices[1];
-    logger.debug('getCoinAmount', fiatSymbol, coinSymbol, fiatAmount, prices);
 
     // Request commissions if it's undefined
     let commissions = _commissions;
@@ -611,18 +609,17 @@ ${accountAddress}
       }
     }
 
-    telegram.sendToAdmins(`<b>🔄 Exchange:</b> fiat to crypto\n`
+    let messageText = `<b>🔄 Exchange:</b> fiat to crypto\n`
       + `<b>Account: </b><code>${accountAddress}</code>\n`
       + `<b>From: </b> ${fiatAmount.toFixed(5)} ${fiatSymbol}\n`
       + `<b>To: </b> ${coinAmount.toFixed(5)} ${coinSymbol}\n`
       + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`
       + `<b>Fiat commission:</b> ${fiatCommission * 100}%\n`
       + `<b>Coin commission:</b> ${coinCommission * 100}%\n`
-      + `<b>Rate:</b> ${rate.toFixed(5)}\n`, {
-      links: [
-        {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
-      ]
-    });
+      + `<b>Rate:</b> ${rate.toFixed(5)}\n`;
+    const links = [
+      {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
+    ];
 
     if (fiatToBNBAmount) {
       try {
@@ -640,15 +637,18 @@ ${accountAddress}
           bnbAmount,
         );
         const bnbHash = _.get(bnbResult, 'receipt.transactionHash');
-        telegram.log(`[exchange] Transfer <b>${bnbAmount.toFixed(5)}</b> BNB
- to ${accountAddress} [<a href="https://bscscan.com/address/${accountAddress}">Scan</a>]
- <a href="https://bscscan.com/tx/${bnbHash || ''}"><b>View details</b></a>`);
+        messageText += `<b>Additional:</b> ${bnbAmount.toFixed(5)} BNB`;
+        links.push({title: 'BNB transaction', url: `https://bscscan.com/tx/${bnbHash}`});
       } catch (error) {
         logger.error(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}`, error);
         telegram.log(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}: ${error.message}`);
         mintFiatBackToAddress(fiatSymbol, accountAddress, fiatToBNBAmount);
       }
     }
+
+    telegram.sendToAdmins(messageText, {
+      links
+    });
 
     return {txHash};
   } catch (error) {

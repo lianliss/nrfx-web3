@@ -53,8 +53,11 @@ if (isLocal) {
   };
 
   const startCommand = ctx => {
-    ctx.reply(`Test is ok ${Date.now()}`);
-    ctx.telegram.sendMessage(ctx.message.chat.id, `id is ${ctx.message.chat.id}`);
+    ctx.replyWithSticker('CAACAgIAAxkBAAEX9PNjHPUBaeZbpNcDFZMJwd_tpwu4MgACNwwAAiHRMUlAzx0V3wssFSkE',
+      {
+        parse_mode: 'HTML',
+        ...keyboards.mainScreen(ctx.chat.id),
+      });
   };
 
   const execute = (command, name, ctx) => new Promise((fulfill, reject) => {

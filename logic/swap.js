@@ -530,7 +530,7 @@ ${accountAddress}
     // limits
     if (coinAmount < minCoinAmount) throw new Error(`Coin amount is less than minimum`);
     if (coinAmount > maxCoinAmount) throw new Error('Coin amount is more than maximum');
-    if (usdtAmount > usdtBalance && coin !== 'NRFX') {
+    if (usdtAmount > usdtBalance && coinSymbol !== 'NRFX') {
       telegram.sendToAdmins(
         `<b>🔺​ Exchange error: </b> Not enough Binance balance\n`
         + `<b>Binance balance</b> ${usdtBalance.toFixed(2)} USDT\n`

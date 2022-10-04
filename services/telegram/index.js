@@ -13,6 +13,7 @@ const db = require('../../models/db');
 const keyboards = require('./keyboards');
 
 let telegram;
+let restartCommand;
 
 if (isLocal) {
   telegram = {
@@ -87,9 +88,8 @@ if (isLocal) {
     }
   });
 
-  const restartCommand = async ctx => {
+  restartCommand = async ctx => {
     await execute('pm2 restart web3', 'Restart', ctx);
-
   };
 
   const pullCommand = async ctx => {
@@ -496,6 +496,10 @@ process.once('unhandledRejection', (reason, promise) => {
   const message = _.get(reason, 'message', 'No message');
   logger.error('unhandledRejection', reason, promise);
   telegram.log(`unhandledRejection reason: [${code}] ${message}`, true);
+
+  if (Number(code) === 409) {
+    restartCommand();
+  }
 });
 
 module.exports = telegram;

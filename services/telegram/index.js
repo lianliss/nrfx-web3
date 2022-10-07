@@ -296,6 +296,7 @@ if (isLocal) {
         operation,
         user,
         approveTopup: telegram.narfexLogic.approveTopup,
+        log: telegram.log,
       });
     } catch (error) {
       logger.error('[Telegram] Action', ctx, error);
@@ -351,6 +352,7 @@ if (isLocal) {
         invoice,
         user,
         approveInvoice: telegram.narfexLogic.approveInvoice,
+        log: telegram.log,
       });
     } catch (error) {
       logger.error('[Telegram] Action', ctx, error);
@@ -409,6 +411,7 @@ if (isLocal) {
         withdraw,
         user,
         confirmWithdraw: telegram.narfexLogic.confirmWithdraw,
+        log: telegram.log,
       });
     } catch (error) {
       logger.error('[Telegram] Action', ctx, error);
@@ -441,6 +444,7 @@ if (isLocal) {
         withdraw,
         user,
         cancelWithdraw: telegram.narfexLogic.cancelWithdraw,
+        log: telegram.log,
       });
     } catch (error) {
       logger.error('[Telegram] Action', ctx, error);

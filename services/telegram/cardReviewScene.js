@@ -21,7 +21,7 @@ const cardReviewScene = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   async ctx => {
-    const {operation, approveTopup, user} = ctx.wizard.state;
+    const {operation, approveTopup, user, log} = ctx.wizard.state;
     const chat = ctx.wizard.ctx.message.chat;
     const amount = Number(ctx.message.text);
     if (amount !== operation.amount && !user.isAdmin) {
@@ -90,7 +90,7 @@ const cardReviewScene = new Scenes.WizardScene(
     try {
       await approveTopup(operation.id, chat);
     } catch (error) {
-      telegram.log(`[cardReviewScene][approveTopup] #${operation.id} Error [${error.code}] ${error.message}`);
+      log(`[cardReviewScene][approveTopup] #${operation.id} Error [${error.code}] ${error.message}`);
       ctx.reply(
         `Approve #${operation.id} error: ${error.message}\n`
         + `<b>Please call the admin</b>`,

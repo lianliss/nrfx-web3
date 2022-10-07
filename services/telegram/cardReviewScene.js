@@ -87,9 +87,22 @@ const cardReviewScene = new Scenes.WizardScene(
     }
 
     // Process approve
-    await approveTopup(operation.id, chat);
-    ctx.replyWithSticker('CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE',
-      keyboards.mainScreen(chat.id));
+    try {
+      await approveTopup(operation.id, chat);
+    } catch (error) {
+      telegram.log(`[cardReviewScene][approveTopup] #${operation.id} Error [${error.code}] ${error.message}`);
+      ctx.reply(
+        `Approve #${operation.id} error: ${error.message}\n`
+        + `<b>Please call the admin</b>`,
+        keyboards.mainScreen(chat.id),
+      );
+      return ctx.scene.leave();
+    }
+    
+    ctx.replyWithSticker(
+      'CAACAgIAAxkBAAEX7kRjG6QnFI2D7U7W5h8so-zrcb56fAACoBAAAuVXMEkM1tp3XgcpHikE',
+      keyboards.mainScreen(chat.id),
+    );
 
     return ctx.scene.leave();
   }

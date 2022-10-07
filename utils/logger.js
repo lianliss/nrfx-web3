@@ -35,8 +35,8 @@ const loggerConfig = {
             type: 'stdout',
             layout: {
                 type: 'pattern',
-                // pattern: '%d %[%p%] - %m', // pattern with date
-                pattern: '%[%p%] - %m', // pattern without date
+                pattern: '%d %[%p%] - %m', // pattern with date
+                //pattern: '%[%p%] - %m', // pattern without date
             }
         }
     },

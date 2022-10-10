@@ -23,6 +23,7 @@ const bep20TokenABI = require('../const/ABI/bep20Token');
 const fiatFactoryABI = require('../const/ABI/fiatFactory');
 const fiatABI = require('../const/ABI/fiat');
 const exchangeRouterABI = require('../const/ABI/exchangeRouter');
+const referLogic = require('../logic/refers');
 
 const errors = require('../models/error');
 
@@ -488,6 +489,7 @@ const exchangeFiatToCrypto = async (accountAddress,
     const data = await Promise.all([
       binance.updateBalance(),
       db.getSiteSettings(),
+      referLogic.getAccountRefer(accountAddress),
     ]);
     const limits = binance.coins.find(c => c.coin === coinSymbol);
     const usdt = binance.coins.find(c => c.coin === 'USDT');
@@ -498,6 +500,7 @@ const exchangeFiatToCrypto = async (accountAddress,
     const decimals = _.get(exchangeData, 'baseAssetPrecision', 8);
     const coinBalance = _.get(limits, 'balance', 0);
     const usdtBalance = _.get(usdt, 'balance', 0);
+    const refer = data[2];
 
     let fiatAmount = Number(amount) || 0;
     if (fiatToBNBAmount) {
@@ -522,6 +525,7 @@ const exchangeFiatToCrypto = async (accountAddress,
       commissionAmount,
       referralAmount,
     } = await getCoinAmount(fiatContract, coinContract, fiatAmount, decimals, commissions);
+    const commissionSymbol = fiatContract.isFiat ? fiatSymbol : coinSymbol;
 
     logger.debug('[exchange] Details', {
       fiatCommission,
@@ -544,10 +548,10 @@ ${accountAddress}
 <b>Binance USDT balance:</b> ${usdtBalance} USDT
 <b>Fiat commission:</b> ${fiatCommission * 100}%
 <b>Coin commission:</b> ${coinCommission * 100}%
-<b>Total commission:</b> ${totalCommission * 100}%
+<b>Total commission:</b> ${(totalCommission * 100).toFixed(2)}%
 <b>Rate:</b> ${rate.toFixed(5)}
-<b>Commission amount:</b> ${commissionAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}
-<b>Referral amount:</b> ${referralAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol} 
+<b>Commission amount:</b> ${commissionAmount.toFixed(2)} ${commissionSymbol}
+<b>Referral amount:</b> ${referralAmount.toFixed(2)} ${commissionSymbol} 
 `);
 
     // limits
@@ -566,10 +570,25 @@ ${accountAddress}
     const exchangeId = `exchange-${fiatSymbol}-${coinSymbol}-${Date.now()}`;
 
     // Burn
-    const burnReceipt = await web3Service.transaction(fiatContract, 'burnFrom', [
-      accountAddress,
-      wei.to(fiatAmount + fiatToBNBAmount),
-    ]);
+    let burnReceipt;
+    if (refer) {
+      const routerContract = new (web3Service.web3.eth.Contract)(
+        exchangeRouterABI,
+        EXCHANGE_ROUTER,
+      );
+      burnReceipt = await web3Service.transaction(routerContract, 'burnWithBounty', [
+        accountAddress,
+        fiatContract.options.address,
+        wei.to(fiatAmount + fiatToBNBAmount),
+        refer.address,
+        wei.to(referralAmount),
+      ]);
+    } else {
+      burnReceipt = await web3Service.transaction(fiatContract, 'burnFrom', [
+        accountAddress,
+        wei.to(fiatAmount + fiatToBNBAmount),
+      ]);
+    }
     burned = fiatAmount + fiatToBNBAmount;
     telegram.log(`[exchange] <a href="https://bscscan.com/tx/${burnReceipt.transactionHash}">Burn</a>
  <b>${burned}</b> ${fiatSymbol} from ${accountAddress}`);
@@ -640,7 +659,12 @@ ${accountAddress}
       + `<b>Fiat commission:</b> ${fiatCommission * 100}%\n`
       + `<b>Coin commission:</b> ${coinCommission * 100}%\n`
       + `<b>Rate:</b> ${rate.toFixed(5)}\n`
-      + `<b>Commission</b> ${commissionAmount.toFixed(5)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}\n`;
+      + `<b>Commission:</b> ${commissionAmount.toFixed(5)} ${commissionSymbol}\n`;
+    if (refer) {
+      messageText += `<b>Referral reward:</b>`
+        + `${referralAmount.toFixed(2)} ${commissionSymbol}\n`;
+      await db.addReferReward(refer.id, accountAddress, commissionSymbol, referralAmount);
+    }
     const links = [
       {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
     ];
@@ -708,7 +732,8 @@ const exchange = async (accountAddress,
       return await exchangeFiatToCrypto(accountAddress, fiatContract, coinContract, amount, fiatToBNBAmount);
     }
 
-    const method = fiatContract.isFiat
+    const refer = await referLogic.getAccountRefer(accountAddress);
+    let method = fiatContract.isFiat
       ? 'exchangeFiatToFiat'
       : 'exchangeCryptoToFiat';
 
@@ -736,6 +761,7 @@ const exchange = async (accountAddress,
       commissionAmount,
       referralAmount,
     } = await getCoinAmount(fiatContract, coinContract, fiatAmount, undefined, commissions);
+    const commissionSymbol = fiatContract.isFiat ? fiatSymbol : coinSymbol;
 
     logger.debug('[exchange] Details', {
       fiatCommission,
@@ -756,7 +782,7 @@ ${accountAddress}
 <b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT
 <b>Fiat commission:</b> ${fiatCommission * 100}%
 <b>Coin commission:</b> ${coinCommission * 100}%
-<b>Total commission:</b> ${totalCommission * 100}%
+<b>Total commission:</b> ${(totalCommission * 100).toFixed(2)}%
 <b>Rate:</b> ${rate.toFixed(5)}
 <b>Commission amount:</b> ${commissionAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}
 <b>Referral amount:</b> ${referralAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}
@@ -769,20 +795,36 @@ ${accountAddress}
       wei.to(fiatAmount),
       wei.to(coinAmount),
     ]);
-    const receipt = await web3Service.transaction(routerContract, method, [
+    let messageText = `<b>🔄 Exchange:</b> ${fiatContract.isFiat ? 'fiat to fiat' : 'crypto to fiat'}\n`
+      + `<b>Account: </b><code>${accountAddress}</code>\n`
+      + `<b>From: </b> ${fiatAmount.toFixed(5)} ${fiatSymbol}\n`
+      + `<b>To: </b> ${coinAmount.toFixed(5)} ${coinSymbol}\n`
+      + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`
+      + `<b>Commission</b> ${commissionAmount.toFixed(5)} ${commissionSymbol}\n`;
+    const transactionParams = [
       accountAddress,
       fiatContract.options.address,
       coinContract.options.address,
       wei.to(fiatAmount),
       wei.to(coinAmount),
-    ]);
+    ];
+
+    if (refer) {
+      method += 'WithBounty';
+      transactionParams.push(refer.address);
+      transactionParams.push(wei.to(referralAmount));
+      messageText += `<b>Referral reward:</b>`
+        + `${referralAmount.toFixed(2)} ${commissionSymbol}\n`;
+    }
+
+    const receipt = await web3Service.transaction(routerContract, method, transactionParams);
     const txHash = _.get(receipt, 'transactionHash');
-    telegram.sendToAdmins(`<b>🔄 Exchange:</b> ${fiatContract.isFiat ? 'fiat to fiat' : 'crypto to fiat'}\n`
-      + `<b>Account: </b><code>${accountAddress}</code>\n`
-      + `<b>From: </b> ${fiatAmount.toFixed(5)} ${fiatSymbol}\n`
-      + `<b>To: </b> ${coinAmount.toFixed(5)} ${coinSymbol}\n`
-      + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`
-      + `<b>Commission</b> ${commissionAmount.toFixed(5)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}\n`,
+
+    if (refer) {
+      await db.addReferReward(refer.id, accountAddress, commissionSymbol, referralAmount);
+    }
+
+    telegram.sendToAdmins(messageText,
       {
         links: [
           {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}

@@ -11,5 +11,6 @@ router.use('/stats', require('./stats'));
 router.use('/cards', require('./cards'));
 router.use('/invoice', require('./invoice'));
 router.use('/withdraw', require('./withdraw'));
+router.use('/refer', require('./refer'));
 
 module.exports = router;

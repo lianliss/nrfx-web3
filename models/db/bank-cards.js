@@ -31,7 +31,7 @@ const getExpiredBookingCards = async () => {
         return model.process(await db.query(`
             SELECT id, book_expiration, booked_by
             FROM bank_cards
-            WHERE book_expiration < ${Date.now() / 1000}
+            WHERE book_expiration < ${Math.floor(Date.now() / 1000)}
             AND booked_by IS NOT NULL;
         `));
     } catch (error) {
@@ -63,7 +63,7 @@ const getExpiredReservations = async () => {
             FROM bank_cards AS cards
             INNER JOIN bank_cards_operations AS ops
             ON cards.id = ops.card_id
-            WHERE cards.book_expiration < ${Date.now() / 1000}
+            WHERE cards.book_expiration < ${Math.floor(Date.now() / 1000)}
             AND ops.status = 'wait_for_pay'
             AND cards.booked_by IS NOT NULL;
         `);

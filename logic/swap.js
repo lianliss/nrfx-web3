@@ -6,7 +6,13 @@ const web3Service = require('../services/web3');
 const tonService = require('../services/ton');
 const db = require('../models/db');
 const User = require('../models/user');
-const {REFER_NRFX_ACCRUAL, FIAT_FACTORY, ZERO_ADDRESS, EXCHANGE_ROUTER} = require('../const');
+const {
+  REFER_NRFX_ACCRUAL,
+  FIAT_FACTORY,
+  ZERO_ADDRESS,
+  EXCHANGE_ROUTER,
+  DEFAULT_REFER,
+} = require('../const');
 const getCommission = require('../utils/getCommission');
 const {rates} = require('../models/cache');
 const {binance} = require('../services/binance');
@@ -337,6 +343,8 @@ const getCoinAmount = async (fiatContract, coinContract, fiatAmount, decimals = 
 
     const fiatCommission = (Number(_.get(commissions, `${fiatSymbol.toLowerCase()}`, 0)) || 0) / 100;
     const coinCommission = getCommission(commissions, coinSymbol.toLowerCase());
+    const totalCommission = (1 + fiatCommission) * (1 + coinCommission) - 1;
+    const referralPercent = getCommission(commissions, 'referral');
     const rate = (fiatPrice * (1 - fiatCommission)) / coinPrice;
 
     // Calculate coin amount
@@ -344,10 +352,17 @@ const getCoinAmount = async (fiatContract, coinContract, fiatAmount, decimals = 
     coinAmount = Number(coinAmount.toFixed(decimals)); // Round value
     let usdtAmount = coinSymbol === 'USDT' ? coinAmount : coinAmount * coinPrice;
     usdtAmount = Number(usdtAmount.toFixed(decimals)); // Round value
+    const commissionAmount = fiatContract.isFiat
+      ? fiatAmount * totalCommission
+      : (fiatAmount * totalCommission) * rate;
+    const referralAmount = commissionAmount * referralPercent;
 
     return {
       fiatPrice, coinPrice,
       fiatCommission, coinCommission,
+      totalCommission,
+      commissionAmount,
+      referralAmount,
       rate,
       coinAmount, usdtAmount,
     };
@@ -503,6 +518,9 @@ const exchangeFiatToCrypto = async (accountAddress,
       fiatCommission, coinCommission,
       rate,
       coinAmount, usdtAmount,
+      totalCommission,
+      commissionAmount,
+      referralAmount,
     } = await getCoinAmount(fiatContract, coinContract, fiatAmount, decimals, commissions);
 
     logger.debug('[exchange] Details', {
@@ -514,6 +532,9 @@ const exchangeFiatToCrypto = async (accountAddress,
       usdtAmount,
       decimals,
     });
+
+    logger.debug('fiatAmount', fiatAmount, 'commissionAmount', commissionAmount, 'referralAmount', referralAmount);
+
     telegram.log(`[exchange] Details:
 ${accountAddress}
 <b>User balance:</b> ${fiatBalance.toFixed(2)} ${fiatSymbol}
@@ -522,9 +543,11 @@ ${accountAddress}
 <b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT
 <b>Binance USDT balance:</b> ${usdtBalance} USDT
 <b>Fiat commission:</b> ${fiatCommission * 100}%
-<b>Rate:</b> ${rate.toFixed(5)}
 <b>Coin commission:</b> ${coinCommission * 100}%
-<b>Minimum:</b> ${minCoinAmount.toFixed(2)} ${coinSymbol} 
+<b>Total commission:</b> ${totalCommission * 100}%
+<b>Rate:</b> ${rate.toFixed(5)}
+<b>Commission amount:</b> ${commissionAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}
+<b>Referral amount:</b> ${referralAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol} 
 `);
 
     // limits
@@ -708,6 +731,9 @@ const exchange = async (accountAddress,
       fiatCommission, coinCommission,
       rate,
       coinAmount, usdtAmount,
+      totalCommission,
+      commissionAmount,
+      referralAmount,
     } = await getCoinAmount(fiatContract, coinContract, fiatAmount, undefined, commissions);
 
     logger.debug('[exchange] Details', {
@@ -718,6 +744,9 @@ const exchange = async (accountAddress,
       coinAmount,
       usdtAmount,
     });
+
+    logger.debug('fiatAmount', fiatAmount, 'commissionAmount', commissionAmount, 'referralAmount', referralAmount);
+
     telegram.log(`[exchange] Details:
 ${accountAddress}
 <b>User balance:</b> ${fiatBalance.toFixed(2)} ${fiatSymbol}
@@ -725,8 +754,11 @@ ${accountAddress}
 <b>To amount:</b> ${coinAmount.toFixed(2)} ${coinSymbol}
 <b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT
 <b>Fiat commission:</b> ${fiatCommission * 100}%
+<b>Coin commission:</b> ${coinCommission * 100}%
+<b>Total commission:</b> ${totalCommission * 100}%
 <b>Rate:</b> ${rate.toFixed(5)}
-<b>Coin commission:</b> ${coinCommission * 100}% 
+<b>Commission amount:</b> ${commissionAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}
+<b>Referral amount:</b> ${referralAmount.toFixed(2)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}
 `);
 
     logger.debug('exchange transaction', method, [

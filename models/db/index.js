@@ -12,4 +12,5 @@ module.exports = {
   ...require('./invoices'),
   ...require('./telegram-messages'),
   ...require('./withdraws'),
+  ...require('./refers'),
 };

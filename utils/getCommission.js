@@ -1,4 +1,5 @@
 const {evaluate} = require('mathjs');
+const {DEFAULT_REFERRAL_PERCENT} = require('../const');
 
 const CONTRACTS_COMMISSIONS = {
     //nrfx: 0.02,
@@ -11,9 +12,12 @@ const CONTRACTS_COMMISSIONS = {
  * @returns {*}
  */
 const getCommission = (commissions, token) => {
+    const defaultCommission = token === 'referral'
+        ? DEFAULT_REFERRAL_PERCENT
+        : 0;
     const commission = (typeof commissions[token] !== 'undefined'
-        ? evaluate(commissions[token] || 0)
-        : evaluate(commissions.default || 0))
+        ? evaluate(commissions[token] || defaultCommission)
+        : evaluate(commissions.default || defaultCommission))
         / 100;
     const contractCommission = CONTRACTS_COMMISSIONS[token] || 0;
 

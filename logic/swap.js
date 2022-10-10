@@ -666,7 +666,8 @@ ${accountAddress}
       await db.addReferReward(refer.id, accountAddress, commissionSymbol, referralAmount);
     }
     const links = [
-      {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
+      {title: 'View burn', url: `https://bscscan.com/tx/${burnReceipt.transactionHash}`},
+      {title: 'View transfer', url: `https://bscscan.com/tx/${txHash}`},
     ];
 
     if (fiatToBNBAmount) {
@@ -827,7 +828,7 @@ ${accountAddress}
     telegram.sendToAdmins(messageText,
       {
         links: [
-          {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
+          {title: 'View transfer', url: `https://bscscan.com/tx/${txHash}`}
         ]
       });
     return txHash;

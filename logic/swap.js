@@ -801,7 +801,7 @@ ${accountAddress}
       + `<b>From: </b> ${fiatAmount.toFixed(5)} ${fiatSymbol}\n`
       + `<b>To: </b> ${coinAmount.toFixed(5)} ${coinSymbol}\n`
       + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`
-      + `<b>Commission</b> ${commissionAmount.toFixed(5)} ${commissionSymbol}\n`;
+      + `<b>Commission:</b> ${commissionAmount.toFixed(5)} ${commissionSymbol}\n`;
     const transactionParams = [
       accountAddress,
       fiatContract.options.address,
@@ -814,7 +814,7 @@ ${accountAddress}
       method += 'WithBounty';
       transactionParams.push(refer.address);
       transactionParams.push(wei.to(referralAmount));
-      messageText += `<b>Referral reward:</b>`
+      messageText += `<b>Referral reward: </b>`
         + `${referralAmount.toFixed(2)} ${commissionSymbol}\n`;
     }
 

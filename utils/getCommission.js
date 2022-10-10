@@ -12,12 +12,12 @@ const CONTRACTS_COMMISSIONS = {
  * @returns {*}
  */
 const getCommission = (commissions, token) => {
-    const defaultCommission = token === 'referral'
-        ? DEFAULT_REFERRAL_PERCENT
-        : 0;
+    if (token === 'referral') {
+        return evaluate(commissions[token] || DEFAULT_REFERRAL_PERCENT) / 100;
+    }
     const commission = (typeof commissions[token] !== 'undefined'
-        ? evaluate(commissions[token] || defaultCommission)
-        : evaluate(commissions.default || defaultCommission))
+        ? evaluate(commissions[token] || 0)
+        : evaluate(commissions.default || 0))
         / 100;
     const contractCommission = CONTRACTS_COMMISSIONS[token] || 0;
 

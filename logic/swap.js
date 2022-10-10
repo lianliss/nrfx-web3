@@ -639,7 +639,8 @@ ${accountAddress}
       + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`
       + `<b>Fiat commission:</b> ${fiatCommission * 100}%\n`
       + `<b>Coin commission:</b> ${coinCommission * 100}%\n`
-      + `<b>Rate:</b> ${rate.toFixed(5)}\n`;
+      + `<b>Rate:</b> ${rate.toFixed(5)}\n`
+      + `<b>Commission</b> ${commissionAmount.toFixed(5)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}\n`;
     const links = [
       {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
     ];
@@ -780,11 +781,13 @@ ${accountAddress}
       + `<b>Account: </b><code>${accountAddress}</code>\n`
       + `<b>From: </b> ${fiatAmount.toFixed(5)} ${fiatSymbol}\n`
       + `<b>To: </b> ${coinAmount.toFixed(5)} ${coinSymbol}\n`
-      + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`, {
-      links: [
-        {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
-      ]
-    });
+      + `<b>Equivalently:</b> ${usdtAmount.toFixed(2)} USDT\n`
+      + `<b>Commission</b> ${commissionAmount.toFixed(5)} ${fiatContract.isFiat ? fiatSymbol : coinSymbol}\n`,
+      {
+        links: [
+          {title: 'View transaction', url: `https://bscscan.com/tx/${txHash}`}
+        ]
+      });
     return txHash;
   } catch (error) {
     logger.error(`[SwapLogic][exchange] Error ${accountAddress} ${amount} ${fiat} to ${coin} `, error);

@@ -661,7 +661,7 @@ ${accountAddress}
       + `<b>Rate:</b> ${rate.toFixed(5)}\n`
       + `<b>Commission:</b> ${commissionAmount.toFixed(5)} ${commissionSymbol}\n`;
     if (refer) {
-      messageText += `<b>Referral reward:</b>`
+      messageText += `<b>Referral reward: </b>`
         + `${referralAmount.toFixed(2)} ${commissionSymbol}\n`;
       await db.addReferReward(refer.id, accountAddress, commissionSymbol, referralAmount);
     }

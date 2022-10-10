@@ -44,7 +44,7 @@ const getRewards = (req, res) => {
     try {
       const {accountAddress} = res.locals;
 
-      const referData = await referLogic.getReferShort(accountAddress);
+      const referData = await db.getReferShort(accountAddress);
       if (!referData.length) return res.status(200).json([]);
 
       const referID = referData[0].id;
@@ -73,7 +73,7 @@ const getInvites = (req, res) => {
     try {
       const {accountAddress} = res.locals;
 
-      const referData = await referLogic.getReferShort(accountAddress);
+      const referData = await db.getReferShort(accountAddress);
       if (!referData.length) return res.status(200).send(0);
 
       const referID = referData[0].id;

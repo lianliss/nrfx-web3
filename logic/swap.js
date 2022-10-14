@@ -311,6 +311,12 @@ async function getTokenPrice(tokenSymbol, isFiat = false) {
   }
 }
 
+function getDefaultCommission(token, commissions) {
+  return token.isFiat
+    ? _.get(commissions, 'FiatDefault', 0)
+    : _.get(commissions, 'BinanceDefault', 0);
+}
+
 /**
  * Calculate coin amount based on fiat amount
  * @param fiat {string} fiat symbol uppercase
@@ -342,8 +348,12 @@ const getCoinAmount = async (fiatContract, coinContract, fiatAmount, decimals = 
       }
     }
 
-    const fiatCommission = (Number(_.get(commissions, `${fiatSymbol.toLowerCase()}`, 0)) || 0) / 100;
-    const coinCommission = getCommission(commissions, coinSymbol.toLowerCase());
+    const fiatCommission = (Number(_.get(
+      commissions,
+      `${fiatSymbol.toLowerCase()}`,
+      getDefaultCommission(fiatContract),
+      )) || 0) / 100;
+    const coinCommission = getCommission(commissions, coinSymbol.toLowerCase(), coinContract.isFiat);
     const totalCommission = (1 + fiatCommission) * (1 + coinCommission) - 1;
     const referralPercent = getCommission(commissions, 'referral');
     const rate = (fiatPrice * (1 - fiatCommission)) / coinPrice;

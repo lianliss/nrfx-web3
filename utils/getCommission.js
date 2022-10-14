@@ -18,10 +18,17 @@ const getCommission = (commissions, token, isFiat = false) => {
     const defaultCommission = isFiat
         ? commissions.FiatDefault
         : commissions.BinanceDefault;
-    const commission = (typeof commissions[token] !== 'undefined'
-        ? evaluate(commissions[token] || 0)
-        : evaluate(defaultCommission || 0))
-        / 100;
+    let commission;
+    if (typeof commissions[token] !== 'undefined') {
+        commission = evaluate(commissions[token] || 0) / 100;
+    } else {
+        const binanceToken = `${token.toUpperCase()}USDT`;
+        if (typeof commissions[binanceToken] !== 'undefined') {
+            commission = evaluate(commissions[binanceToken] || 0) / 100;
+        } else {
+            commission = evaluate(defaultCommission || 0) / 100;
+        }
+    }
     const contractCommission = CONTRACTS_COMMISSIONS[token] || 0;
 
     return commission + contractCommission;

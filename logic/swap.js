@@ -348,11 +348,7 @@ const getCoinAmount = async (fiatContract, coinContract, fiatAmount, decimals = 
       }
     }
 
-    const fiatCommission = (Number(_.get(
-      commissions,
-      `${fiatSymbol.toLowerCase()}`,
-      getDefaultCommission(fiatContract, commissions),
-      )) || 0) / 100;
+    const fiatCommission = getCommission(commissions, fiatSymbol.toLowerCase(), fiatContract.isFiat);
     const coinCommission = getCommission(commissions, coinSymbol.toLowerCase(), coinContract.isFiat);
     const totalCommission = (1 + fiatCommission) * (1 + coinCommission) - 1;
     const referralPercent = getCommission(commissions, 'referral');

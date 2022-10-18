@@ -27,6 +27,7 @@ const getOperations = (req, res) => {
           name: 'Calibri',
         },
         author: 'Narfex',
+        dateFormat: 'd.m.yy hh:mm:ss'
       });
       
       const transactions = wb.addWorksheet('Transactions');
@@ -66,7 +67,7 @@ const getOperations = (req, res) => {
         transactions.cell(i, 14).string(row.bank || '');
         transactions.cell(i, 15).number(row.manager_id || 0);
         transactions.cell(i, 16).string(`${row.manager_first || ''} ${row.manager_last || ''}`.trim());
-        transactions.cell(i, 17).string(`https://bscscan.com/tx/${row.tx_hash}`);
+        transactions.cell(i, 17).link(`https://bscscan.com/tx/${row.tx_hash}`);
       });
       
       wb.write(`Stats${Date.now()}.xlsx`, res);

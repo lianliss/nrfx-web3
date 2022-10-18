@@ -27,7 +27,6 @@ const getOperations = (req, res) => {
           name: 'Calibri',
         },
         author: 'Narfex',
-        dateFormat: 'd.m.yy hh:mm:ss'
       });
       
       const transactions = wb.addWorksheet('Transactions');

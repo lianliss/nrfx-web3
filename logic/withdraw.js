@@ -128,6 +128,22 @@ const startWithdraw = async (props) => {
     admins.map(user => {
       telegram.sendWithdraw(user, withdraw);
     });
+    
+    const history = {
+      type: 'withdraw',
+      requestID: withdraw.id,
+      accountAddress,
+      sourceCurrency: currency,
+      targetCurrency: currency,
+      commissionCurrency: currency,
+      sourceAmount: amount,
+      targetAmount: amount,
+      commission: 0,
+      txHash,
+      isCompleted: false,
+    };
+    await db.addExchangeHistory(history);
+    
     return true;
   } catch (error) {
     logger.error('[startWithdraw]', accountAddress, amount, currency, error);
@@ -197,6 +213,7 @@ const confirmWithdraw = async (withdraw, chat) => {
     const data = await Promise.all([
       db.confirmWithdraw(withdraw.id),
       db.getWithdrawMessages(withdraw.id),
+      db.completeWithdrawHistory(withdraw.id),
     ]);
     const messages = data[1];
     messages && telegram.updateMessages(

@@ -20,6 +20,21 @@ const run = async () => {
         require('../services/stream');
 
         telegram.log('Started');
+        
+        // const history = await db.addExchangeHistory({
+        //   type: 'exchange',
+        //   requestID: 0,
+        //   accountAddress: 'test',
+        //   sourceCurrency: 'RUB',
+        //   targetCurrency: 'USDT',
+        //   commissionCurrency: 'RUB',
+        //   sourceAmount: 1000,
+        //   targetAmount: 50,
+        //   commission: 10,
+        //   referReward: 3,
+        // });
+        const history = await db.getExchangeHistory();
+        logger.debug('HISTORY', history);
 
         // Run jobs
         const jobs = require('../services/jobs');

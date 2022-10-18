@@ -701,6 +701,24 @@ ${accountAddress}
       }
     }
 
+    // Put history
+    const history = {
+      type: 'exchange',
+      requestID: 0,
+      accountAddress,
+      sourceCurrency: fiatSymbol,
+      targetCurrency: coinSymbol,
+      commissionCurrency: commissionSymbol,
+      sourceAmount: fiatAmount,
+      targetAmount: coinAmount,
+      commission: commissionAmount,
+      txHash,
+    };
+    if (refer) {
+      history.referReward = referralAmount;
+    }
+    await db.addExchangeHistory(history);
+    
     telegram.sendToAdmins(messageText, {
       links
     });
@@ -830,6 +848,24 @@ ${accountAddress}
     if (refer) {
       await db.addReferReward(refer.id, accountAddress, commissionSymbol, referralAmount);
     }
+  
+    // Put history
+    const history = {
+      type: 'exchange',
+      requestID: 0,
+      accountAddress,
+      sourceCurrency: fiatSymbol,
+      targetCurrency: coinSymbol,
+      commissionCurrency: commissionSymbol,
+      sourceAmount: fiatAmount,
+      targetAmount: coinAmount,
+      commission: commissionAmount,
+      txHash,
+    };
+    if (refer) {
+      history.referReward = referralAmount;
+    }
+    await db.addExchangeHistory(history);
 
     telegram.sendToAdmins(messageText,
       {

@@ -13,4 +13,5 @@ module.exports = {
   ...require('./telegram-messages'),
   ...require('./withdraws'),
   ...require('./refers'),
+  ...require('./exchange-history'),
 };

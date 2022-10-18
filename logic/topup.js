@@ -41,12 +41,26 @@ const approveTopup = async (operationId, chat) => {
       wei.to(tokenAmount),
     ]);
     const txHash = _.get(receipt, 'transactionHash');
+  
+    const history = {
+      type: 'topup',
+      requestID: operationId,
+      accountAddress,
+      sourceCurrency: currency,
+      targetCurrency: currency,
+      commissionCurrency: currency,
+      sourceAmount: amount,
+      targetAmount: tokenAmount,
+      commission: fee,
+      txHash,
+    };
 
     // Mark operation as confirmed
     const data = await Promise.all([
       db.approveReservation(operationId),
       db.cancelCardReservation(cardId),
       db.getOperationMessages(operation.id),
+      db.addExchangeHistory(history),
     ]);
 
     const messages = data[2];
@@ -111,11 +125,25 @@ const approveInvoice = async (id, amount, chat) => {
             wei.to(tokenAmount),
         ]);
         const txHash = _.get(receipt, 'transactionHash');
+  
+        const history = {
+          type: 'invoice',
+          requestID: id,
+          accountAddress,
+          sourceCurrency: currency,
+          targetCurrency: currency,
+          commissionCurrency: currency,
+          sourceAmount: amount,
+          targetAmount: tokenAmount,
+          commission: 0,
+          txHash,
+        };
 
         // Mark operation as confirmed
         const data = await Promise.all([
           db.confirmInvoice(id),
           db.getInvoiceMessages(id),
+          db.addExchangeHistory(history),
         ]);
 
       const messages = data[1];

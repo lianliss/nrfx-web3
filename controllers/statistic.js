@@ -9,7 +9,7 @@ const xl = require('excel4node');
  * @param req
  * @param res
  */
-const gettransactions = (req, res) => {
+const getOperations = (req, res) => {
   (async () => {
     try {
       const {user} = res.locals;
@@ -71,7 +71,7 @@ const gettransactions = (req, res) => {
       
       wb.write(`Stats${Date.now()}.xlsx`, res);
     } catch (error) {
-      logger.error('[statisticController][gettransactions]', error);
+      logger.error('[statisticController][getOperations]', error);
       res.status(500).json({
         name: error.name,
         message: error.message,
@@ -81,5 +81,5 @@ const gettransactions = (req, res) => {
 };
 
 module.exports = {
-  gettransactions,
+  getOperations,
 };

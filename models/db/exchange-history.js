@@ -170,7 +170,8 @@ const getAccountHistory = async accountAddress => {
             target_amount,
             timestamp
             FROM exchange_history
-            WHERE account_address = '${accountAddress}';
+            WHERE account_address = '${accountAddress}'
+            AND is_completed = 1;
         `);
   } catch (error) {
     logger.error('[getAccountHistory]', error);

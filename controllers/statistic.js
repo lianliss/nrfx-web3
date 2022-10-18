@@ -62,8 +62,8 @@ const getOperations = (req, res) => {
         transactions.cell(i, 10).number(row.refer_reward);
         transactions.cell(i, 11).date(new Date(row.timestamp * 1000));
         transactions.cell(i, 12).string(row.card || '');
-        transactions.cell(i, 13).string(row.holder || '');
-        transactions.cell(i, 14).string(row.bank || '');
+        transactions.cell(i, 13).string((row.holder || '').toUpperCase());
+        transactions.cell(i, 14).string((row.bank || '').toUpperCase());
         transactions.cell(i, 15).number(row.manager_id || 0);
         transactions.cell(i, 16).string(`${row.manager_first || ''} ${row.manager_last || ''}`.trim());
         transactions.cell(i, 17).link(`https://bscscan.com/tx/${row.tx_hash}`);
@@ -80,6 +80,23 @@ const getOperations = (req, res) => {
   })();
 };
 
+const getAccountHistory = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      
+      res.status(200).send(await db.getAccountHistory(accountAddress));
+    } catch (error) {
+      logger.error('[statisticController][getAccountHistory]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
   getOperations,
+  getAccountHistory,
 };

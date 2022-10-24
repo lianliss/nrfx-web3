@@ -7,14 +7,31 @@ const keyboards = require('./keyboards');
 const invoiceReviewScene = new Scenes.WizardScene(
   'INVOICE_REVIEW_SCENE_ID',
   ctx => {
+    const {invoice} = ctx.wizard.state;
     ctx.reply(
-      `Are you sure to approve invoice?`,
+      `Enter the received amount of ${invoice.currency}`,
+    );
+    return ctx.wizard.next();
+  },
+  async ctx => {
+    const {invoice} = ctx.wizard.state;
+    const textValue = ctx.message.text.replace(',', '.');
+    const numberValue = Number(textValue);
+    if (!numberValue) {
+      return ctx.wizard.back();
+    }
+    const oldAmount = invoice.amount;
+    ctx.wizard.state.invoice.amount = numberValue;
+    ctx.reply(
+      `Are you sure to approve `
+      +`<b>${numberValue.toFixed(2)}</b>${invoice.currency}`
+      +` of <b>${oldAmount}</b>${invoice.currency}?`,
       keyboards.yesNo(),
     );
     return ctx.wizard.next();
   },
   async ctx => {
-    const {invoice, approveInvoice, user} = ctx.wizard.state;
+    const {invoice, approveInvoice, user, amount} = ctx.wizard.state;
     const chat = ctx.wizard.ctx.message.chat;
 
     if (!user.isAdmin || ctx.message.text !== keyboards.buttons.yes) {

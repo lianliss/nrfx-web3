@@ -7,9 +7,9 @@ const db = require('../models/db');
 const telegram = require('../services/telegram');
 const {rates} = require('../models/cache');
 
-const getPDF = async (accountAddress) => {
+const getPDF = async (accountAddress, currency = 'USD') => {
   try {
-    const invoice = (await db.getInvoice(accountAddress))[0];
+    const invoice = (await db.getInvoice(accountAddress, currency))[0];
     if (!invoice) throw new Error('No invoices for this account');
 
     const file = await fs.readFile('./views/invoice.pdf');
@@ -52,7 +52,10 @@ const getPDF = async (accountAddress) => {
     form.flatten();
 
     const bytes = await pdfDoc.save();
-    return await pdfDoc.save();
+    const fileName = `tmp/invoice${invoice.id.toFixed(0)}.pdf`;
+    await fs.writeFile(fileName, bytes);
+    
+    return fileName;
   } catch (error) {
     logger.error('[getPDF]', error);
     throw error;

@@ -10,7 +10,7 @@ const swapLogic = require('../logic/swap');
 const tonService = require('../services/ton');
 const binance = require('../services/binance');
 const db = require('../models/db');
-const referLogic = require('../logic/refers');
+const invoiceLogic = require('../logic/invoice');
 
 const FAIL_RUN_TIMEOUT = 10000;
 
@@ -20,6 +20,8 @@ const run = async () => {
         require('../services/stream');
 
         telegram.log('Started');
+        
+        invoiceLogic.getPDF('0xBBB072053Cfa6a5654fd92aBFb2D38dB24285fC8');
 
         // Run jobs
         const jobs = require('../services/jobs');

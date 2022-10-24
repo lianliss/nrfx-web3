@@ -126,15 +126,11 @@ const confirmInvoice = (req, res) => {
 const getPDF = (req, res) => {
   (async () => {
     try {
+      const currency = Number(_.get(req, 'query.currency')) || undefined;
       const {accountAddress} = res.locals;
-      const data = await invoiceLogic.getPDF(accountAddress);
+      const fileName = await invoiceLogic.getPDF(accountAddress);
 
-      res.writeHead(200, {
-        'Content-Type': 'application/pdf',
-        'Content-disposition': 'attachment;filename=' + 'invoice.pdf',
-        'Content-Length': data.length
-      });
-      res.end(Buffer.from(data, 'binary'));
+      res.download(fileName);
     } catch (error) {
       logger.error('[invoiceController][getPDF]', error);
       res.status(500).json({

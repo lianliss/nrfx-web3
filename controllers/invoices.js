@@ -107,6 +107,7 @@ const addInvoiceScreenshot = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
+      logger.debug('REQ', req);
       const tempPath = req.file.path;
       const invoices = await db.getInvoice(accountAddress, currency);
       if (!invoices.length) throw new Error('No invoices for this address');

@@ -224,7 +224,6 @@ if (isLocal) {
     try {
       const {isCaption} = params;
       const options = prepareOptions(params);
-      logger.debug('updateMessages', messages);
       
       const method = isCaption
         ? 'editMessageCaption'

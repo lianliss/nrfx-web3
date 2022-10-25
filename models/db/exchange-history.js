@@ -168,7 +168,8 @@ const getAccountHistory = async accountAddress => {
             target_currency,
             source_amount,
             target_amount,
-            timestamp
+            timestamp,
+            tx_hash
             FROM exchange_history
             WHERE account_address = '${accountAddress}'
             AND is_completed = 1;

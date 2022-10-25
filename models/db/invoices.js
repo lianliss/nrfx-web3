@@ -89,7 +89,8 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
 const getInvoice = async (accountAddress, currency = 'USD') => {
     try {
         return model.process(await db.query(`
-            SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone, created_at_timestamp
+            SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone,
+              created_at_timestamp, screenshot
             FROM fiat_invoices
             WHERE account_address = '${accountAddress}'
             AND currency = '${currency}'
@@ -104,7 +105,7 @@ const getInvoice = async (accountAddress, currency = 'USD') => {
 const getInvoiceById = async (id) => {
   try {
     return model.process(await db.query(`
-            SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone
+            SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone, screenshot
             FROM fiat_invoices
             WHERE id = ${id}
             AND status IN ('wait_for_pay', 'wait_for_review');
@@ -141,6 +142,19 @@ const reviewInvoice = async (id) => {
     }
 };
 
+const addInvoiceScreenshot = async (id, filePath) => {
+  try {
+    return await db.query(`
+            UPDATE fiat_invoices
+            SET screenshot = '${filePath}'
+            WHERE id = ${id};
+        `);
+  } catch (error) {
+    logger.error('[addInvoiceScreenshot]', error);
+    return null;
+  }
+};
+
 const confirmInvoice = async (id) => {
     try {
         return await db.query(`
@@ -161,4 +175,5 @@ module.exports = {
     cancelInvoice,
     reviewInvoice,
     confirmInvoice,
+    addInvoiceScreenshot,
 };

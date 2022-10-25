@@ -83,15 +83,42 @@ const reviewInvoice = (req, res) => {
       if (invoice.status !== 'wait_for_pay' && invoice.status !== 'wait_for_review') {
         throw new Error('Invoice is unavailable');
       }
-
+      
       const result = await db.reviewInvoice(invoice.id);
-
+      
       const admins = await db.getAdminsWithTelegram();
       admins.map(user => {
         telegram.sendInvoice(user, invoice);
       });
-
+      
       res.status(200).json(result[0]);
+    } catch (error) {
+      logger.error('[invoiceController][reviewInvoice]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
+const addInvoiceScreenshot = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const currency = _.get(req, 'query.currency', undefined);
+      const tempPath = req.file.path;
+      const invoices = await db.getInvoice(accountAddress, currency);
+      if (!invoices.length) throw new Error('No invoices for this address');
+      const invoice = invoices[0];
+      if (invoice.status !== 'wait_for_pay' && invoice.status !== 'wait_for_review') {
+        throw new Error('Invoice is unavailable');
+      }
+      
+      logger.debug('[addInvoiceScreenshot] file', req.file);
+      const result = await db.addInvoiceScreenshot(invoice.id, tempPath);
+      
+      res.status(200).send('ok');
     } catch (error) {
       logger.error('[invoiceController][reviewInvoice]', error);
       res.status(500).json({
@@ -147,4 +174,5 @@ module.exports = {
   reviewInvoice,
   confirmInvoice,
   getPDF,
+  addInvoiceScreenshot,
 };

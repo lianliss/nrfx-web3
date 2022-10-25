@@ -160,7 +160,8 @@ const approveInvoice = async (id, amount, chat) => {
         {
           links: [
             {title: 'View mint transaction', url: `https://bscscan.com/tx/${txHash}`}
-          ]
+          ],
+          isCaption: true,
         },
       );
 

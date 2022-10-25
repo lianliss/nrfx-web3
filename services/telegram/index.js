@@ -222,15 +222,20 @@ if (isLocal) {
    */
   telegram.updateMessages = async (messages, text, params = {}) => {
     try {
+      const {isCaption} = params;
       const options = prepareOptions(params);
       logger.debug('updateMessages', messages);
+      
+      const method = isCaption
+        ? 'editMessageCaption'
+        : 'editMessageText';
 
       // Send messages and get results
       const result = await Promise.allSettled(messages.map(message => {
         const {chatID, messageID} = message;
         if (!chatID || !messageID) return;
 
-        return telegram.telegram.editMessageText(
+        return telegram.telegram[method](
           chatID,
           messageID,
           undefined,

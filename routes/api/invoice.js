@@ -26,7 +26,7 @@ router.post('/', authWallet, invoiceController.addInvoice);
 router.get('/', authWallet, invoiceController.getInvoice);
 router.get('/pdf', authWallet, invoiceController.getPDF);
 router.post('/review', authWallet, invoiceController.reviewInvoice);
-router.post('/screenshot', authWallet, upload.single('screenshot'), invoiceController.addInvoiceScreenshot);
+router.post('/screenshot', authWallet, upload.single('file'), invoiceController.addInvoiceScreenshot);
 router.post('/confirm', authLocal, invoiceController.confirmInvoice);
 router.post('/cancel', authWallet, invoiceController.cancelInvoice);
 

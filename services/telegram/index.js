@@ -307,14 +307,15 @@ if (isLocal) {
   telegram.sendInvoice = async (user, invoice) => {
     if (!user.telegramID) return;
     try {
-      const message = await telegram.telegram.sendMessage(
+      const message = await telegram.telegram.sendPhoto(
         user.telegramID,
-        `<b>New SWIFT invoice #<code>${invoice.id}</code></b>\n`
-        + `<code>${invoice.accountAddress}</code>\n`
-        + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
-        + `<b>Phone:</b> ${invoice.phone || ''}\n`
-        + `<b>Amount:</b> ${invoice.amount.toFixed(2)} USDT`,
+        {source: invoice.screenshot},
         {
+          caption: `<b>New SWIFT invoice #<code>${invoice.id}</code></b>\n`
+          + `<code>${invoice.accountAddress}</code>\n`
+          + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
+          + `<b>Phone:</b> ${invoice.phone || ''}\n`
+          + `<b>Amount:</b> ${invoice.amount.toFixed(2)} USDT`,
           parse_mode: 'HTML',
           ...Markup.inlineKeyboard([
             Markup.button.callback('Decline', `decline_invoice_${invoice.id}`),

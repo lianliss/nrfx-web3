@@ -223,6 +223,7 @@ if (isLocal) {
   telegram.updateMessages = async (messages, text, params = {}) => {
     try {
       const options = prepareOptions(params);
+      logger.debug('updateMessages', messages);
 
       // Send messages and get results
       const result = await Promise.allSettled(messages.map(message => {
@@ -236,6 +237,7 @@ if (isLocal) {
           text,
           options);
       }));
+      logger.debug('updateMessages result', result);
       // Filter successful messages and returns it ID's
       return result.filter(r => r.status === 'fulfilled')
         .map(r => ({chatID: r.value.chat_id, messageID: r.value.message_id}));

@@ -20,12 +20,7 @@ const addInvoice = (req, res) => {
       const lastName = _.get(req, 'query.lastName');
 
       const insert = await db.addInvoice(amount, currency, accountAddress, phone, name, lastName);
-      const invoice = (await db.getInvoice(accountAddress))[0];
-
-      const admins = await db.getAdminsWithTelegram();
-      admins.map(user => {
-        telegram.sendInvoice(user, invoice);
-      });
+      const invoice = (await db.getInvoice(accountAddress, currency))[0];
 
       res.status(200).json(invoice);
     } catch (error) {
@@ -42,7 +37,8 @@ const getInvoice = (req, res) => {
   (async () => {
     try {
       const {accountAddress} = res.locals;
-      const result = await db.getInvoice(accountAddress);
+      const currency = _.get(req, 'query.currency', undefined);
+      const result = await db.getInvoice(accountAddress, currency);
 
       res.status(200).json(result[0]);
     } catch (error) {
@@ -59,7 +55,8 @@ const cancelInvoice = (req, res) => {
   (async () => {
     try {
       const {accountAddress} = res.locals;
-      const invoices = await db.getInvoice(accountAddress);
+      const currency = _.get(req, 'query.currency', undefined);
+      const invoices = await db.getInvoice(accountAddress, currency);
       if (!invoices.length) throw new Error('No invoices for this address');
 
       const result = await db.cancelInvoice(invoices[0].id);
@@ -79,7 +76,8 @@ const reviewInvoice = (req, res) => {
   (async () => {
     try {
       const {accountAddress} = res.locals;
-      const invoices = await db.getInvoice(accountAddress);
+      const currency = _.get(req, 'query.currency', undefined);
+      const invoices = await db.getInvoice(accountAddress, currency);
       if (!invoices.length) throw new Error('No invoices for this address');
       const invoice = invoices[0];
       if (invoice.status !== 'wait_for_pay' && invoice.status !== 'wait_for_review') {
@@ -126,9 +124,9 @@ const confirmInvoice = (req, res) => {
 const getPDF = (req, res) => {
   (async () => {
     try {
-      const currency = Number(_.get(req, 'query.currency')) || undefined;
       const {accountAddress} = res.locals;
-      const fileName = await invoiceLogic.getPDF(accountAddress);
+      const currency = _.get(req, 'query.currency', undefined);
+      const fileName = await invoiceLogic.getPDF(accountAddress, currency);
 
       res.download(fileName);
     } catch (error) {

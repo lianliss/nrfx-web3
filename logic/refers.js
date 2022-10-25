@@ -40,8 +40,11 @@ const getReferID = async hash => {
 
 const addAccountRefer = async (accountAddress, referHash) => {
   try {
-    const referID = await getReferID(referHash);
-    await db.addReferRelation(accountAddress, referID);
+    const refer = (await db.getReferByShort(referHash))[0];
+    if (accountAddress === refer.refer_address) {
+      return false;
+    }
+    await db.addReferRelation(accountAddress, refer.id);
     return true;
   } catch (error) {
     logger.error('[addAccountRefer]', error);

@@ -107,7 +107,6 @@ const addInvoiceScreenshot = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
-      logger.debug('REQ', req);
       const tempPath = req.file.path;
       const invoices = await db.getInvoice(accountAddress, currency);
       if (!invoices.length) throw new Error('No invoices for this address');
@@ -116,7 +115,6 @@ const addInvoiceScreenshot = (req, res) => {
         throw new Error('Invoice is unavailable');
       }
       
-      logger.debug('[addInvoiceScreenshot] file', req.file);
       const result = await db.addInvoiceScreenshot(invoice.id, tempPath);
       
       res.status(200).send('ok');

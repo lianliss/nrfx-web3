@@ -74,7 +74,7 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
               ${amount},
               '${currency}',
               '${accountAddress}',
-              'wait_for_review',
+              'wait_for_pay',
               ${phone ? `'${phone}'` : 'NULL'},
               ${name ? `'${name}'` : 'NULL'},
               ${lastName ? `'${lastName}'` : 'NULL'}

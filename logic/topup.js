@@ -156,7 +156,7 @@ const approveInvoice = async (id, amount, chat) => {
         + `<code>${invoice.accountAddress}</code>\n`
         + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
         + `<b>Phone:</b> ${invoice.phone || ''}\n`
-        + `<b>Amount:</b> ${invoice.amount} ${invoice.currency}\n`,
+        + `<b>Amount:</b> ${tokenAmount} ${invoice.currency} of ${invoice.amount} ${invoice.currency}\n`,
         {
           links: [
             {title: 'View mint transaction', url: `https://bscscan.com/tx/${txHash}`}

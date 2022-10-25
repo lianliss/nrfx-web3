@@ -26,13 +26,20 @@ const invoiceReviewScene = new Scenes.WizardScene(
       `Are you sure to approve `
       +`<b>${numberValue.toFixed(2)}</b>${invoice.currency}`
       +` of <b>${oldAmount}</b>${invoice.currency}?`,
-      keyboards.yesNo(),
+      {
+        parse_mode: 'HTML',
+        ...keyboards.yesNo(),
+      },
     );
     return ctx.wizard.next();
   },
   async ctx => {
     const {invoice, approveInvoice, user, amount} = ctx.wizard.state;
-    const chat = ctx.wizard.ctx.message.chat;
+    const chat = _.get(ctx, 'wizard.ctx.message.chat');
+    if (!chat) {
+      ctx.reply('Undefined chat error');
+      return ctx.scene.leave();
+    }
 
     if (!user.isAdmin || ctx.message.text !== keyboards.buttons.yes) {
       ctx.reply('Go back', keyboards.mainScreen(chat.id));

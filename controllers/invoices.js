@@ -38,7 +38,7 @@ const getInvoice = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
-      const result = await db.getInvoice(accountAddress, currency);
+      const result = await db.getActiveInvoice(accountAddress, currency);
 
       res.status(200).json(result[0]);
     } catch (error) {

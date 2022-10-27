@@ -86,6 +86,22 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
     }
 };
 
+const getActiveInvoice = async (accountAddress, currency = 'USD') => {
+  try {
+    return model.process(await db.query(`
+            SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone,
+              created_at_timestamp, screenshot
+            FROM fiat_invoices
+            WHERE account_address = '${accountAddress}'
+            AND currency = '${currency}'
+            AND status = 'wait_for_pay';
+        `));
+  } catch (error) {
+    logger.error('[getInvoice]', error);
+    return null;
+  }
+};
+
 const getInvoice = async (accountAddress, currency = 'USD') => {
     try {
         return model.process(await db.query(`
@@ -171,6 +187,7 @@ const confirmInvoice = async (id) => {
 module.exports = {
     addInvoice,
     getInvoice,
+    getActiveInvoice,
     getInvoiceById,
     cancelInvoice,
     reviewInvoice,

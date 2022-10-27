@@ -20,8 +20,6 @@ const run = async () => {
         require('../services/stream');
 
         telegram.log('Started');
-        
-        invoiceLogic.getPDF('0xBBB072053Cfa6a5654fd92aBFb2D38dB24285fC8');
 
         // Run jobs
         const jobs = require('../services/jobs');

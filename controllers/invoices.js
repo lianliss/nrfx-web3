@@ -56,7 +56,7 @@ const cancelInvoice = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
-      const invoices = await db.getInvoice(accountAddress, currency);
+      const invoices = await db.getActiveInvoice(accountAddress, currency);
       if (!invoices.length) throw new Error('No invoices for this address');
 
       const result = await db.cancelInvoice(invoices[0].id);
@@ -77,7 +77,7 @@ const reviewInvoice = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
-      const invoices = await db.getInvoice(accountAddress, currency);
+      const invoices = await db.getActiveInvoice(accountAddress, currency);
       if (!invoices.length) throw new Error('No invoices for this address');
       const invoice = invoices[0];
       if (invoice.status !== 'wait_for_pay' && invoice.status !== 'wait_for_review') {
@@ -108,7 +108,7 @@ const addInvoiceScreenshot = (req, res) => {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
       const tempPath = req.file.path;
-      const invoices = await db.getInvoice(accountAddress, currency);
+      const invoices = await db.getActiveInvoice(accountAddress, currency);
       if (!invoices.length) throw new Error('No invoices for this address');
       const invoice = invoices[0];
       if (invoice.status !== 'wait_for_pay' && invoice.status !== 'wait_for_review') {

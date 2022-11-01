@@ -9,7 +9,7 @@ const {rates} = require('../models/cache');
 
 const getPDF = async (accountAddress, currency = 'USD') => {
   try {
-    const invoice = (await db.getInvoice(accountAddress, currency))[0];
+    const invoice = (await db.getActiveInvoice(accountAddress, currency))[0];
     if (!invoice) throw new Error('No invoices for this account');
 
     const file = await fs.readFile('./views/invoice.pdf');

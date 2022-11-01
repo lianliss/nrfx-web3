@@ -9,6 +9,7 @@ const swapFiatToToken = (req, res) => {
             const fiat = _.get(req, 'query.fiat');
             const token = _.get(req, 'query.token');
             const fiatAmount = Number(_.get(req, 'query.fiatAmount'));
+            const fiatToBNBAmount = Number(_.get(req, 'query.fiatToBNBAmount', 0));
 
             if (!fiat || !token || !fiatAmount) {
                 return res.status(400).json({
@@ -22,6 +23,7 @@ const swapFiatToToken = (req, res) => {
                 fiat,
                 token,
                 fiatAmount,
+                fiatToBNBAmount,
             });
             res.status(200).json(result);
         } catch (error) {

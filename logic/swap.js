@@ -692,8 +692,20 @@ ${accountAddress}
           bnbAmount,
         );
         const bnbHash = _.get(bnbResult, 'receipt.transactionHash');
-        messageText += `<b>Additional:</b> ${bnbAmount.toFixed(5)} BNB`;
+        messageText += `<b>Additional:</b> ${fiatToBNBAmount.toFixed(0)} ${fiatSymbol} to ${bnbAmount.toFixed(3)} BNB`;
         links.push({title: 'BNB transaction', url: `https://bscscan.com/tx/${bnbHash}`});
+        db.addExchangeHistory({
+          type: 'exchange',
+          requestID: 0,
+          accountAddress,
+          sourceCurrency: fiatSymbol,
+          targetCurrency: 'BNB',
+          commissionCurrency: commissionSymbol,
+          sourceAmount: fiatToBNBAmount,
+          targetAmount: bnbAmount,
+          commission: bnbOperation.commissionAmount,
+          txHash: bnbHash,
+        });
       } catch (error) {
         logger.error(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}`, error);
         telegram.log(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}: ${error.message}`);
@@ -767,6 +779,9 @@ const exchange = async (accountAddress,
 
     let fiatAmount = Number(amount) || 0;
     if (fiatAmount > fiatBalance) throw new Error('Not enough fiat balance');
+    if (fiatToBNBAmount) {
+      fiatAmount -= fiatToBNBAmount;
+    }
 
     // Get commission
     let commissions = (await db.getSiteSettings()).commissions;
@@ -848,6 +863,47 @@ ${accountAddress}
     if (refer) {
       await db.addReferReward(refer.id, accountAddress, commissionSymbol, referralAmount);
     }
+    
+    const links = [
+      {title: 'View transfer', url: `https://bscscan.com/tx/${txHash}`}
+    ];
+  
+    if (fiatToBNBAmount) {
+      try {
+        const bnbOperation = await getCoinAmount(
+          fiatContract,
+          'BNB',
+          fiatToBNBAmount,
+          18,
+          commissions);
+        const bnbAmount = bnbOperation.coinAmount;
+        await wait(5000);
+        const bnbResult = await web3Service.transfer(
+          accountAddress,
+          'bnb',
+          bnbAmount,
+        );
+        const bnbHash = _.get(bnbResult, 'receipt.transactionHash');
+        messageText += `<b>Additional:</b> ${fiatToBNBAmount.toFixed(0)} ${fiatSymbol} to ${bnbAmount.toFixed(3)} BNB`;
+        links.push({title: 'BNB transaction', url: `https://bscscan.com/tx/${bnbHash}`});
+        db.addExchangeHistory({
+          type: 'exchange',
+          requestID: 0,
+          accountAddress,
+          sourceCurrency: fiatSymbol,
+          targetCurrency: 'BNB',
+          commissionCurrency: commissionSymbol,
+          sourceAmount: fiatToBNBAmount,
+          targetAmount: bnbAmount,
+          commission: bnbOperation.commissionAmount,
+          txHash: bnbHash,
+        });
+      } catch (error) {
+        logger.error(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}`, error);
+        telegram.log(`[exchange] Can't send ${fiatToBNBAmount} BNB to ${accountAddress}: ${error.message}`);
+        mintFiatBackToAddress(fiatSymbol, accountAddress, fiatToBNBAmount);
+      }
+    }
   
     // Put history
     const history = {
@@ -869,9 +925,7 @@ ${accountAddress}
 
     telegram.sendToAdmins(messageText,
       {
-        links: [
-          {title: 'View transfer', url: `https://bscscan.com/tx/${txHash}`}
-        ]
+        links,
       });
     return txHash;
   } catch (error) {

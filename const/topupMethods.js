@@ -109,14 +109,14 @@ module.exports = [
     code: 'icbc',
     title: 'ICBC',
     minAmount: 500,
-    maxAmount: 10000,
+    maxAmount: 750000,
   },
   {
     currencies: ['CNY'],
     code: 'bankofchina',
     title: 'Bank of China',
     minAmount: 500,
-    maxAmount: 10000,
+    maxAmount: 750000,
   },
   {
     currencies: ['PLN'],

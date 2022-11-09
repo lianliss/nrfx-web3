@@ -362,7 +362,7 @@ const getCoinAmount = async (fiatContract, coinContract, fiatAmount, decimals = 
     const commissionAmount = fiatContract.isFiat
       ? fiatAmount * totalCommission
       : (fiatAmount * totalCommission) * rate;
-    const referralAmount = commissionAmount * referralPercent;
+    const referralAmount = fiatAmount * referralPercent;
 
     return {
       fiatPrice, coinPrice,

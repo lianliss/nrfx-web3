@@ -17,6 +17,7 @@ module.exports = {
     'vnd',
     'thb',
     'pln',
+    'try',
   ],
   FIATS_PAYTYPES: {
     RUB: ['TinkoffNew'],
@@ -27,7 +28,7 @@ module.exports = {
     CAD: ['RBCRoyalbank'],
     VND: ['BANK'],
     THB: ['BANK'],
-    PLN: ['BankPekao', 'BANK'],
+    TRY: ['BANK'],
   },
   GET_RATE_INTERVAL: 60 * 1000,
   GET_BINANCE_RATE_INTERVAL: 60 * 2 * 1000,

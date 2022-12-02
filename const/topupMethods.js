@@ -139,4 +139,11 @@ module.exports = [
     minAmount: 500,
     maxAmount: 10000,
   },
+  {
+      currencies: ['TRY'],
+      code: 'trybank',
+      title: 'Bank transfer',
+      minAmount: 500,
+      maxAmount: 450000,
+  },
 ];

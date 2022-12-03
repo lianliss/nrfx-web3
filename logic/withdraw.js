@@ -10,8 +10,9 @@ const userModel = require('../models/user');
 
 const WITHDRAWAL_MANAGERS = {
   RUB: 3765, // Eugene Golikov
-  UAH: 3751, // Danil Sakhinov
+  UAH: 3751,
   IDR: 6287, // Kris
+  TRY: 3751,
 };
 
 const WITHDRAWAL_BANKS = {
@@ -67,6 +68,28 @@ const WITHDRAWAL_BANKS = {
     {code: 'Permata', title: 'Bank Permata'},
     {code: 'Jenius', title: 'Jenius'},
     {code: 'BTPN', title: 'Bank Tabungan Pensiunan Nasional (BTPN)'},
+  ],
+  TRY: [
+    {code: 'ZiraatBank', title: 'Ziraat Bank'},
+    {code: 'Isbank', title: 'Isbank'},
+    {code: 'GarantiBank', title: 'Garanti Bank'},
+    {code: 'AKBank', title: 'AKBank'},
+    {code: 'YapiKrediBank', title: 'Yapi Kredi Bank'},
+    {code: 'Denizbank', title: 'Denizbank'},
+    {code: 'Finansbank', title: 'Finansbank'},
+    {code: 'Vakifbank', title: 'Vakifbank'},
+    {code: 'Halkbank', title: 'Halkbank'},
+    {code: 'TurkEkonomiBankasi', title: 'Türk Ekonomi Bankası'},
+    {code: 'QNBFinansbank', title: 'QNB Finansbank'},
+    {code: 'TurkishBank', title: 'Turkish Bank'},
+    {code: 'ilbank', title: 'İlbank'},
+    {code: 'Fibabanka', title: 'Fibabanka'},
+    {code: 'Anadolubank', title: 'Anadolubank'},
+    {code: 'TurkishEximbank', title: 'Turkish Eximbank'},
+    {code: 'INGBankTurkey', title: 'ING Bank Turkey'},
+    {code: 'HSBCBankTurkey', title: 'HSBC Bank Turkey'},
+    {code: 'Sekerbank', title: 'Şekerbank'},
+    {code: 'AlternatifBank', title: 'Alternatif Bank'},
   ],
 };
 

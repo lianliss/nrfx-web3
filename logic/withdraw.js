@@ -15,6 +15,17 @@ const WITHDRAWAL_MANAGERS = {
   TRY: 3751,
 };
 
+const WITHDRAW_LIMITS = {
+  RUB: [5000, 150000],
+  UAH: [1000, 50000],
+  IDR: [500000, 150000000],
+  CNY: [500, 750000],
+  PLN: [500, 100000],
+  THB: [500, 100000],
+  CAD: [500, 10000],
+  TRY: [500, 450000],
+};
+
 const WITHDRAWAL_BANKS = {
   RUB: [
     {code: 'Tinkoff', title: 'Tinkoff'},
@@ -92,6 +103,14 @@ const WITHDRAWAL_BANKS = {
     {code: 'AlternatifBank', title: 'Alternatif Bank'},
   ],
 };
+
+Object.keys(WITHDRAWAL_BANKS).map(currency => {
+  const limits = _.get(WITHDRAW_LIMITS, currency, [500, 100000]);
+  WITHDRAWAL_BANKS[currency].map(bank => {
+    bank.min = limits[0];
+    bank.max = limits[1];
+  })
+});
 
 const getBankTitle = (bank, currency) => {
   const bankRecord = _.get(WITHDRAWAL_BANKS, currency, [])
@@ -266,4 +285,5 @@ module.exports = {
   cancelWithdraw,
   confirmWithdraw,
   WITHDRAWAL_BANKS,
+  WITHDRAW_LIMITS,
 };

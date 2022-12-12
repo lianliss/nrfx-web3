@@ -155,7 +155,7 @@ const getWalletReservation = async (accountAddress, currency) => {
             cards.number,
             cards.account_type,
             cards.routing_number,
-            cards.account_address,
+            cards.account_address as address,
             cards.holder_name,
             ops.status, ops.amount,
             ops.fee
@@ -258,7 +258,7 @@ const getReservationById = async (operationId) => {
             cards.holder_name,
             cards.routing_number,
             cards.account_type,
-            cards.account_address,
+            cards.account_address as address,
             cards.id as cardId,
             cards.managed_by,
             cards.currency,

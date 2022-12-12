@@ -146,4 +146,18 @@ module.exports = [
       minAmount: 500,
       maxAmount: 450000,
   },
+  {
+    currencies: ['USD'],
+    code: 'usdbank',
+    title: 'Bank transfer',
+    minAmount: 100,
+    maxAmount: 100000,
+  },
+  {
+    currencies: ['EUR'],
+    code: 'eurbank',
+    title: 'Bank transfer',
+    minAmount: 100,
+    maxAmount: 100000,
+  },
 ];

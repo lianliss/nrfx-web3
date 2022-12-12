@@ -18,6 +18,7 @@ module.exports = {
     'thb',
     'pln',
     'try',
+    'eur',
   ],
   FIATS_PAYTYPES: {
     RUB: ['TinkoffNew'],
@@ -29,6 +30,7 @@ module.exports = {
     VND: ['BANK'],
     THB: ['BANK'],
     TRY: ['BANK'],
+    EUR: ['BANK'],
   },
   GET_RATE_INTERVAL: 60 * 1000,
   GET_BINANCE_RATE_INTERVAL: 60 * 2 * 1000,

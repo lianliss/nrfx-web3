@@ -157,6 +157,11 @@ const getWalletReservation = async (accountAddress, currency) => {
             cards.routing_number,
             cards.account_address as address,
             cards.holder_name,
+            cards.iban,
+            cards.bic,
+            cards.short_code,
+            cards.institution_number,
+            cards.transit_number,
             ops.status, ops.amount,
             ops.fee
             FROM bank_cards AS cards
@@ -263,6 +268,11 @@ const getReservationById = async (operationId) => {
             cards.managed_by,
             cards.currency,
             cards.bank,
+            cards.iban,
+            cards.bic,
+            cards.short_code,
+            cards.institution_number,
+            cards.transit_number,
             users.first_name,
             users.last_name,
             users.telegram_id

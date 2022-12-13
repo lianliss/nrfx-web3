@@ -160,4 +160,11 @@ module.exports = [
     minAmount: 100,
     maxAmount: 100000,
   },
+  {
+    currencies: ['GBP'],
+    code: 'gbpbank',
+    title: 'Bank transfer',
+    minAmount: 100,
+    maxAmount: 100000,
+  },
 ];

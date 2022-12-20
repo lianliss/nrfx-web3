@@ -173,6 +173,7 @@ const updatePrices = async () => {
       fiats,
       prices,
     ]);
+    lastUpdate = Date.now();
     const gasUsed = Number(wei.from(tx.effectiveGasPrice.toFixed(0)) * tx.gasUsed);
     const gasLeft = bnbBalance - gasUsed;
     message += `<b>Gas used:</b> ${gasUsed.toFixed(4)} BNB ($${(gasUsed * bnbPrice).toFixed(2)})\n`;

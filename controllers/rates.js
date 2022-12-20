@@ -7,6 +7,7 @@ const {request} = require('../utils/request');
 const web3Service = require('../services/web3');
 const Web3 = require('web3');
 const {binance} = require('../services/binance');
+const oracleLogic = require('../logic/oracle');
 
 /**
  * Returns currency's USD price from cache
@@ -73,9 +74,9 @@ const updateCommissions = (req, res) => {
             const data = _.get(req, 'query.data');
             if (!user.isAdmin) throw new errors.PermissionDeniedError();
             if (!data) throw new errors.MissingParametersError();
-
+          
             const dataObject = JSON.parse(data);
-            db.updateCommissions(dataObject);
+            await oracleLogic.updateCommissions(dataObject);
             res.status(200).json(dataObject);
         } catch (error) {
             logger.error('[ratesController][updateCommissions]', error);

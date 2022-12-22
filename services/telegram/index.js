@@ -11,6 +11,7 @@ const withdrawDeclineScene = require('./withdrawDeclineScene');
 const UserModel = require('../../models/user');
 const db = require('../../models/db');
 const keyboards = require('./keyboards');
+const {EXCHANGE_POOL} = require('../../const');
 
 let telegram;
 let restartCommand;
@@ -469,9 +470,16 @@ if (isLocal) {
 
   telegram.hears(keyboards.buttons.balance, async ctx => {
     ctx.telegram.sendChatAction(ctx.message.chat.id, 'typing');
-    const balance = await telegram.narfexLogic.getBinanceBalance();
+    const data = await Promise.all([
+      telegram.narfexLogic.getBinanceBalance(),
+      telegram.narfexLogic.getPoolBalance(),
+    ]);
+    const balance = data[0];
     ctx.reply(
-      `<b>Binance</b> (BEP20)\n`
+      `<b>USDT Pool</b>\n`
+      + `<code>${EXCHANGE_POOL}</code>\n`
+      + `${data[1].toFixed(2)} USDT\n\n`
+      + `<b>Binance</b> (BEP20)\n`
       + `<code>${config.binance.address}</code>\n`
       + `${balance.usdt.toFixed(2)} USDT\n\n`
       + `<b>Wallet</b> (BEP20)\n`

@@ -5,6 +5,7 @@ const {Request} = require('../utils/request');
 const errors = require('../models/error');
 const {FIATS, FIATS_PAYTYPES, GET_RATE_INTERVAL} = require('../const');
 const cache = require('../models/cache');
+const isLocal = process.env.NODE_ENV === 'local';
 
 class BinanceP2P extends Request {
   constructor(config = {}) {
@@ -22,6 +23,7 @@ class BinanceP2P extends Request {
    * Updates fiats rates in the cache
    */
   updateRates = () => {
+    if (isLocal) return;
     FIATS.map(fiat => {
       cache.rates.set(fiat, (async () => {
         try {

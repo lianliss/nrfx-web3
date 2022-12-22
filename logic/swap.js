@@ -12,6 +12,7 @@ const {
   ZERO_ADDRESS,
   EXCHANGE_ROUTER,
   DEFAULT_REFER,
+  EXCHANGE_POOL,
 } = require('../const');
 const getCommission = require('../utils/getCommission');
 const {rates} = require('../models/cache');
@@ -21,6 +22,7 @@ const wei = require('../utils/wei');
 const wait = require('../utils/timeout');
 const bep20TokenABI = require('../const/ABI/bep20Token');
 const fiatFactoryABI = require('../const/ABI/fiatFactory');
+const poolABI = require('../const/ABI/exchangerPool');
 const fiatABI = require('../const/ABI/fiat');
 const exchangeRouterABI = require('../const/ABI/exchangeRouter');
 const referLogic = require('../logic/refers');
@@ -427,6 +429,20 @@ const getBinanceBalance = async () => {
   }
 };
 telegram.narfexLogic.getBinanceBalance = getBinanceBalance;
+
+const getPoolBalance = async () => {
+  try {
+    const pool = new (web3Service.web3.eth.Contract)(
+      poolABI,
+      EXCHANGE_POOL,
+    );
+    return wei.from(await pool.methods.getBalance().call());
+  } catch (error) {
+    logger.error('[getPoolBalance]', error);
+    telegram.log(`[getPoolBalance] Error ${error.message}`);
+  }
+};
+telegram.narfexLogic.getPoolBalance = getPoolBalance;
 
 /**
  * Returns token contract
@@ -941,4 +957,5 @@ module.exports = {
   swapFiatToToken,
   estimateTransferToUserGas,
   exchange,
+  getPoolBalance,
 };

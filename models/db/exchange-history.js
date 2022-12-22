@@ -131,7 +131,8 @@ const addExchangeHistory = async ({
               ${Math.floor(Date.now() / 1000)},
               '${txHash}',
               ${isCompleted ? 1 : 0}
-            );
+            )
+            ON DUPLICATE KEY UPDATE timestamp = ${Math.floor(Date.now() / 1000)};
         `);
   } catch (error) {
     logger.error('[addExchangeHistory]', error);

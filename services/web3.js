@@ -12,12 +12,15 @@ class Web3Service {
         try {
             const {
                 providerAddress,
+                providerWss,
                 name,
                 contracts,
                 defaultToken,
                 defaultAddress, // Sender address
             } = config.networks[network];
+            //this.web3 = new Web3(providerAddress);
             this.web3 = new Web3(providerAddress);
+            this.wss = new Web3(providerWss);
             this.bn = this.web3.utils.BN;
             this.network = network;
             this.networkName = name;

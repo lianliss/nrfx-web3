@@ -388,7 +388,7 @@ const processExchangerTransaction = async txHash => {
         }
       }
       telegram.sendToAdmins(message, {
-        links: {title: 'Transaction', url: `https://bscscan.com/tx/${txHash}`}
+        links: [{title: 'Transaction', url: `https://bscscan.com/tx/${txHash}`}]
       });
     }
   } catch (error) {

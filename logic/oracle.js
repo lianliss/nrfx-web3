@@ -3,7 +3,7 @@ const logger = require('../utils/logger');
 const errors = require('../models/error');
 const web3Service = require('../services/web3');
 const db = require('../models/db');
-const {FIAT_ADDRESS, ORACLE_CONTRACT, EXCHANGE_POOL, USDT_ADDRESS} = require('../const');
+const {FIAT_ADDRESS, ORACLE_CONTRACT, EXCHANGE_ROUTER, EXCHANGE_POOL, USDT_ADDRESS} = require('../const');
 const oracleABI = require('../const/ABI/oracle');
 const exchangeRouterABI = require('../const/ABI/exchangeRouter');
 const bep20ABI = require('../const/ABI/bep20Token');
@@ -21,6 +21,7 @@ const MAX_PERIOD = 1000 * 60 * 60; // hour
 const CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
 const MAX_DIFF_PERCENT = 0.5;
 const hashes = {};
+let subscription;
 
 const updateCommissions = async dataObject => {
   try {
@@ -398,17 +399,17 @@ const processExchangerTransaction = async txHash => {
 };
 
 const startExchangerListening = () => {
+  if (subscription) {
+    web3Service.wss.eth.clearSubscriptions();
+  }
   
-  const logsDecoder = LogsDecoder.create();
-  logsDecoder.addABI(exchangeRouterABI);
-  
-  web3Service.wss.eth.subscribe('logs', {
-    address: '0x94d0376ba6617D96c8c89213de81F4307e4490d0',
+  subscription = web3Service.wss.eth.subscribe('logs', {
+    address: EXCHANGE_ROUTER,
     topics: null,
   }, (error, log) => {
     if (error) {
       logger.warn('[oracle] Exchanger subscription error', error);
-      telegram.log('Exchanger subscription error');
+      telegram.log(`Exchanger subscription error: ${error.message}`);
     } else {
       const {transactionHash} = log;
       if (!hashes[transactionHash]) {
@@ -418,6 +419,7 @@ const startExchangerListening = () => {
   });
 };
 startExchangerListening();
+setInterval(() => startExchangerListening(), CHECK_PERIOD);
 
 module.exports = {
   updateCommissions,

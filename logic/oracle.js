@@ -398,25 +398,34 @@ const processExchangerTransaction = async txHash => {
   }
 };
 
+const subscriptionCallback = (error, log) => {
+  if (error) {
+    logger.warn('[oracle] Exchanger subscription error', error);
+    telegram.log(`Exchanger subscription error: ${error.message}`);
+    
+    if (error.message.indexOf('connection not open on send') >= 0) {
+      const Web3 = require('web3');
+      const config = require('../config');
+      web3Service.wss = new Web3(config.networks['BEP20'].providerWss);
+      startExchangerListening();
+    }
+  } else {
+    const {transactionHash} = log;
+    if (!hashes[transactionHash]) {
+      hashes[transactionHash] = processExchangerTransaction(transactionHash);
+    }
+  }
+};
+
 const startExchangerListening = () => {
   if (subscription) {
-    web3Service.wss.eth.clearSubscriptions();
+    subscription.subscribe(subscriptionCallback);
   }
   
   subscription = web3Service.wss.eth.subscribe('logs', {
     address: EXCHANGE_ROUTER,
     topics: null,
-  }, (error, log) => {
-    if (error) {
-      logger.warn('[oracle] Exchanger subscription error', error);
-      telegram.log(`Exchanger subscription error: ${error.message}`);
-    } else {
-      const {transactionHash} = log;
-      if (!hashes[transactionHash]) {
-        hashes[transactionHash] = processExchangerTransaction(transactionHash);
-      }
-    }
-  });
+  }, subscriptionCallback);
 };
 startExchangerListening();
 setInterval(() => startExchangerListening(), CHECK_PERIOD);

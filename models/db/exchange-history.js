@@ -149,6 +149,15 @@ const getExchangeHistory = async () => {
   }
 };
 
+const getExchangeHistoryByHash = async txHash => {
+  try {
+    return await db.query(`SELECT * FROM exchange_history WHERE tx_hash = '${txHash}' LIMIT 1;`);
+  } catch (error) {
+    logger.error('[getExchangeHistoryByHash]', error);
+    return [];
+  }
+};
+
 const getExchangeHistoryAfter = async timestamp => {
   try {
     return await db.query(`${getHistoryRequest}
@@ -198,6 +207,7 @@ const completeWithdrawHistory = async withdrawId => {
 module.exports = {
   addExchangeHistory,
   getExchangeHistory,
+  getExchangeHistoryByHash,
   getExchangeHistoryAfter,
   getAccountHistory,
   completeWithdrawHistory,

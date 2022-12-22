@@ -22,6 +22,7 @@ const CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
 const MAX_DIFF_PERCENT = 0.5;
 const hashes = {};
 let subscription;
+let lastBlock = 'latest';
 
 const updateCommissions = async dataObject => {
   try {
@@ -203,6 +204,9 @@ const processExchangerTransaction = async txHash => {
   try {
     const logsDecoder = LogsDecoder.create();
     logsDecoder.addABI(exchangeRouterABI);
+    
+    const stored = await db.getExchangeHistoryByHash(txHash);
+    if (stored.length) return;
     
     let receipt = await web3Service.web3.eth.getTransactionReceipt(txHash);
     let attemptCounter = 0;
@@ -398,6 +402,7 @@ const processExchangerTransaction = async txHash => {
   }
 };
 
+let subErrors = 0;
 const subscriptionCallback = (error, log) => {
   if (error) {
     logger.warn('[oracle] Exchanger subscription error', error);
@@ -407,7 +412,13 @@ const subscriptionCallback = (error, log) => {
       const Web3 = require('web3');
       const config = require('../config');
       web3Service.wss = new Web3(config.networks['BEP20'].providerWss);
-      startExchangerListening();
+      if (subErrors < 3) {
+        subErrors++;
+        startExchangerListening();
+      } else {
+        subErrors = 0;
+        telegram.log('[subscriptionCallback] Too mush subErrors');
+      }
     }
   } else {
     const {transactionHash} = log;
@@ -426,6 +437,33 @@ const startExchangerListening = () => {
     address: EXCHANGE_ROUTER,
     topics: null,
   }, subscriptionCallback);
+  
+  (async () => {
+    // Update last transactions
+    try {
+      const Web3 = require('web3');
+      const web3 = new Web3('https://rpc.ankr.com/bsc/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb');
+      const events = await web3.eth.getPastLogs({
+        fromBlock: lastBlock,
+        address: EXCHANGE_ROUTER,
+      });
+      events.map(event => {
+        const {transactionHash} = event;
+        if (!hashes[transactionHash]) {
+          hashes[transactionHash] = processExchangerTransaction(transactionHash);
+        }
+      });
+    } catch (error) {
+      logger.error('[getPastLogs]', error);
+    }
+    // Update last block number
+    try {
+      const block = await web3Service.web3.eth.getBlock('latest');
+      lastBlock = block.number;
+    } catch (error) {
+      logger.error('[getBlock]', error);
+    }
+  })();
 };
 startExchangerListening();
 setInterval(() => startExchangerListening(), CHECK_PERIOD);

@@ -72,7 +72,6 @@ class DataModel {
                             rowResult[fieldModel.key] = value;
                     }
                 } else {
-                    logger.warn('[DataModel][processData] Unknown field', field, value);
                     rowResult[field] = value;
                 }
             });

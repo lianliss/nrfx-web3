@@ -187,9 +187,9 @@ const updatePrices = async () => {
     const gasLeft = bnbBalance - gasUsed;
     message += `<b>Gas used:</b> ${gasUsed.toFixed(4)} BNB ($${(gasUsed * bnbPrice).toFixed(2)})\n`;
     message += `<b>Gas left:</b> ${gasLeft.toFixed(4)} BNB ($${(gasLeft * bnbPrice).toFixed(2)})`;
-    telegram.sendToAdmins(message, [
-      {title: 'Transaction', url: `https://bscscan.com/tx/${tx.transactionHash}`},
-    ]);
+    // telegram.sendToAdmins(message, [
+    //   {title: 'Transaction', url: `https://bscscan.com/tx/${tx.transactionHash}`},
+    // ]);
   } catch (error) {
     logger.error('[logic/oracle][updatePrices]', error);
     telegram.log(`[logic/oracle][updatePrices] ${error.message}`);

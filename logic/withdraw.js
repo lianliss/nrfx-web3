@@ -10,9 +10,9 @@ const userModel = require('../models/user');
 
 const WITHDRAWAL_MANAGERS = {
   RUB: 3765, // Eugene Golikov
-  UAH: 3751,
+  UAH: 8679,
   IDR: 6287, // Kris
-  TRY: 3751,
+  TRY: 8679,
 };
 
 const WITHDRAW_LIMITS = {

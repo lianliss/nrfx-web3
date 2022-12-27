@@ -19,7 +19,7 @@ const run = async () => {
         logger.info('Server started');
         require('../services/stream');
 
-        telegram.log('Started');
+        telegram.log(`<b>Started</b>`);
 
         // Run jobs
         const jobs = require('../services/jobs');

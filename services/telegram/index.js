@@ -12,6 +12,7 @@ const UserModel = require('../../models/user');
 const db = require('../../models/db');
 const keyboards = require('./keyboards');
 const {EXCHANGE_POOL} = require('../../const');
+const wait = require('../../utils/timeout');
 
 let telegram;
 let restartCommand;
@@ -90,6 +91,7 @@ if (isLocal) {
   });
 
   restartCommand = async ctx => {
+    await wait(1000);
     await execute('pm2 restart web3', 'Restart', ctx);
   };
 

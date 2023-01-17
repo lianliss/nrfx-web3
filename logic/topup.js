@@ -73,7 +73,7 @@ const approveTopup = async (operationId, chat) => {
         ? `<b>✅ Topup #${operation.id} approved by `
         + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
         : `<b>✅ Topup #${operation.id} approved</b>\n`)
-      + `<b>Network:</b> ${networkID}\n`,
+      + `<b>Network:</b> ${networkID}\n`
       + `<code>${operation.account_address}</code>\n`
       + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
       + (operation.telegram_id

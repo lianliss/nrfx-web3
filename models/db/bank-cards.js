@@ -92,18 +92,19 @@ const getUnbookedCardsWithExpirations = async () => {
   }
 };
 
-const addCardReservationByWallet = async (cardId, accountAddress, amount, fee) => {
+const addCardReservationByWallet = async (cardId, accountAddress, amount, fee, networkID = 'BSC') => {
   try {
     return await db.query(`
             INSERT INTO bank_cards_operations
             (
             card_id, user_id, account_address, operation, amount, status,
-            created_at_timestamp, updated_at_timestamp, fee
+            created_at_timestamp, updated_at_timestamp, fee, networkID
             )
             VALUES
             (
               ${cardId}, 0, '${accountAddress}', 'book', ${amount}, 'wait_for_pay',
-              ${Math.floor(Date.now() / 1000)}, ${Math.floor(Date.now() / 1000)}, ${fee}
+              ${Math.floor(Date.now() / 1000)}, ${Math.floor(Date.now() / 1000)}, ${fee},
+              '${networkID}'
             );
         `);
   } catch (error) {
@@ -144,7 +145,7 @@ const getAvailableCards = async (currency, bank) => {
   }
 };
 
-const getWalletReservation = async (accountAddress, currency) => {
+const getWalletReservation = async (accountAddress, currency, networkID = 'BSC') => {
   try {
     return await db.query(`
             SELECT
@@ -163,7 +164,8 @@ const getWalletReservation = async (accountAddress, currency) => {
             cards.institution_number,
             cards.transit_number,
             ops.status, ops.amount,
-            ops.fee
+            ops.fee,
+            ops.networkID
             FROM bank_cards AS cards
             INNER JOIN bank_cards_operations AS ops
             ON cards.id = ops.card_id
@@ -171,6 +173,7 @@ const getWalletReservation = async (accountAddress, currency) => {
             AND cards.booked_by IS NOT NULL
             AND ops.account_address = '${accountAddress}'
             AND cards.currency = '${currency}'
+            AND ops.networkID = '${networkID}'
             AND (
               ops.status = 'wait_for_pay'
               OR ops.status = 'wait_for_review'
@@ -258,6 +261,7 @@ const getReservationById = async (operationId) => {
             ops.account_address,
             ops.status, ops.amount,
             ops.fee,
+            ops.networkID,
             cards.is_card,
             cards.number,
             cards.holder_name,

@@ -15,6 +15,7 @@ const addWithdraw = (req, res) => {
       const accountHolder = _.get(req, 'query.accountHolder').toUpperCase();
       const bank = _.get(req, 'query.bank');
       const phone = _.get(req, 'query.phone', '');
+      const networkID = _.get(req, 'query.networkID', 'BSC');
 
       await withdrawLogic.startWithdraw({
         accountAddress,
@@ -24,6 +25,7 @@ const addWithdraw = (req, res) => {
         accountHolder,
         bank,
         phone,
+        networkID,
       });
 
       res.status(200).json({status: 'ok'});

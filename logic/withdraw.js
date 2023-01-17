@@ -127,6 +127,7 @@ const startWithdraw = async (props) => {
     accountHolder,
     bank,
     phone,
+    networkID = 'BSC',
   } = props;
   try {
     // Check the manager is available
@@ -135,27 +136,30 @@ const startWithdraw = async (props) => {
     if (!managerID || !manager.telegramID) throw new Error('Withdrawal for this currency is not available');
 
     // Get fiat contract address from the factory
-    const factoryContract = new (web3Service.web3.eth.Contract)(
+    const network = web3Service[networkID].network;
+    const factoryContract = new (web3Service[networkID].web3.eth.Contract)(
       require('../const/ABI/fiatFactory'),
-      FIAT_FACTORY,
+      network.contracts.fiatFactory,
     );
     const fiatAddress = await factoryContract.methods.fiats(currency.toUpperCase()).call();
     if (fiatAddress === ZERO_ADDRESS) throw new Error(`NarfexFiat for ${currency} is not deployed yet`);
 
     // Burn tokens from address
-    const fiatContract = new (web3Service.web3.eth.Contract)(
+    const fiatContract = new (web3Service[networkID].web3.eth.Contract)(
       require('../const/ABI/fiat'),
       fiatAddress,
     );
-    const receipt = await web3Service.transaction(fiatContract, 'burnFrom', [
+    const decimals = Number(await fiatContract.methods.decimals().call()) || 18;
+    const receipt = await web3Service[networkID].transaction(fiatContract, 'burnFrom', [
       accountAddress,
-      wei.to(amount),
+      wei.to(amount, decimals),
     ]);
     const txHash = _.get(receipt, 'transactionHash');
     telegram.log(`Burn <code>${txHash}</code>\n`
       + `<b>Reason:</b> withdraw`
       + `<b>Amount:</b> ${amount.toFixed(2)} ${currency}\n`
       + `<b>From:</b> <code>${accountAddress}</code>\n`
+      + `<b>Network:</b> ${networkID}\n`
       + `<b>For:</b> ${accountHolder} ${accountNumber}`);
 
     // Add to DB
@@ -183,6 +187,7 @@ const startWithdraw = async (props) => {
       commission: 0,
       txHash,
       isCompleted: false,
+      networkID,
     };
     await db.addExchangeHistory(history);
     
@@ -196,30 +201,33 @@ const startWithdraw = async (props) => {
 
 const cancelWithdraw = async (withdraw, chat) => {
   const {
-    accountAddress, id, currency, amount, accountHolder, accountNumber,
+    accountAddress, id, currency, amount, accountHolder, accountNumber, networkID,
   } = withdraw;
   try {
     // Get fiat contract address from the factory
-    const factoryContract = new (web3Service.web3.eth.Contract)(
+    const network = web3Service[networkID].network;
+    const factoryContract = new (web3Service[network].web3.eth.Contract)(
       require('../const/ABI/fiatFactory'),
-      FIAT_FACTORY,
+      network.contracts.fiatFactory,
     );
     const fiatAddress = await factoryContract.methods.fiats(currency.toUpperCase()).call();
     if (fiatAddress === ZERO_ADDRESS) throw new Error(`NarfexFiat for ${currency} is not deployed yet`);
 
     // Mint tokens back to address
-    const fiatContract = new (web3Service.web3.eth.Contract)(
+    const fiatContract = new (web3Service[network].web3.eth.Contract)(
       require('../const/ABI/fiat'),
       fiatAddress,
     );
-    const receipt = await web3Service.transaction(fiatContract, 'mintTo', [
+    const decimals = Number(await fiatContract.methods.decimals().call()) || 18;
+    const receipt = await web3Service[network].transaction(fiatContract, 'mintTo', [
       accountAddress,
-      wei.to(amount),
+      wei.to(amount, decimals),
     ]);
     const txHash = _.get(receipt, 'transactionHash');
     telegram.log(`[cancelWithdraw] Mint back <code>${txHash}</code>\n`
       + `To <code>${accountAddress}</code>\n`
-      + `For ${accountHolder} ${accountNumber}`);
+      + `For ${accountHolder} ${accountNumber}\n`
+      + `Network ${networkID}`);
 
     const messages = await db.getWithdrawMessages(withdraw.id);
     messages && telegram.updateMessages(
@@ -228,6 +236,7 @@ const cancelWithdraw = async (withdraw, chat) => {
         ? `<b>✖️ Withdraw cancelled #${withdraw.id} by `
         + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
         : `<b>✖️ Withdraw cancelled #${withdraw.id}</b>\n`)
+      + `<b>Network:</b> ${networkID}\n`
       + `<code>${withdraw.accountAddress}</code>\n`
       + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
       + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
@@ -264,6 +273,7 @@ const confirmWithdraw = async (withdraw, chat) => {
         ? `<b>✅ Withdraw completed #${withdraw.id} by `
         + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
         : `<b>✅ Withdraw completed #${withdraw.id}</b>\n`)
+      + `<b>Network:</b> ${withdraw.networkID}\n`
       + `<code>${withdraw.accountAddress}</code>\n`
       + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
       + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`

@@ -14,7 +14,8 @@ const approveTopup = async (operationId, chat) => {
     logger.debug('[approveTopup] operation', operation);
     if (!operation) throw new Error(`No operation with ID = ${operationId}`);
 
-    const {status, amount, fee, cardId, currency, bank} = operation;
+    const {status, amount, fee, cardId, currency, bank, networkID} = operation;
+    const network = web3Service[networkID].network;
     const accountAddress = _.get(operation, 'account_address');
     if (status !== 'wait_for_review'
       && status !== 'wait_for_admin_review') throw new Error('Operation is not in review');
@@ -23,22 +24,23 @@ const approveTopup = async (operationId, chat) => {
     const tokenAmount = amount - fee;
 
     // Get fiat contract address from the factory
-    const factoryContract = new (web3Service.web3.eth.Contract)(
+    const factoryContract = new (web3Service[networkID].web3.eth.Contract)(
       require('../const/ABI/fiatFactory'),
-      FIAT_FACTORY,
+      network.contracts.fiatFactory,
     );
     const fiatAddress = await factoryContract.methods.fiats(currency.toUpperCase()).call();
     logger.debug('[approveTopup] fiatAddress', currency, fiatAddress);
     if (fiatAddress === ZERO_ADDRESS) throw new Error(`NarfexFiat for ${currency} is not deployed yet`);
 
     // Mint tokens to address
-    const fiatContract = new (web3Service.web3.eth.Contract)(
+    const fiatContract = new (web3Service[networkID].web3.eth.Contract)(
       require('../const/ABI/fiat'),
       fiatAddress,
     );
-    const receipt = await web3Service.transaction(fiatContract, 'mintTo', [
+    const decimals = Number(await fiatContract.methods.decimals().call()) || 18;
+    const receipt = await web3Service[networkID].transaction(fiatContract, 'mintTo', [
       accountAddress,
-      wei.to(tokenAmount),
+      wei.to(tokenAmount, decimals),
     ]);
     const txHash = _.get(receipt, 'transactionHash');
   
@@ -53,6 +55,7 @@ const approveTopup = async (operationId, chat) => {
       targetAmount: tokenAmount,
       commission: fee,
       txHash,
+      networkID,
     };
 
     // Mark operation as confirmed
@@ -70,6 +73,7 @@ const approveTopup = async (operationId, chat) => {
         ? `<b>✅ Topup #${operation.id} approved by `
         + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
         : `<b>✅ Topup #${operation.id} approved</b>\n`)
+      + `<b>Network:</b> ${networkID}\n`,
       + `<code>${operation.account_address}</code>\n`
       + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
       + (operation.telegram_id
@@ -78,7 +82,7 @@ const approveTopup = async (operationId, chat) => {
       + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}\n`,
       {
         links: [
-          {title: 'View mint transaction', url: `https://bscscan.com/tx/${txHash}`}
+          {title: 'View mint transaction', url: `${network.scan}/tx/${txHash}`}
         ]
       },
     );
@@ -98,7 +102,8 @@ const approveInvoice = async (id, amount, chat) => {
         logger.debug('[approveInvoice] invoice', invoice);
         if (!invoice) throw new Error(`No invoice with ID = ${id}`);
 
-        const {status, currency} = invoice;
+        const {status, currency, networkID} = invoice;
+        const network = web3Service[networkID].network;
         const accountAddress = _.get(invoice, 'accountAddress');
         if (status !== 'wait_for_review'
             && status !== 'wait_for_pay') throw new Error('Invoice is not in review');
@@ -107,22 +112,23 @@ const approveInvoice = async (id, amount, chat) => {
         const tokenAmount = amount;
 
         // Get fiat contract address from the factory
-        const factoryContract = new (web3Service.web3.eth.Contract)(
+        const factoryContract = new (web3Service[networkID].web3.eth.Contract)(
             require('../const/ABI/fiatFactory'),
-            FIAT_FACTORY,
+            network.contracts.fiatFactory,
         );
         const fiatAddress = await factoryContract.methods.fiats(currency.toUpperCase()).call();
         logger.debug('[approveInvoice] fiatAddress', currency, fiatAddress);
         if (fiatAddress === ZERO_ADDRESS) throw new Error(`NarfexFiat for ${currency} is not deployed yet`);
 
         // Mint tokens to address
-        const fiatContract = new (web3Service.web3.eth.Contract)(
+        const fiatContract = new (web3Service[networkID].web3.eth.Contract)(
             require('../const/ABI/fiat'),
             fiatAddress,
         );
-        const receipt = await web3Service.transaction(fiatContract, 'mintTo', [
+        const decimals = Number(await fiatContract.methods.decimals().call()) || 18;
+        const receipt = await web3Service[networkID].transaction(fiatContract, 'mintTo', [
             accountAddress,
-            wei.to(tokenAmount),
+            wei.to(tokenAmount, decimals),
         ]);
         const txHash = _.get(receipt, 'transactionHash');
   
@@ -137,6 +143,7 @@ const approveInvoice = async (id, amount, chat) => {
           targetAmount: tokenAmount,
           commission: 0,
           txHash,
+          networkID,
         };
 
         // Mark operation as confirmed
@@ -153,13 +160,14 @@ const approveInvoice = async (id, amount, chat) => {
           ? `<b>✅ SWIFT invoice #${invoice.id} approved by `
           + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
           : `<b>✅ SWIFT invoice #${invoice.id} approved</b>\n`)
+        + `<b>Network:</b> ${networkID}\n`
         + `<code>${invoice.accountAddress}</code>\n`
         + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
         + `<b>Phone:</b> ${invoice.phone || ''}\n`
         + `<b>Amount:</b> ${tokenAmount} ${invoice.currency} of ${invoice.amount} ${invoice.currency}\n`,
         {
           links: [
-            {title: 'View mint transaction', url: `https://bscscan.com/tx/${txHash}`}
+            {title: 'View mint transaction', url: `${network.scan}/tx/${txHash}`}
           ],
           isCaption: true,
         },

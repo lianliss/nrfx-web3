@@ -11,7 +11,6 @@ const withdrawDeclineScene = require('./withdrawDeclineScene');
 const UserModel = require('../../models/user');
 const db = require('../../models/db');
 const keyboards = require('./keyboards');
-const {EXCHANGE_POOL} = require('../../const');
 const wait = require('../../utils/timeout');
 
 let telegram;
@@ -260,6 +259,7 @@ if (isLocal) {
         user.telegramID,
         user.isAdmin
           ? `<b>New topup operation #${operation.id}</b>\n<code>${operation.account_address}</code>\n`
+          + `<b>Network:</b> ${operation.networkID}\n`
           + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
           + (operation.telegram_id
             ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
@@ -321,6 +321,7 @@ if (isLocal) {
         {source: invoice.screenshot},
         {
           caption: `<b>New SWIFT invoice #<code>${invoice.id}</code></b>\n`
+          + `<b>Network:</b> ${invoice.networkID}\n`
           + `<code>${invoice.accountAddress}</code>\n`
           + `<b>Buyer:</b> ${invoice.name || ''} ${invoice.lastName || ''}\n`
           + `<b>Phone:</b> ${invoice.phone || ''}\n`
@@ -377,6 +378,7 @@ if (isLocal) {
       const message = await telegram.telegram.sendMessage(
         user.telegramID,
         `<b>New withdraw request #<code>${withdraw.id}</code></b>\n`
+        + `<b>Network:</b> ${withdraw.networkID}\n`
         + `<code>${withdraw.accountAddress}</code>\n`
         + `<b>Amount:</b> ${withdraw.amount.toFixed(2)} ${withdraw.currency.toUpperCase()}\n`
         + `<b>Bank:</b> ${getBankTitle(withdraw.bank, withdraw.currency)}\n`
@@ -473,21 +475,16 @@ if (isLocal) {
   telegram.hears(keyboards.buttons.balance, async ctx => {
     ctx.telegram.sendChatAction(ctx.message.chat.id, 'typing');
     const data = await Promise.all([
-      telegram.narfexLogic.getBinanceBalance(),
-      telegram.narfexLogic.getPoolBalance(),
+      telegram.narfexLogic.getPoolBalance('BSC'),
+      telegram.narfexLogic.getPoolBalance('ETH'),
     ]);
-    const balance = data[0];
     ctx.reply(
-      `<b>USDT Pool</b>\n`
-      + `<code>${EXCHANGE_POOL}</code>\n`
-      + `${data[1].toFixed(2)} USDT\n\n`
-      + `<b>Binance</b> (BEP20)\n`
-      + `<code>${config.binance.address}</code>\n`
-      + `${balance.usdt.toFixed(2)} USDT\n\n`
-      + `<b>Wallet</b> (BEP20)\n`
-      + `<code>${config.web3.defaultAddress}</code>\n`
-      + `${balance.bnb.toFixed(4)} BNB\n`
-      + `${balance.nrfx.toFixed()} NRFX`,
+      `<b>USDC Pool BSC</b>\n`
+      + `<code>${config.networks['BSC'].contracts.exchangePool}</code>\n`
+      + `${data[0].toFixed(2)} USDC\n\n`
+      + `<b>USDC Pool ETH</b>\n`
+      + `<code>${config.networks['ETH'].contracts.exchangePool}</code>\n`
+      + `${data[1].toFixed(2)} USDC\n\n`,
       {
         parse_mode: 'HTML',
       })

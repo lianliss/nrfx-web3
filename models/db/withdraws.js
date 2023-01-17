@@ -65,7 +65,7 @@ const model = new DataModel({
 
 const addWithdraw = async ({
                              amount, currency, accountAddress, accountNumber, accountHolder, bank, adminID, provider = '',
-                             phone,
+                             phone, networkID = 'BSC',
                            }) => {
   try {
     return await db.query(`
@@ -84,7 +84,8 @@ const addWithdraw = async ({
             bank_code,
             provider,
             admin_id,
-            phone
+            phone,
+            networkID
             )
             VALUES
             (
@@ -101,7 +102,8 @@ const addWithdraw = async ({
               '${bank}',
               '${provider}',
               ${adminID},
-              '${phone}'
+              '${phone}',
+              '${networkID}'
             );
         `);
   } catch (error) {

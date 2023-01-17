@@ -58,6 +58,7 @@ const cardReviewScene = new Scenes.WizardScene(
           const newMessage = await ctx.telegram.sendMessage(
             message.chatID,
             `<b>⚠️ Operation is pending admin review #${operation.id}</b>\n${operation.account_address}\n`
+            + `<b>Network:</b> ${operation.networkID}\n`
             + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
             + (operation.telegram_id
             ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`

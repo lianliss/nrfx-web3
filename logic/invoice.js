@@ -7,9 +7,9 @@ const db = require('../models/db');
 const telegram = require('../services/telegram');
 const {rates} = require('../models/cache');
 
-const getPDF = async (accountAddress, currency = 'USD') => {
+const getPDF = async (accountAddress, currency = 'USD', networkID = 'BSC') => {
   try {
-    const invoice = (await db.getActiveInvoice(accountAddress, currency))[0];
+    const invoice = (await db.getActiveInvoice(accountAddress, currency, networkID))[0];
     if (!invoice) throw new Error('No invoices for this account');
 
     const file = await fs.readFile('./views/invoice.pdf');

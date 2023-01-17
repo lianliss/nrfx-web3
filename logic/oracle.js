@@ -15,16 +15,28 @@ const isLocal = process.env.NODE_ENV === 'local';
 const LogsDecoder = require('logs-decoder');
 const referLogic = require('../logic/refers');
 
-const WBNB = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
-let lastUpdate = Date.now();
-const MAX_PERIOD = 1000 * 60 * 60; // hour
-const CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
-const MAX_DIFF_PERCENT = 0.5;
-const hashes = {};
-let subscription;
-let lastBlock = 'latest';
+const networksList = ['BSC'];
+const networkOracle = {};
+['BSC', 'ETH'].map(networkID => {
+  networkOracle[networkID] = {
+    hashes: {},
+    subscription: null,
+    lastBlock: 'latest',
+    subErrors: 0,
+    lastUpdate: Date.now(),
+  };
+});
 
-const updateCommissions = async dataObject => {
+networkOracle['BSC'].MAX_PERIOD = 1000 * 60 * 60; // hour
+networkOracle['BSC'].CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
+networkOracle['BSC'].MAX_DIFF_PERCENT = 0.5;
+
+networkOracle['ETH'].MAX_PERIOD = 1000 * 60 * 60 * 24; // day
+networkOracle['ETH'].CHECK_PERIOD = 1000 * 60 * 60 * 24; // day
+networkOracle['ETH'].MAX_DIFF_PERCENT = 2;
+
+
+const updateCommissionsInNetwork = async (dataObject, networkID) => {
   try {
     db.updateCommissions(dataObject);
     const fiatDefault = Number(_.get(dataObject, 'FiatDefault', 0)) / 100;
@@ -33,25 +45,27 @@ const updateCommissions = async dataObject => {
     
     // Parse new commissions
     const fiatComm = {};
-    Object.keys(FIAT_ADDRESS).map(fiat => {
+    const network = web3Service[networkID].network;
+    const contracts = network.contracts;
+    Object.keys(network.fiats).map(fiat => {
       const comm = Number(_.get(dataObject, fiat.toLowerCase(), fiatDefault));
-      const addr = FIAT_ADDRESS[fiat];
+      const addr = network.fiats[fiat];
       if (comm !== fiatDefault) {
         fiatComm[addr.toLowerCase()] = comm / 100;
       }
     });
   
     // Oracle contract
-    const oracle = new (web3Service.web3.eth.Contract)(
+    const oracle = new (web3Service[networkID].web3.eth.Contract)(
       oracleABI,
-      ORACLE_CONTRACT,
+      contracts.oracle,
     );
     
     // Get oracle data
     const oracleData = await Promise.all([
       oracle.methods.getSettings().call(),
       oracle.methods.getAllTokens().call(),
-      oracle.methods.getPrice(WBNB).call(),
+      oracle.methods.getPrice(contracts.wrap).call(),
     ]);
     const oracleFiatDefault = wei.from(oracleData[0][0], 4);
     const oracleCoinDefault = wei.from(oracleData[0][1], 4);
@@ -108,7 +122,7 @@ const updateCommissions = async dataObject => {
     if (!isUpdate) return;
     
     // Send transaction
-    const tx = await web3Service.transaction(oracle, 'updateAllCommissions', [
+    const tx = await web3Service[networkID].transaction(oracle, 'updateAllCommissions', [
       wei.to(fiatDefault, 4),
       wei.to(coinDefault, 4),
       wei.to(defaultRef, 4),
@@ -120,26 +134,37 @@ const updateCommissions = async dataObject => {
     const gasUsed = Number(wei.from(tx.effectiveGasPrice.toFixed(0)) * tx.gasUsed);
     telegram.sendToAdmins(`
 <b>Commissions updated</b>\n
-<b>Gas used:</b> ${gasUsed.toFixed(4)} BNB ($${(gasUsed * bnbPrice).toFixed(2)})`, [
-      {title: 'Transaction', url: `https://bscscan.com/tx/${tx.transactionHash}`},
+<b>Gas used:</b> ${gasUsed.toFixed(4)} ${network.defaultToken.toUpperCase()} ($${(gasUsed * bnbPrice).toFixed(2)})`, [
+      {title: 'Transaction', url: `${network.scan}/tx/${tx.transactionHash}`},
     ]);
   } catch (error) {
+    logger.error('[logic/oracle][updateCommissionsInNetwork]', networkID, error);
+    telegram.log(`[logic/oracle][updateCommissionsInNetwork][${networkID}] ${error.message}`);
+  }
+  return;
+};
+const updateCommissions = async dataObject => {
+  try {
+    Promise.all(networksList.map(networkID => updateCommissionsInNetwork(dataObject, networkID)));
+  } catch (error) {
     logger.error('[logic/oracle][updateCommissions]', error);
-    telegram.log(`[logic/oracle][updateCommissions] ${error.message}`);
   }
   return;
 };
 
-const updatePrices = async () => {
+const updatePricesInNetwork = async networkID => {
   try {
-    const oracle = new (web3Service.web3.eth.Contract)(
+    const network = web3Service[networkID].network;
+    const contracts = network.contracts;
+    const oracleSettings = networkOracle[networkID];
+    const oracle = new (web3Service[networkID].web3.eth.Contract)(
       oracleABI,
-      ORACLE_CONTRACT,
+      contracts.oracle,
     );
     const data = await Promise.allSettled([
-      oracle.methods.getPrices(Object.keys(FIAT_ADDRESS).map(fiat => FIAT_ADDRESS[fiat])).call(),
-      oracle.methods.getPrice(WBNB).call(),
-      web3Service.getDefaultBalance(web3Service.defaultAccount.address),
+      oracle.methods.getPrices(Object.keys(network.fiats).map(fiat => network.fiats[fiat])).call(),
+      oracle.methods.getPrice(contracts.wrap).call(),
+      web3Service[networkID].getDefaultBalance(web3Service[networkID].defaultAccount.address),
     ]);
     const oraclePrices = data[0].value || [];
     const bnbPrice = wei.from(data[1].value);
@@ -148,10 +173,10 @@ const updatePrices = async () => {
     const fiats = [];
     const prices = [];
     const allRates = await rates.all();
-    let isNeedUpdate = Date.now() - lastUpdate > MAX_PERIOD;
+    let isNeedUpdate = Date.now() - oracleSettings.lastUpdate > oracleSettings.MAX_PERIOD;
     let message = `🪙 <b>Binance rates update</b>\n`;
-    Object.keys(FIAT_ADDRESS).map((fiat, index) => {
-      const addr = FIAT_ADDRESS[fiat];
+    Object.keys(network.fiats).map((fiat, index) => {
+      const addr = network.fiats[fiat];
       const price = allRates[fiat.toLowerCase()];
       if (price) {
         const weiPrice = wei.to(price);
@@ -164,7 +189,7 @@ const updatePrices = async () => {
             const oraclePrice = wei.from(oracleWei);
             const diff = (price / oraclePrice - 1) * 100;
             message += `<b>${fiat}:</b> $${oraclePrice.toFixed(6)} > $${price.toFixed(6)} `;
-            if (Math.abs(diff) > MAX_DIFF_PERCENT) {
+            if (Math.abs(diff) > oracleSettings.MAX_DIFF_PERCENT) {
               isNeedUpdate = true;
               message += `(<b>${diff > 0 ? '+' : ''}${diff.toFixed(2)}%</b> ⚠️)\n`;
             } else {
@@ -178,29 +203,41 @@ const updatePrices = async () => {
     });
 
     if (!isNeedUpdate) return;
-    const tx = await web3Service.transaction(oracle, 'updatePrices', [
+    const tx = await web3Service[networkID].transaction(oracle, 'updatePrices', [
       fiats,
       prices,
     ]);
-    lastUpdate = Date.now();
+    oracleSettings.lastUpdate = Date.now();
     const gasUsed = Number(wei.from(tx.effectiveGasPrice.toFixed(0)) * tx.gasUsed);
     const gasLeft = bnbBalance - gasUsed;
-    message += `<b>Gas used:</b> ${gasUsed.toFixed(4)} BNB ($${(gasUsed * bnbPrice).toFixed(2)})\n`;
-    message += `<b>Gas left:</b> ${gasLeft.toFixed(4)} BNB ($${(gasLeft * bnbPrice).toFixed(2)})`;
+    message += `<b>Gas used:</b> ${gasUsed.toFixed(4)} ${network.defaultToken.toUpperCase()} ($${(gasUsed * bnbPrice).toFixed(2)})\n`;
+    message += `<b>Gas left:</b> ${gasLeft.toFixed(4)} ${network.defaultToken.toUpperCase()} ($${(gasLeft * bnbPrice).toFixed(2)})`;
     // telegram.sendToAdmins(message, [
     //   {title: 'Transaction', url: `https://bscscan.com/tx/${tx.transactionHash}`},
     // ]);
   } catch (error) {
+    logger.error('[logic/oracle][updatePricesInNetwork]', networkID, error);
+    telegram.log(`[logic/oracle][updatePricesInNetwork][${networkID}] ${error.message}`);
+  }
+};
+const updatePrices = async () => {
+  try {
+    Promise.all(networksList.map(networkID => updatePricesInNetwork(networkID)));
+  } catch (error) {
     logger.error('[logic/oracle][updatePrices]', error);
-    telegram.log(`[logic/oracle][updatePrices] ${error.message}`);
   }
 };
 
 if (!isLocal) {
-  setInterval(() => updatePrices(), CHECK_PERIOD);
+  networksList.map(networkID => {
+    const oracleSettings = networkOracle[networkID];
+    setTimeout(() => {
+      setInterval(() => updatePricesInNetwork(networkID), oracleSettings.CHECK_PERIOD);
+    }, oracleSettings.CHECK_PERIOD);
+  });
 }
 
-const processExchangerTransaction = async txHash => {
+const processExchangerTransaction = async (txHash, networkID) => {
   try {
     const logsDecoder = LogsDecoder.create();
     logsDecoder.addABI(exchangeRouterABI);
@@ -208,10 +245,10 @@ const processExchangerTransaction = async txHash => {
     const stored = await db.getExchangeHistoryByHash(txHash);
     if (stored.length) return;
     
-    let receipt = await web3Service.web3.eth.getTransactionReceipt(txHash);
+    let receipt = await web3Service[networkID].web3.eth.getTransactionReceipt(txHash);
     let attemptCounter = 0;
     while (!receipt && attemptCounter < 100) {
-      receipt = await web3Service.web3.eth.getTransactionReceipt(txHash);
+      receipt = await web3Service[networkID].web3.eth.getTransactionReceipt(txHash);
       attemptCounter++;
     }
     if (!receipt) throw Error("Can't read receipt");
@@ -221,9 +258,9 @@ const processExchangerTransaction = async txHash => {
       let swapFiat;
       let account;
   
-      const pool = new (web3Service.web3.eth.Contract)(
+      const pool = new (web3Service[networkID].web3.eth.Contract)(
         poolABI,
-        EXCHANGE_POOL,
+        web3Service[networkID].network.contracts.exchangeRouter,
       );
       const balance = wei.from(await pool.methods.getBalance().call());
       
@@ -271,7 +308,7 @@ const processExchangerTransaction = async txHash => {
       
       // Get symbols
       const symbols = {};
-      const promises = tokens.map(address => (new (web3Service.web3.eth.Contract)(
+      const promises = tokens.map(address => (new (web3Service[networkID].web3.eth.Contract)(
         bep20ABI,
         address,
       )).methods.symbol().call());
@@ -282,7 +319,7 @@ const processExchangerTransaction = async txHash => {
       let message = `<b>🔄 Exchange:</b>\n`
         + `<b>Account: </b><code>${account}</code>\n`;
       if (swapFiat && swapDEX) {
-        const isIncreasePool = swapFiat.from.toLowerCase() === USDT_ADDRESS.toLowerCase();
+        const isIncreasePool = swapFiat.from.toLowerCase() === web3Service[networkID].network.contracts.exchangeRouter.usdc.toLowerCase();
         if (swapFiat.to === swapDEX.from) {
           // If fiat swap first
           db.addExchangeHistory({
@@ -297,13 +334,14 @@ const processExchangerTransaction = async txHash => {
             referReward: swapFiat.referReward,
             txHash,
             isCompleted: true,
+            networkID,
           });
           message += `<b>From:</b> ${swapFiat.inAmount.toFixed(5)} ${symbols[swapFiat.from]}\n`
             + `<b>To:</b> ${swapDEX.outAmount.toFixed(5)} ${symbols[swapDEX.to]}\n`;
           if (isIncreasePool) {
-            message += `<b>Pool increase:</b> +${swapFiat.inAmount.toFixed(2)} USDT (Balance: <b>${balance.toFixed(2)}</b> USDT)\n`;
+            message += `<b>Pool increase:</b> +${swapFiat.inAmount.toFixed(2)} USDC (Balance: <b>${balance.toFixed(2)}</b> USDC)\n`;
           } else {
-            message += `<b>Pool decrease:</b> -${swapFiat.outAmount.toFixed(2)} USDT (Balance: <b>${balance.toFixed(2)}</b> USDT)\n`;
+            message += `<b>Pool decrease:</b> -${swapFiat.outAmount.toFixed(2)} USDC (Balance: <b>${balance.toFixed(2)}</b> USDC)\n`;
           }
           message += `<b>Commission:</b> ${swapFiat.commissionAmount.toFixed(5)} ${symbols[swapFiat.commissionToken]} (${swapFiat.commission.toFixed(2)}%)\n`;
           if (swapFiat.referReward) {
@@ -311,7 +349,7 @@ const processExchangerTransaction = async txHash => {
             if (referId) db.addReferReward(referId, account, symbols[swapFiat.commissionToken], swapFiat.referReward);
             message += `<b>Refer reward:</b> ${swapFiat.referReward.toFixed(5)} ${symbols[swapFiat.commissionToken]}\n`;
           }
-          message += `<b>Profit:</b> ${swapFiat.profitUSDT.toFixed(5)} USDT\n`;
+          message += `<b>Profit:</b> ${swapFiat.profitUSDT.toFixed(5)} USDC\n`;
         } else {
           db.addExchangeHistory({
             type: 'exchange',
@@ -325,13 +363,14 @@ const processExchangerTransaction = async txHash => {
             referReward: swapFiat.referReward,
             txHash,
             isCompleted: true,
+            networkID,
           });
           message += `<b>From:</b> ${swapDEX.inAmount.toFixed(5)} ${symbols[swapDEX.from]}\n`
             + `<b>To:</b> ${swapFiat.outAmount.toFixed(5)} ${symbols[swapFiat.to]}\n`;
           if (isIncreasePool) {
-            message += `<b>Pool increase:</b> +${swapFiat.inAmount.toFixed(2)} USDT (Balance: <b>${balance.toFixed(2)} USDT</b>)\n`;
+            message += `<b>Pool increase:</b> +${swapFiat.inAmount.toFixed(2)} USDC (Balance: <b>${balance.toFixed(2)} USDC</b>)\n`;
           } else {
-            message += `<b>Pool decrease:</b> -${swapFiat.outAmount.toFixed(2)} USDT (Balance: <b>${balance.toFixed(2)} USDT</b>)\n`;
+            message += `<b>Pool decrease:</b> -${swapFiat.outAmount.toFixed(2)} USDC (Balance: <b>${balance.toFixed(2)} USDC</b>)\n`;
           }
           message += `<b>Commission:</b> ${swapFiat.commissionAmount.toFixed(5)} ${symbols[swapFiat.commissionToken]} (${swapFiat.commission.toFixed(2)}%)\n`;
           if (swapFiat.referReward) {
@@ -339,12 +378,12 @@ const processExchangerTransaction = async txHash => {
             if (referId) db.addReferReward(referId, account, symbols[swapFiat.commissionToken], swapFiat.referReward);
             message += `<b>Refer reward:</b> ${swapFiat.referReward.toFixed(5)} ${symbols[swapFiat.commissionToken]}\n`;
           }
-          message += `<b>Profit:</b> ${swapFiat.profitUSDT.toFixed(5)} USDT\n`;
+          message += `<b>Profit:</b> ${swapFiat.profitUSDT.toFixed(5)} USDC\n`;
         }
       } else {
         if (swapFiat) {
-          const isIncreasePool = swapFiat.from.toLowerCase() === USDT_ADDRESS.toLowerCase();
-          const isWithUSDT = isIncreasePool || swapFiat.to.toLowerCase() === USDT_ADDRESS.toLowerCase();
+          const isIncreasePool = swapFiat.from.toLowerCase() === web3Service[networkID].network.contracts.usdc.toLowerCase();
+          const isWithUSDT = isIncreasePool || swapFiat.to.toLowerCase() === web3Service[networkID].network.contracts.usdc.toLowerCase();
           db.addExchangeHistory({
             type: 'exchange',
             accountAddress: account,
@@ -357,14 +396,15 @@ const processExchangerTransaction = async txHash => {
             referReward: swapFiat.referReward,
             txHash,
             isCompleted: true,
+            networkID,
           });
           message += `<b>From:</b> ${swapFiat.inAmount.toFixed(5)} ${symbols[swapFiat.from]}\n`
             + `<b>To:</b> ${swapFiat.outAmount.toFixed(5)} ${symbols[swapFiat.to]}\n`;
           if (isWithUSDT) {
             if (isIncreasePool) {
-              message += `<b>Pool increase:</b> +${swapFiat.inAmount.toFixed(2)} USDT (Balance: <b>${balance.toFixed(2)}</b> USDT)\n`;
+              message += `<b>Pool increase:</b> +${swapFiat.inAmount.toFixed(2)} USDC (Balance: <b>${balance.toFixed(2)}</b> USDC)\n`;
             } else {
-              message += `<b>Pool decrease:</b> -${swapFiat.outAmount.toFixed(2)} USDT (Balance: <b>${balance.toFixed(2)}</b> USDT)\n`;
+              message += `<b>Pool decrease:</b> -${swapFiat.outAmount.toFixed(2)} USDC (Balance: <b>${balance.toFixed(2)}</b> USDC)\n`;
             }
           }
           message += `<b>Commission:</b> ${swapFiat.commissionAmount.toFixed(5)} ${symbols[swapFiat.commissionToken]} (${swapFiat.commission.toFixed(2)}%)\n`;
@@ -373,7 +413,7 @@ const processExchangerTransaction = async txHash => {
             if (referId) db.addReferReward(referId, account, symbols[swapFiat.commissionToken], swapFiat.referReward);
             message += `<b>Refer reward:</b> ${swapFiat.referReward.toFixed(5)} ${symbols[swapFiat.commissionToken]}\n`;
           }
-          message += `<b>Profit:</b> ${swapFiat.profitUSDT.toFixed(5)} USDT\n`;
+          message += `<b>Profit:</b> ${swapFiat.profitUSDT.toFixed(5)} USDC\n`;
         } else {
           db.addExchangeHistory({
             type: 'exchange',
@@ -387,13 +427,14 @@ const processExchangerTransaction = async txHash => {
             referReward: 0,
             txHash,
             isCompleted: true,
+            networkID,
           });
           message += `<b>From:</b> ${swapDEX.inAmount.toFixed(5)} ${symbols[swapDEX.from]}\n`
             + `<b>To:</b> ${swapDEX.outAmount.toFixed(5)} ${symbols[swapDEX.to]}\n`;
         }
       }
       telegram.sendToAdmins(message, {
-        links: [{title: 'Transaction', url: `https://bscscan.com/tx/${txHash}`}]
+        links: [{title: 'Transaction', url: `${web3Service[networkID].network.scan}/tx/${txHash}`}]
       });
     }
   } catch (error) {
@@ -402,41 +443,44 @@ const processExchangerTransaction = async txHash => {
   }
 };
 
-let subErrors = 0;
-const subscriptionCallback = (error, log) => {
-  if (error) {
-    logger.warn('[oracle] Exchanger subscription error', error);
-    telegram.log(`Exchanger subscription error: ${error.message}`);
+const subscriptionCallbacks = {};
+networksList.map(networkID => {
+  subscriptionCallbacks[networkID] = subscriptionCallback = (error, log) => {
+    if (error) {
+      logger.warn(`[oracle][${networkID}] Exchanger subscription error`, error);
+      telegram.log(`[${networkID}] Exchanger subscription error: ${error.message}`);
     
-    if (error.message.indexOf('connection not open on send') >= 0) {
-      const Web3 = require('web3');
-      const config = require('../config');
-      web3Service.wss = new Web3(config.networks['BEP20'].providerWss);
-      if (subErrors < 3) {
-        subErrors++;
-        startExchangerListening();
-      } else {
-        subErrors = 0;
-        telegram.log('[subscriptionCallback] Too mush subErrors');
+      if (error.message.indexOf('connection not open on send') >= 0) {
+        const Web3 = require('web3');
+        const config = require('../config');
+        const service = web3Service[networkID];
+        service.wss = new Web3(service.network.providerWss);
+        if (networkOracle[networkID].subErrors < 3) {
+          networkOracle[networkID].subErrors++;
+          startExchangerListening();
+        } else {
+          networkOracle[networkID].subErrors = 0;
+          telegram.log(`[subscriptionCallback][${networkID}] Too much subErrors`);
+        }
+      }
+    } else {
+      const {transactionHash} = log;
+      if (!networkOracle[networkID].hashes[transactionHash]) {
+        networkOracle[networkID].hashes[transactionHash] = processExchangerTransaction(transactionHash, networkID);
       }
     }
-  } else {
-    const {transactionHash} = log;
-    if (!hashes[transactionHash]) {
-      hashes[transactionHash] = processExchangerTransaction(transactionHash);
-    }
-  }
-};
+  };
+});
 
-const startExchangerListening = () => {
-  if (subscription) {
-    subscription.subscribe(subscriptionCallback);
+const startExchangerListening = networkID => {
+  if (networkOracle[networkID].subscription) {
+    networkOracle[networkID].subscription.subscribe(subscriptionCallbacks[networkID]);
   }
   
-  subscription = web3Service.wss.eth.subscribe('logs', {
-    address: EXCHANGE_ROUTER,
+  networkOracle[networkID].subscription = web3Service[networkID].wss.eth.subscribe('logs', {
+    address: web3Service[networkID].network.contracts.exchangeRouter,
     topics: null,
-  }, subscriptionCallback);
+  }, subscriptionCallbacks[networkID]);
   
   (async () => {
     // Update last transactions
@@ -444,13 +488,13 @@ const startExchangerListening = () => {
       const Web3 = require('web3');
       const web3 = new Web3('https://rpc.ankr.com/bsc/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb');
       const events = await web3.eth.getPastLogs({
-        fromBlock: lastBlock,
-        address: EXCHANGE_ROUTER,
+        fromBlock: networkOracle[networkID].lastBlock,
+        address: web3Service[networkID].network.contracts.exchangeRouter,
       });
       events.map(event => {
         const {transactionHash} = event;
-        if (!hashes[transactionHash]) {
-          hashes[transactionHash] = processExchangerTransaction(transactionHash);
+        if (!networkOracle[networkID].hashes[transactionHash]) {
+          networkOracle[networkID].hashes[transactionHash] = processExchangerTransaction(transactionHash, networkID);
         }
       });
     } catch (error) {
@@ -458,15 +502,19 @@ const startExchangerListening = () => {
     }
     // Update last block number
     try {
-      const block = await web3Service.web3.eth.getBlock('latest');
-      lastBlock = block.number;
+      const block = await web3Service[networkID].web3.eth.getBlock('latest');
+      networkOracle[networkID].lastBlock = block.number;
     } catch (error) {
       logger.error('[getBlock]', error);
     }
   })();
 };
-startExchangerListening();
-setInterval(() => startExchangerListening(), CHECK_PERIOD);
+[networksList].map(networkID => {
+  web3Service[networkID].onInit(() => {
+    startExchangerListening(networkID);
+    setInterval(() => startExchangerListening(networkID), CHECK_PERIOD);
+  });
+});
 
 module.exports = {
   updateCommissions,

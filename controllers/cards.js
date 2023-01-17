@@ -18,6 +18,7 @@ const addReservation = (req, res) => {
       const amount = Number(_.get(req, 'query.amount', 0));
       const currency = _.get(req, 'query.currency', undefined);
       const bank = _.get(req, 'query.bank', undefined);
+      const networkID = _.get(req, 'query.networkID', 'BSC');
 
       // Check available cards
       const data = await Promise.all([
@@ -39,12 +40,12 @@ const addReservation = (req, res) => {
       // Reserve the card
       const fee = amount * feeMultiplier;
       await Promise.all([
-        db.addCardReservationByWallet(cardId, accountAddress, amount, fee),
+        db.addCardReservationByWallet(cardId, accountAddress, amount, fee, networkID),
         db.reserveTheCard(cardId, Date.now() / 1000 + EXPIRATION_DELAY),
       ]);
 
       // Get reservation data
-      const reservation = await db.getWalletReservation(accountAddress, currency);
+      const reservation = await db.getWalletReservation(accountAddress, currency, networkID);
 
       res.status(200).json(reservation);
     } catch (error) {
@@ -62,9 +63,10 @@ const getReservation = (req, res) => {
     try {
       const currency = _.get(req, 'query.currency', undefined);
       const accountAddress = _.get(req, 'query.accountAddress', undefined);
+      const networkID = _.get(req, 'query.networkID', 'BSC');
 
       // Get reservation data
-      const reservation = await db.getWalletReservation(accountAddress, currency);
+      const reservation = await db.getWalletReservation(accountAddress, currency, networkID);
 
       res.status(200).json(reservation);
     } catch (error) {

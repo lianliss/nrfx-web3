@@ -1,7 +1,6 @@
 const _ = require('lodash');
 const logger = require('../utils/logger');
 const getPasswordHash = require('../models/password-hash');
-const bonusLogic = require('../logic/bonus');
 const {getService} = require('../services/networks');
 
 const getWallets = (req, res) => {

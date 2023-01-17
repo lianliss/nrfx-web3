@@ -18,8 +18,9 @@ const addInvoice = (req, res) => {
       const phone = _.get(req, 'query.phone');
       const name = _.get(req, 'query.name');
       const lastName = _.get(req, 'query.lastName');
+      const networkID = _.get(req, 'query.networkID', 'BSC');
 
-      const insert = await db.addInvoice(amount, currency, accountAddress, phone, name, lastName);
+      const insert = await db.addInvoice(amount, currency, accountAddress, phone, name, lastName, networkID);
       const invoice = (await db.getInvoice(accountAddress, currency))[0];
 
       res.status(200).json(invoice);
@@ -38,7 +39,8 @@ const getInvoice = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
-      const result = await db.getActiveInvoice(accountAddress, currency);
+      const networkID = _.get(req, 'query.networkID', 'BSC');
+      const result = await db.getActiveInvoice(accountAddress, currency, networkID);
 
       res.status(200).json(result[0]);
     } catch (error) {
@@ -77,7 +79,8 @@ const reviewInvoice = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
-      const invoices = await db.getActiveInvoice(accountAddress, currency);
+      const networkID = _.get(req, 'query.networkID', 'BSC');
+      const invoices = await db.getActiveInvoice(accountAddress, currency, networkID);
       if (!invoices.length) throw new Error('No invoices for this address');
       const invoice = invoices[0];
       if (invoice.status !== 'wait_for_pay' && invoice.status !== 'wait_for_review') {
@@ -107,8 +110,9 @@ const addInvoiceScreenshot = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const currency = _.get(req, 'query.currency', undefined);
+      const networkID = _.get(req, 'query.networkID', 'BSC');
       const tempPath = req.file.path;
-      const invoices = await db.getActiveInvoice(accountAddress, currency);
+      const invoices = await db.getActiveInvoice(accountAddress, currency, networkID);
       if (!invoices.length) throw new Error('No invoices for this address');
       const invoice = invoices[0];
       if (invoice.status !== 'wait_for_pay' && invoice.status !== 'wait_for_review') {

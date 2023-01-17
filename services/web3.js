@@ -8,7 +8,7 @@ const db = require('../models/db');
 const getUserPrivateKeyPassword = userID => `${config.web3.seed}${userID}`;
 
 class Web3Service {
-    constructor(network = 'BEP20', privateData) {
+    constructor(networkID = 'BSC', privateData) {
         try {
             const {
                 providerAddress,
@@ -17,33 +17,27 @@ class Web3Service {
                 contracts,
                 defaultToken,
                 defaultAddress, // Sender address
-            } = config.networks[network];
+            } = config.networks[networkID];
             //this.web3 = new Web3(providerAddress);
             this.web3 = new Web3(providerAddress);
             this.wss = new Web3(providerWss);
             this.bn = this.web3.utils.BN;
-            this.network = network;
+            this.network = config.networks[networkID];
             this.networkName = name;
             this.defaultToken = defaultToken;
-
-            // Create contracts
-            Object.keys(contracts).map(token => {
-                const {name, address, abi} = contracts[token];
-                this.contracts[token] = new this.web3.eth.Contract(abi, address, {
-                    from: defaultAddress,
-                });
-                this.contracts[token].name = name;
-            });
+          
             // Init sender account
             if (privateData) {
                 this.setDefaultAccount(privateData);
                 logger.info('[Web3Service] Default account', this.defaultAccount.address);
+                this.init();
             } else {
                 db.getMasterKeys().then(rows => {
-                    const record = rows.find(row => row.name === network);
+                    const record = rows.find(row => row.name === 'BEP20');
                     const key = record.encryption || record.key;
                     this.setDefaultAccount(key);
-                    logger.info('[Web3Service] Default account', this.defaultAccount.address);
+                    logger.info(`[Web3Service][${networkID}] Default account`, this.defaultAccount.address);
+                    this.init();
                 }).catch(error => {
                     logger.error('[Web3Service][getMasterKeys]', error);
                 })
@@ -55,7 +49,20 @@ class Web3Service {
     web3 = null;
     contracts = {};
     networkName = '';
+    initListeners = [];
+    initialized = false;
 
+    init = () => {
+        this.initialized = true;
+        Promise.all(this.initListeners);
+    };
+    onInit = callback => {
+        if (this.initialized) {
+            callback();
+        } else {
+            this.initListeners.push(callback);
+        }
+    };
     /**
      * Set account as default market account
      * @param privateData {object} - encrypted privateKey data
@@ -334,5 +341,9 @@ class Web3Service {
 }
 
 const web3Service = new Web3Service();
+web3Service.BSC = web3Service;
+web3Service.ETH = new Web3Service('ETH');
+web3Service[56] = web3Service.BSC;
+web3Service[1] = web3Service.ETH;
 
 module.exports = web3Service;

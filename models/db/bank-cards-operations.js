@@ -29,7 +29,7 @@ const model = new DataModel({
 const getAwaitingBankCardsOperations = async cardID => {
     try {
         return model.process(await db.query(`
-            SELECT id, card_id, user_id, status, created_at_timestamp, updated_at_timestamp
+            SELECT id, card_id, user_id, status, created_at_timestamp, updated_at_timestamp, networkID
             FROM bank_cards_operations
             WHERE status = 'wait_for_pay'
             AND operation = 'book';

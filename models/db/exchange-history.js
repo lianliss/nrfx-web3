@@ -15,6 +15,7 @@ SELECT
 	h.commission,
 	h.refer_reward,
 	h.timestamp,
+	h.networkID,
 	CASE h.type
 		WHEN 'topup' THEN t.card
 		WHEN 'withdraw' THEN w.card
@@ -97,6 +98,7 @@ const addExchangeHistory = async ({
   referReward = 0,
   txHash = '',
   isCompleted = true,
+  networkID = 'BSC',
                                   }) => {
   try {
     return await db.query(`
@@ -114,7 +116,8 @@ const addExchangeHistory = async ({
             refer_reward,
             timestamp,
             tx_hash,
-            is_completed
+            is_completed,
+            networkID
             )
             VALUES
             (
@@ -130,7 +133,8 @@ const addExchangeHistory = async ({
               ${referReward},
               ${Math.floor(Date.now() / 1000)},
               '${txHash}',
-              ${isCompleted ? 1 : 0}
+              ${isCompleted ? 1 : 0},
+              '${networkID}'
             )
             ON DUPLICATE KEY UPDATE timestamp = ${Math.floor(Date.now() / 1000)};
         `);
@@ -179,7 +183,8 @@ const getAccountHistory = async accountAddress => {
             source_amount,
             target_amount,
             timestamp,
-            tx_hash
+            tx_hash,
+            networkID
             FROM exchange_history
             WHERE account_address = '${accountAddress}'
             AND is_completed = 1;

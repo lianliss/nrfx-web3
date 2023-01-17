@@ -12,6 +12,7 @@ const getService = network => {
         case 'TON':
             service = tonService;
             break;
+        case 'BSC':
         case 'BEP20':
         default:
             service = web3Service;

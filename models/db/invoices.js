@@ -50,7 +50,7 @@ const model = new DataModel({
   },
 });
 
-const addInvoice = async (amount, currency, accountAddress, phone, name, lastName) => {
+const addInvoice = async (amount, currency, accountAddress, phone, name, lastName, networkID = 'BSC') => {
     try {
         return await db.query(`
             INSERT INTO fiat_invoices
@@ -64,7 +64,8 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
             status,
             phone,
             name,
-            last_name
+            last_name,
+            networkID
             )
             VALUES
             (
@@ -77,7 +78,8 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
               'wait_for_pay',
               ${phone ? `'${phone}'` : 'NULL'},
               ${name ? `'${name}'` : 'NULL'},
-              ${lastName ? `'${lastName}'` : 'NULL'}
+              ${lastName ? `'${lastName}'` : 'NULL'},
+              '${networkID}'
             );
         `);
     } catch (error) {
@@ -86,15 +88,16 @@ const addInvoice = async (amount, currency, accountAddress, phone, name, lastNam
     }
 };
 
-const getActiveInvoice = async (accountAddress, currency = 'USD') => {
+const getActiveInvoice = async (accountAddress, currency = 'USD', networkID = 'BSC') => {
   try {
     return model.process(await db.query(`
             SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone,
-              created_at_timestamp, screenshot
+              created_at_timestamp, screenshot, networkID
             FROM fiat_invoices
             WHERE account_address = '${accountAddress}'
             AND currency = '${currency}'
-            AND status = 'wait_for_pay';
+            AND status = 'wait_for_pay'
+            AND networkID = '${networkID}';
         `));
   } catch (error) {
     logger.error('[getInvoice]', error);
@@ -102,15 +105,16 @@ const getActiveInvoice = async (accountAddress, currency = 'USD') => {
   }
 };
 
-const getInvoice = async (accountAddress, currency = 'USD') => {
+const getInvoice = async (accountAddress, currency = 'USD', networkID = 'BSC') => {
     try {
         return model.process(await db.query(`
             SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone,
-              created_at_timestamp, screenshot
+              created_at_timestamp, screenshot, networkID
             FROM fiat_invoices
             WHERE account_address = '${accountAddress}'
             AND currency = '${currency}'
-            AND status IN ('wait_for_pay', 'wait_for_review');
+            AND status IN ('wait_for_pay', 'wait_for_review')
+            AND networkID = '${networkID}';
         `));
     } catch (error) {
         logger.error('[getInvoice]', error);
@@ -121,7 +125,9 @@ const getInvoice = async (accountAddress, currency = 'USD') => {
 const getInvoiceById = async (id) => {
   try {
     return model.process(await db.query(`
-            SELECT id, invoice_id, status, amount, currency, account_address, name, last_name, phone, screenshot
+            SELECT
+              id, invoice_id, status, amount, currency, account_address, name, last_name, phone, screenshot,
+              networkID
             FROM fiat_invoices
             WHERE id = ${id}
             AND status IN ('wait_for_pay', 'wait_for_review');

@@ -1,6 +1,7 @@
 const networks = {
   BSC: {
     name: 'Binance Smart Chain',
+    chainId: 56,
     providerAddress: 'https://bsc-dataseed1.defibit.io:443',
     providerWss: 'wss://rpc.ankr.com/bsc/ws/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb',
     defaultToken: 'bnb',
@@ -33,6 +34,7 @@ const networks = {
   },
   ETH: {
     name: 'Ether',
+    chainId: 1,
     providerAddress: 'https://rpc.ankr.com/eth/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb',
     providerWss: 'wss://rpc.ankr.com/eth/ws/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb',
     defaultToken: 'eth',

@@ -321,7 +321,7 @@ class Web3Service {
         to: contract._address,
         data: data.encodeABI(),
         nonce: count,
-        chainId: 56,
+        chainId: this.network.chainId,
       };
       if (value) {
         transaction.value = this.web3.utils.toHex(value);

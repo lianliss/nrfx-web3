@@ -155,8 +155,8 @@ const startWithdraw = async (props) => {
       wei.to(amount, decimals),
     ]);
     const txHash = _.get(receipt, 'transactionHash');
-    telegram.log(`Burn <code>${txHash}</code>\n`
-      + `<b>Reason:</b> withdraw`
+    telegram.log(`<b>Burn</b> <code>${txHash}</code>\n`
+      + `<b>Reason:</b> withdraw\n`
       + `<b>Amount:</b> ${amount.toFixed(2)} ${currency}\n`
       + `<b>From:</b> <code>${accountAddress}</code>\n`
       + `<b>Network:</b> ${networkID}\n`

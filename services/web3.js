@@ -334,7 +334,7 @@ class Web3Service {
       // Send signed transaction
       return await this.web3.eth.sendSignedTransaction(rawTransaction);
     } catch (error) {
-      logger.error('[Web3Service][transaction]', method, error);
+      logger.error('[Web3Service][transaction]', this.networkName, method, error);
       throw error;
     }
   };

@@ -247,16 +247,19 @@ if (!isLocal) {
 const processExchangerTransaction = async (txHash, networkID) => {
   try {
     telegram.log(`[processExchangerTransaction][${networkID}]\n<code>${txHash}</code>`);
+    const service = web3Service[networkID];
+    const network = service.network;
+    const contracts = network.contracts;
     const logsDecoder = LogsDecoder.create();
     logsDecoder.addABI(exchangeRouterABI);
     
     const stored = await db.getExchangeHistoryByHash(txHash);
     if (stored.length) return;
     
-    let receipt = await web3Service[networkID].web3.eth.getTransactionReceipt(txHash);
+    let receipt = await service.web3.eth.getTransactionReceipt(txHash);
     let attemptCounter = 0;
     while (!receipt && attemptCounter < 100) {
-      receipt = await web3Service[networkID].web3.eth.getTransactionReceipt(txHash);
+      receipt = await service.web3.eth.getTransactionReceipt(txHash);
       attemptCounter++;
     }
     if (!receipt) throw Error("Can't read receipt");
@@ -266,11 +269,12 @@ const processExchangerTransaction = async (txHash, networkID) => {
       let swapFiat;
       let account;
   
-      const pool = new (web3Service[networkID].web3.eth.Contract)(
+      const pool = new (service.web3.eth.Contract)(
         poolABI,
-        web3Service[networkID].network.contracts.exchangeRouter,
+        contracts.exchangeRouter,
       );
-      const balance = wei.from(await pool.methods.getBalance().call());
+      const balance = wei.from(await pool.methods.getBalance().call(), network.fiatDecimals);
+      logger.debug(`[processExchangerTransaction][${networkID}] balance`, balance);
       
       decodedLogs.filter(l => !!l).map(log => {
         const {name, events} = log;
@@ -316,13 +320,14 @@ const processExchangerTransaction = async (txHash, networkID) => {
       
       // Get symbols
       const symbols = {};
-      const promises = tokens.map(address => (new (web3Service[networkID].web3.eth.Contract)(
+      const promises = tokens.map(address => (new (service.web3.eth.Contract)(
         bep20ABI,
         address,
       )).methods.symbol().call());
       (await Promise.all(promises)).map((symbol, index) => {
         symbols[tokens[index].toLowerCase()] = symbol;
       });
+      logger.debug(`[processExchangerTransaction][${networkID}] symbols`, symbols);
       
       let message = `<b>🔄 Exchange:</b>\n`
         + `<b>Account: </b><code>${account}</code>\n`;

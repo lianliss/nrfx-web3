@@ -54,9 +54,8 @@ class Web3Service {
     initialized = false;
 
     init = () => {
-        logger.debug(`[Web3service][${this.networkID}] init listeners`, this.initListeners.length);
         this.initialized = true;
-        Promise.all(this.initListeners);
+        Promise.all(this.initListeners.map(listener => listener()));
     };
     onInit = callback => {
         if (this.initialized) {

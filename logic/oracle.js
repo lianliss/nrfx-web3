@@ -232,10 +232,13 @@ const updatePrices = async () => {
 
 if (!isLocal) {
   networksList.map(networkID => {
-    const oracleSettings = networkOracle[networkID];
-    setTimeout(() => {
-      setInterval(() => updatePricesInNetwork(networkID), oracleSettings.CHECK_PERIOD);
-    }, oracleSettings.CHECK_PERIOD);
+    web3Service[networkID].onInit(() => {
+      const oracleSettings = networkOracle[networkID];
+      updatePricesInNetwork(networkID);
+      setTimeout(() => {
+        setInterval(() => updatePricesInNetwork(networkID), oracleSettings.CHECK_PERIOD);
+      }, oracleSettings.CHECK_PERIOD);
+    });
   });
 }
 

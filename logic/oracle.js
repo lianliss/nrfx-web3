@@ -255,10 +255,8 @@ const processExchangerTransaction = async (txHash, networkID) => {
     
     const stored = await db.getExchangeHistoryByHash(txHash);
     if (stored.length) return;
-  
-    logger.debug(`[processExchangerTransaction][${networkID}] start load receipt`, txHash);
+    
     let receipt = await service.web3.eth.getTransactionReceipt(txHash);
-    logger.debug(`[processExchangerTransaction][${networkID}] receipt`, receipt);
     let attemptCounter = 0;
     while (!receipt && attemptCounter < 100) {
       receipt = await service.web3.eth.getTransactionReceipt(txHash);
@@ -273,7 +271,7 @@ const processExchangerTransaction = async (txHash, networkID) => {
   
       const pool = new (service.web3.eth.Contract)(
         poolABI,
-        contracts.exchangeRouter,
+        contracts.exchangePool,
       );
       const balance = wei.from(await pool.methods.getBalance().call(), network.fiatDecimals);
       logger.debug(`[processExchangerTransaction][${networkID}] balance`, balance);

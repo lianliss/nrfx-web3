@@ -205,7 +205,7 @@ const updatePricesInNetwork = async networkID => {
       }
     });
   
-    logger.debug('[updatePricesInNetwork]', networkID, isNeedUpdate, fiats, prices);
+    logger.debug('[updatePricesInNetwork]', networkID, oraclePrices, isNeedUpdate, fiats, prices, allRates);
     if (!isNeedUpdate) return;
     const tx = await web3Service[networkID].transaction(oracle, 'updatePrices', [
       fiats,

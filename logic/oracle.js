@@ -238,6 +238,7 @@ if (!isLocal) {
     web3Service[networkID].onInit(() => {
       logger.debug('Start prices updater for', networkID);
       const oracleSettings = networkOracle[networkID];
+      updatePricesInNetwork(networkID);
       setInterval(() => updatePricesInNetwork(networkID), oracleSettings.PRICE_CHECK_PERIOD);
     });
   });

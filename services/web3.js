@@ -55,7 +55,13 @@ class Web3Service {
 
     init = () => {
         this.initialized = true;
-        Promise.all(this.initListeners.map(listener => listener()));
+        Promise.allSettled(this.initListeners.map((listener, index) => {
+          try {
+            return listener();
+          } catch (error) {
+            logger.debug('listener error', this.networkID, index);
+          }
+        }));
     };
     onInit = callback => {
         if (this.initialized) {

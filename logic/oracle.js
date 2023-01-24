@@ -156,7 +156,6 @@ const updateCommissions = async dataObject => {
 
 const updatePricesInNetwork = async networkID => {
   try {
-    logger.debug('[updatePricesInNetwork]', networkID);
     const network = web3Service[networkID].network;
     const contracts = network.contracts;
     const oracleSettings = networkOracle[networkID];
@@ -204,8 +203,7 @@ const updatePricesInNetwork = async networkID => {
         }
       }
     });
-  
-    logger.debug('[updatePricesInNetwork]', networkID, oraclePrices, isNeedUpdate, fiats, prices, allRates);
+    
     if (!isNeedUpdate) return;
     const tx = await web3Service[networkID].transaction(oracle, 'updatePrices', [
       fiats,

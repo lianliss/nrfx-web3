@@ -29,10 +29,12 @@ const networkOracle = {};
 
 networkOracle['BSC'].MAX_PERIOD = 1000 * 60 * 60; // hour
 networkOracle['BSC'].CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
+networkOracle['BSC'].PRICE_CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
 networkOracle['BSC'].MAX_DIFF_PERCENT = 0.5;
 
 networkOracle['ETH'].MAX_PERIOD = 1000 * 60 * 60 * 24; // day
-networkOracle['ETH'].CHECK_PERIOD = 1000 * 60 * 60 * 24; // day
+networkOracle['ETH'].CHECK_PERIOD = 1000 * 60 * 10; // day
+networkOracle['ETH'].PRICE_CHECK_PERIOD = 1000 * 60 * 60 * 24; // day
 networkOracle['ETH'].MAX_DIFF_PERCENT = 2;
 
 
@@ -235,7 +237,7 @@ if (!isLocal) {
     web3Service[networkID].onInit(() => {
       logger.debug('Start prices updater for', networkID);
       const oracleSettings = networkOracle[networkID];
-      setInterval(() => updatePricesInNetwork(networkID), oracleSettings.CHECK_PERIOD);
+      setInterval(() => updatePricesInNetwork(networkID), oracleSettings.PRICE_CHECK_PERIOD);
     });
   });
 }
@@ -517,7 +519,8 @@ const startExchangerListening = networkID => {
 networksList.map(networkID => {
   web3Service[networkID].onInit(() => {
     startExchangerListening(networkID);
-    setInterval(() => startExchangerListening(networkID), CHECK_PERIOD);
+    const oracleSettings = networkOracle[networkID];
+    setInterval(() => startExchangerListening(networkID), oracleSettings.CHECK_PERIOD);
   });
 });
 

@@ -170,14 +170,14 @@ const updatePricesInNetwork = async networkID => {
       web3Service[networkID].getDefaultBalance(web3Service[networkID].defaultAccount.address),
     ]);
     const oraclePrices = data[0].value || [];
-    const bnbPrice = wei.from(data[1].value);
+    const bnbPrice = wei.from(data[1].value, network.fiatDecimals);
     const bnbBalance = wei.from(data[2].value);
     
     const fiats = [];
     const prices = [];
     const allRates = await rates.all();
     let isNeedUpdate = Date.now() - oracleSettings.lastUpdate > oracleSettings.MAX_PERIOD;
-    let message = `🪙 <b>Binance rates update</b>\n`;
+    let message = `🪙 <b>Binance rates update on ${networkID}</b>\n`;
     Object.keys(network.fiats).map((fiat, index) => {
       const addr = network.fiats[fiat];
       const price = allRates[fiat.toLowerCase()];
@@ -189,7 +189,7 @@ const updatePricesInNetwork = async networkID => {
           prices.push(weiPrice);
           
           if (oracleWei) {
-            const oraclePrice = wei.from(oracleWei);
+            const oraclePrice = wei.from(oracleWei, network.fiatDecimals);
             const diff = (price / oraclePrice - 1) * 100;
             message += `<b>${fiat}:</b> $${oraclePrice.toFixed(6)} > $${price.toFixed(6)} `;
             if (Math.abs(diff) > oracleSettings.MAX_DIFF_PERCENT) {

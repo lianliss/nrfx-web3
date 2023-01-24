@@ -154,7 +154,7 @@ const updateCommissions = async dataObject => {
   return;
 };
 
-const updatePricesInNetwork = async (networkID, override = false) => {
+const updatePricesInNetwork = async (networkID, force = false) => {
   try {
     const network = web3Service[networkID].network;
     const contracts = network.contracts;
@@ -175,7 +175,7 @@ const updatePricesInNetwork = async (networkID, override = false) => {
     const fiats = [];
     const prices = [];
     const allRates = await rates.all();
-    let isNeedUpdate = Date.now() - oracleSettings.lastUpdate > oracleSettings.MAX_PERIOD || override;
+    let isNeedUpdate = Date.now() - oracleSettings.lastUpdate > oracleSettings.MAX_PERIOD || force;
     let message = `🪙 <b>Binance rates update on ${networkID}</b>\n`;
     Object.keys(network.fiats).map((fiat, index) => {
       const addr = network.fiats[fiat];
@@ -183,7 +183,7 @@ const updatePricesInNetwork = async (networkID, override = false) => {
       if (price) {
         const weiPrice = wei.to(price, network.fiatDecimals);
         const oracleWei = oraclePrices[index];
-        if (weiPrice !== oracleWei) {
+        if (weiPrice !== oracleWei || force) {
           fiats.push(addr);
           prices.push(weiPrice);
           

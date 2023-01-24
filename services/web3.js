@@ -23,6 +23,7 @@ class Web3Service {
             this.wss = new Web3(providerWss);
             this.bn = this.web3.utils.BN;
             this.network = config.networks[networkID];
+            this.networkID = networkID;
             this.networkName = name;
             this.defaultToken = defaultToken;
           
@@ -53,6 +54,7 @@ class Web3Service {
     initialized = false;
 
     init = () => {
+        logger.debug(`[Web3service][${this.networkID}] init listeners`, this.initListeners.length);
         this.initialized = true;
         Promise.all(this.initListeners);
     };

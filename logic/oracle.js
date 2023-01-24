@@ -15,7 +15,7 @@ const isLocal = process.env.NODE_ENV === 'local';
 const LogsDecoder = require('logs-decoder');
 const referLogic = require('../logic/refers');
 
-const networksList = ['BSC'];
+const networksList = ['BSC', 'ETH'];
 const networkOracle = {};
 ['BSC', 'ETH'].map(networkID => {
   networkOracle[networkID] = {
@@ -179,7 +179,7 @@ const updatePricesInNetwork = async networkID => {
       const addr = network.fiats[fiat];
       const price = allRates[fiat.toLowerCase()];
       if (price) {
-        const weiPrice = wei.to(price);
+        const weiPrice = wei.to(price, network.fiatDecimals);
         const oracleWei = oraclePrices[index];
         if (weiPrice !== oracleWei) {
           fiats.push(addr);
@@ -212,9 +212,11 @@ const updatePricesInNetwork = async networkID => {
     const gasLeft = bnbBalance - gasUsed;
     message += `<b>Gas used:</b> ${gasUsed.toFixed(4)} ${network.defaultToken.toUpperCase()} ($${(gasUsed * bnbPrice).toFixed(2)})\n`;
     message += `<b>Gas left:</b> ${gasLeft.toFixed(4)} ${network.defaultToken.toUpperCase()} ($${(gasLeft * bnbPrice).toFixed(2)})`;
-    // telegram.sendToAdmins(message, [
-    //   {title: 'Transaction', url: `https://bscscan.com/tx/${tx.transactionHash}`},
-    // ]);
+    if (networkID === 'ETH') {
+      telegram.sendToAdmins(message, [
+        {title: 'Transaction', url: `${network.scan}/tx/${tx.transactionHash}`},
+      ]);
+    }
   } catch (error) {
     logger.error('[logic/oracle][updatePricesInNetwork]', networkID, error);
     telegram.log(`[logic/oracle][updatePricesInNetwork][${networkID}] ${error.message}`);
@@ -239,6 +241,7 @@ if (!isLocal) {
 
 const processExchangerTransaction = async (txHash, networkID) => {
   try {
+    telegram.log(`[processExchangerTransaction][${networkID}]\n<code>${txHash}</code>`);
     const logsDecoder = LogsDecoder.create();
     logsDecoder.addABI(exchangeRouterABI);
     
@@ -473,8 +476,9 @@ networksList.map(networkID => {
 });
 
 const startExchangerListening = networkID => {
+  const network = web3Service[networkID].network;
   if (networkOracle[networkID].subscription) {
-    networkOracle[networkID].subscription.subscribe(subscriptionCallbacks[networkID]);
+    networkOracle[networkID].subscription.unsubscribe();
   }
   
   networkOracle[networkID].subscription = web3Service[networkID].wss.eth.subscribe('logs', {
@@ -486,7 +490,7 @@ const startExchangerListening = networkID => {
     // Update last transactions
     try {
       const Web3 = require('web3');
-      const web3 = new Web3('https://rpc.ankr.com/bsc/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb');
+      const web3 = new Web3(network.providerAddress);
       const events = await web3.eth.getPastLogs({
         fromBlock: networkOracle[networkID].lastBlock,
         address: web3Service[networkID].network.contracts.exchangeRouter,

@@ -20,7 +20,7 @@ const getPoolBalance = async (networkID = 'BSC') => {
       poolABI,
       web3Service[networkID].network.contracts.exchangePool,
     );
-    return wei.from(await pool.methods.getBalance().call());
+    return wei.from(await pool.methods.getBalance().call(), web3Service[networkID].network.fiatDecimals);
   } catch (error) {
     logger.error('[getPoolBalance]', error);
     telegram.log(`[getPoolBalance] Error ${error.message}`);

@@ -513,7 +513,7 @@ const startExchangerListening = networkID => {
     }
   })();
 };
-[networksList].map(networkID => {
+networksList.map(networkID => {
   web3Service[networkID].onInit(() => {
     startExchangerListening(networkID);
     setInterval(() => startExchangerListening(networkID), CHECK_PERIOD);

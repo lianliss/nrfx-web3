@@ -47,9 +47,9 @@ const networks = {
       usdt: '0x55d398326f99059ff775485246999027b3197955',
       usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       fiatFactory: '0xcDA8eD22bB27Fe84615f368D09B5A8Afe4a99320',
-      exchangeRouter: '0x60c68cb00C77AA0f46Af9eaB32695E4eFBEbd45C',
+      exchangeRouter: '0xebDEC768d466157c533f5b93F4ED8f30F42B4e68',
       exchangePool: '0xAD1Fc0E22C13159884Cf9FD1d46e3C2Ad60C8F36',
-      oracle: '0x043C37847dEE7f0657C45f4b7379DeE320aD9F18',
+      oracle: '0xBaBfFCe575929DDd7aD29DEEeb5B7A5F5dee4Ab6',
       defaultRefer: '0x08AbC7831db337419579EC1CD36460B47A1Df492',
     },
     fiats: {

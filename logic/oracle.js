@@ -238,7 +238,7 @@ if (!isLocal) {
   networksList.map(networkID => {
     web3Service[networkID].onInit(() => {
       const oracleSettings = networkOracle[networkID];
-      updatePricesInNetwork(networkID);
+      setTimeout(() => updatePricesInNetwork(networkID), 1000 * 10);
       setInterval(() => updatePricesInNetwork(networkID), oracleSettings.PRICE_CHECK_PERIOD);
     });
   });

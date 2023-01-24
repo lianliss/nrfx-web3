@@ -4,6 +4,7 @@ const telegram = require('../services/telegram');
 const binance = require('../services/binance');
 const db = require('../models/db');
 const web3Service = require('../services/web3');
+const binanceP2p = require('../services/binance-p2p');
 
 const FAIL_RUN_TIMEOUT = 10000;
 

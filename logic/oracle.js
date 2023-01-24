@@ -156,6 +156,7 @@ const updateCommissions = async dataObject => {
 
 const updatePricesInNetwork = async networkID => {
   try {
+    logger.debug('[updatePricesInNetwork]', networkID);
     const network = web3Service[networkID].network;
     const contracts = network.contracts;
     const oracleSettings = networkOracle[networkID];
@@ -505,7 +506,7 @@ const startExchangerListening = networkID => {
         }
       });
     } catch (error) {
-      logger.error('[getPastLogs]', error);
+      logger.error('[getPastLogs]', networkID, error);
     }
     // Update last block number
     try {

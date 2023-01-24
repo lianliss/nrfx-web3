@@ -93,6 +93,10 @@ if (isLocal) {
     await wait(1000);
     await execute('pm2 restart web3', 'Restart', ctx);
   };
+  
+  updatePricesCommand = async ctx => {
+    telegram.narfexLogic.updatePrices();
+  };
 
   const pullCommand = async ctx => {
     await execute(config.telegram.cdCommand, 'Go to web3', ctx);
@@ -491,7 +495,7 @@ if (isLocal) {
   });
 
   telegram.hears(keyboards.buttons.pull, pullCommand);
-  telegram.hears(keyboards.buttons.restart, restartCommand);
+  telegram.hears(keyboards.buttons.updatePrices, updatePricesCommand);
 }
 
 

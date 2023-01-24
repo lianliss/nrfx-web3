@@ -154,7 +154,7 @@ const updateCommissions = async dataObject => {
   return;
 };
 
-const updatePricesInNetwork = async networkID => {
+const updatePricesInNetwork = async (networkID, override = false) => {
   try {
     const network = web3Service[networkID].network;
     const contracts = network.contracts;
@@ -175,7 +175,7 @@ const updatePricesInNetwork = async networkID => {
     const fiats = [];
     const prices = [];
     const allRates = await rates.all();
-    let isNeedUpdate = Date.now() - oracleSettings.lastUpdate > oracleSettings.MAX_PERIOD;
+    let isNeedUpdate = Date.now() - oracleSettings.lastUpdate > oracleSettings.MAX_PERIOD || override;
     let message = `🪙 <b>Binance rates update on ${networkID}</b>\n`;
     Object.keys(network.fiats).map((fiat, index) => {
       const addr = network.fiats[fiat];
@@ -226,11 +226,13 @@ const updatePricesInNetwork = async networkID => {
 };
 const updatePrices = async () => {
   try {
-    Promise.all(networksList.map(networkID => updatePricesInNetwork(networkID)));
+    telegram.log('<b>Force update prices!</b>');
+    Promise.all(networksList.map(networkID => updatePricesInNetwork(networkID, true)));
   } catch (error) {
     logger.error('[logic/oracle][updatePrices]', error);
   }
 };
+telegram.narfexLogic.updatePrices = updatePrices;
 
 if (!isLocal) {
   networksList.map(networkID => {

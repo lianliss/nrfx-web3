@@ -332,7 +332,7 @@ const processExchangerTransaction = async (txHash, networkID) => {
       let message = `<b>🔄 Exchange:</b>\n`
         + `<b>Account: </b><code>${account}</code>\n`;
       if (swapFiat && swapDEX) {
-        const isIncreasePool = swapFiat.from.toLowerCase() === web3Service[networkID].network.contracts.exchangeRouter.usdc.toLowerCase();
+        const isIncreasePool = swapFiat.from.toLowerCase() === contracts.usdc.toLowerCase();
         if (swapFiat.to === swapDEX.from) {
           // If fiat swap first
           db.addExchangeHistory({
@@ -395,8 +395,8 @@ const processExchangerTransaction = async (txHash, networkID) => {
         }
       } else {
         if (swapFiat) {
-          const isIncreasePool = swapFiat.from.toLowerCase() === web3Service[networkID].network.contracts.usdc.toLowerCase();
-          const isWithUSDT = isIncreasePool || swapFiat.to.toLowerCase() === web3Service[networkID].network.contracts.usdc.toLowerCase();
+          const isIncreasePool = swapFiat.from.toLowerCase() === contracts.usdc.toLowerCase();
+          const isWithUSDT = isIncreasePool || swapFiat.to.toLowerCase() === contracts.usdc.toLowerCase();
           db.addExchangeHistory({
             type: 'exchange',
             accountAddress: account,

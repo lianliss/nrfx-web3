@@ -204,7 +204,8 @@ const updatePricesInNetwork = async networkID => {
         }
       }
     });
-
+  
+    logger.debug('[updatePricesInNetwork]', networkID, isNeedUpdate, fiats, prices);
     if (!isNeedUpdate) return;
     const tx = await web3Service[networkID].transaction(oracle, 'updatePrices', [
       fiats,
@@ -236,7 +237,6 @@ const updatePrices = async () => {
 if (!isLocal) {
   networksList.map(networkID => {
     web3Service[networkID].onInit(() => {
-      logger.debug('Start prices updater for', networkID);
       const oracleSettings = networkOracle[networkID];
       updatePricesInNetwork(networkID);
       setInterval(() => updatePricesInNetwork(networkID), oracleSettings.PRICE_CHECK_PERIOD);

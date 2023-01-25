@@ -246,7 +246,6 @@ if (!isLocal) {
 
 const processExchangerTransaction = async (txHash, networkID) => {
   try {
-    telegram.log(`[processExchangerTransaction][${networkID}]\n<code>${txHash}</code>`);
     const service = web3Service[networkID];
     const network = service.network;
     const contracts = network.contracts;
@@ -327,9 +326,8 @@ const processExchangerTransaction = async (txHash, networkID) => {
       (await Promise.all(promises)).map((symbol, index) => {
         symbols[tokens[index].toLowerCase()] = symbol;
       });
-      logger.debug(`[processExchangerTransaction][${networkID}] symbols`, symbols);
       
-      let message = `<b>🔄 Exchange:</b>\n`
+      let message = `<b>🔄 Exchange in ${networkID}:</b>\n`
         + `<b>Account: </b><code>${account}</code>\n`;
       if (swapFiat && swapDEX) {
         const isIncreasePool = swapFiat.from.toLowerCase() === contracts.usdc.toLowerCase();

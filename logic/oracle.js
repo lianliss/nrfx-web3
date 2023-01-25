@@ -168,13 +168,14 @@ const updatePricesInNetwork = async (networkID, force = false) => {
       oracle.methods.getPrice(contracts.wrap).call(),
       web3Service[networkID].getDefaultBalance(web3Service[networkID].defaultAccount.address),
     ]);
+    const allRates = await rates.all();
     const oraclePrices = data[0].value || [];
-    const bnbPrice = wei.from(data[1].value, network.fiatDecimals);
+    const bnbPrice = wei.from(data[1].value, network.fiatDecimals)
+      || _.get(allRates, `${network.defaultToken.toUpperCase()}USDT`, 0);
     const bnbBalance = wei.from(data[2].value);
     
     const fiats = [];
     const prices = [];
-    const allRates = await rates.all();
     let isNeedUpdate = Date.now() - oracleSettings.lastUpdate > oracleSettings.MAX_PERIOD || force;
     let message = `🪙 <b>Binance rates update on ${networkID}</b>\n`;
     Object.keys(network.fiats).map((fiat, index) => {
@@ -273,7 +274,6 @@ const processExchangerTransaction = async (txHash, networkID) => {
         contracts.exchangePool,
       );
       const balance = wei.from(await pool.methods.getBalance().call(), network.fiatDecimals);
-      logger.debug(`[processExchangerTransaction][${networkID}] balance`, balance);
       
       decodedLogs.filter(l => !!l).map(log => {
         const {name, events} = log;
@@ -282,8 +282,8 @@ const processExchangerTransaction = async (txHash, networkID) => {
           swapDEX = {
             from: events.find(e => e.name === '_fromToken').value.toLowerCase(),
             to: events.find(e => e.name === '_toToken').value.toLowerCase(),
-            inAmount: wei.from(events.find(e => e.name === 'inAmount').value),
-            outAmount: wei.from(events.find(e => e.name === 'outAmount').value),
+            inAmount: events.find(e => e.name === 'inAmount').value,
+            outAmount: events.find(e => e.name === 'outAmount').value,
           };
         }
         if (name === 'SwapFiat') {
@@ -292,14 +292,14 @@ const processExchangerTransaction = async (txHash, networkID) => {
           swapFiat = {
             from: events.find(e => e.name === '_fromToken').value.toLowerCase(),
             to: events.find(e => e.name === '_toToken').value.toLowerCase(),
-            rate: wei.from(exchange[0]),
+            rate: wei.from(exchange[0], network.fiatDecimals),
             commission: wei.from(exchange[1], 4) * 100,
-            inAmount: wei.from(exchange[4]),
-            outAmount: wei.from(exchange[5]),
+            inAmount: exchange[4],
+            outAmount: exchange[5],
             commissionToken: exchange[6].toLowerCase(),
-            commissionAmount: wei.from(exchange[7]),
-            referReward: wei.from(exchange[8]),
-            profitUSDT: wei.from(exchange[9]),
+            commissionAmount: wei.from(exchange[7], network.fiatDecimals),
+            referReward: wei.from(exchange[8], network.fiatDecimals),
+            profitUSDT: wei.from(exchange[9], network.fiatDecimals),
           };
         }
       });
@@ -319,12 +319,28 @@ const processExchangerTransaction = async (txHash, networkID) => {
       
       // Get symbols
       const symbols = {};
-      const promises = tokens.map(address => (new (service.web3.eth.Contract)(
+      let promises = tokens.map(address => (new (service.web3.eth.Contract)(
         bep20ABI,
         address,
       )).methods.symbol().call());
       (await Promise.all(promises)).map((symbol, index) => {
         symbols[tokens[index].toLowerCase()] = symbol;
+      });
+  
+      // Get decimals
+      const decimals = {};
+      promises = tokens.map(address => (new (service.web3.eth.Contract)(
+        bep20ABI,
+        address,
+      )).methods.decimals().call());
+      (await Promise.all(promises)).map((number, index) => {
+        decimals[tokens[index].toLowerCase()] = number;
+      });
+      
+      // Convert amount from wei
+      [swapFiat, swapDEX].filter(s => !!s).map(swapData => {
+        swapData.inAmount = wei.from(swapData.inAmount, decimals[swapData.from]);
+        swapData.outAmount = wei.from(swapData.outAmount, decimals[swapData.to]);
       });
       
       let message = `<b>🔄 Exchange in ${networkID}:</b>\n`

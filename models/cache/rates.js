@@ -84,7 +84,7 @@ class RatesCache {
       return list;
     } catch (error) {
       logger.error('[RatesCache][all]', error);
-      return [];
+      return {};
     }
   }
 }

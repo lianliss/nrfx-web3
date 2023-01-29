@@ -6,6 +6,7 @@ const referController = require('../../controllers/refers');
 router.get('/hash', authWallet, referController.getHash);
 router.post('/hash', authWallet, referController.setRefer);
 router.get('/', authWallet, referController.getInvites);
+router.get('/address', authWallet, referController.getRefer);
 router.get('/rewards', authWallet, referController.getRewards);
 
 module.exports = router;

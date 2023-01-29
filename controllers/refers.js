@@ -2,6 +2,7 @@ const _ = require('lodash');
 const logger = require('../utils/logger');
 const db = require('../models/db');
 const referLogic = require('../logic/refers');
+const {ZERO_ADDRESS, DEFAULT_REFER} = require('../const');
 
 const getHash = (req, res) => {
   (async () => {
@@ -31,6 +32,27 @@ const setRefer = (req, res) => {
       res.status(200).send(hash);
     } catch (error) {
       logger.error('[refersController][setRefer]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
+const getRefer = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      
+      const refer = await referLogic.getAccountRefer(accountAddress);
+      if (refer) {
+        res.status(200).send(refer.address);
+      } else {
+        res.status(200).send(ZERO_ADDRESS);
+      }
+    } catch (error) {
+      logger.error('[refersController][getRefer]', error);
       res.status(500).json({
         name: error.name,
         message: error.message,

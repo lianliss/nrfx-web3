@@ -118,6 +118,7 @@ const getInvites = (req, res) => {
 module.exports = {
   getHash,
   setRefer,
+  getRefer,
   getRewards,
   getInvites,
 };

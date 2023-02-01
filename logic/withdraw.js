@@ -206,7 +206,7 @@ const cancelWithdraw = async (withdraw, chat) => {
   try {
     // Get fiat contract address from the factory
     const network = web3Service[networkID].network;
-    const factoryContract = new (web3Service[network].web3.eth.Contract)(
+    const factoryContract = new (web3Service[networkID].web3.eth.Contract)(
       require('../const/ABI/fiatFactory'),
       network.contracts.fiatFactory,
     );
@@ -214,12 +214,12 @@ const cancelWithdraw = async (withdraw, chat) => {
     if (fiatAddress === ZERO_ADDRESS) throw new Error(`NarfexFiat for ${currency} is not deployed yet`);
 
     // Mint tokens back to address
-    const fiatContract = new (web3Service[network].web3.eth.Contract)(
+    const fiatContract = new (web3Service[networkID].web3.eth.Contract)(
       require('../const/ABI/fiat'),
       fiatAddress,
     );
     const decimals = Number(await fiatContract.methods.decimals().call()) || 18;
-    const receipt = await web3Service[network].transaction(fiatContract, 'mintTo', [
+    const receipt = await web3Service[networkID].transaction(fiatContract, 'mintTo', [
       accountAddress,
       wei.to(amount, decimals),
     ]);

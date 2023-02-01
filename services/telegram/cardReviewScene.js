@@ -22,7 +22,12 @@ const cardReviewScene = new Scenes.WizardScene(
   },
   async ctx => {
     const {operation, approveTopup, user, log} = ctx.wizard.state;
-    const chat = ctx.wizard.ctx.message.chat;
+    const chat = _.get(ctx, 'wizard.ctx.message.chat', _.get(ctx, 'message.chat'));
+    if (!chat) {
+      logger.error('[Telegram][cardReviewScene]', operation.id, 'Undefined chat', ctx);
+      ctx.telegram.log(`[withdrawApproveScene] ${operation.id} Error: undefined chat`);
+      return ctx.scene.leave();
+    }
     const amount = Number(ctx.message.text);
     if (amount !== operation.amount && !user.isAdmin) {
       if (operation.status === 'wait_for_admin_review') {

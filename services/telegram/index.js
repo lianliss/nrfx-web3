@@ -64,6 +64,9 @@ if (isLocal) {
 
   const execute = (command, name, ctx) => new Promise((fulfill, reject) => {
     try {
+      if (!ctx) {
+        throw Error('Undefined ctx');
+      }
       if (ctx.chat.id === config.telegram.chatId) {
         ctx.reply(`${name}...`);
         exec(command, (err, stdout, stderr) => {
@@ -247,7 +250,6 @@ if (isLocal) {
           text,
           options);
       }));
-      logger.debug('updateMessages result', result);
       // Filter successful messages and returns it ID's
       return result.filter(r => r.status === 'fulfilled')
         .map(r => ({chatID: r.value.chat_id, messageID: r.value.message_id}));

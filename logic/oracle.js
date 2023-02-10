@@ -15,9 +15,9 @@ const isLocal = process.env.NODE_ENV === 'local';
 const LogsDecoder = require('logs-decoder');
 const referLogic = require('../logic/refers');
 
-const networksList = ['BSC', 'ETH'];
+const networksList = ['BSC', 'ETH', 'PLG', 'ARB'];
 const networkOracle = {};
-['BSC', 'ETH'].map(networkID => {
+['BSC', 'ETH', 'PLG', 'ARB'].map(networkID => {
   networkOracle[networkID] = {
     hashes: {},
     subscription: null,
@@ -37,6 +37,15 @@ networkOracle['ETH'].CHECK_PERIOD = 1000 * 60 * 10; // day
 networkOracle['ETH'].PRICE_CHECK_PERIOD = 1000 * 60 * 60 * 24; // day
 networkOracle['ETH'].MAX_DIFF_PERCENT = 2;
 
+networkOracle['PLG'].MAX_PERIOD = 1000 * 60 * 60 * 24; // day
+networkOracle['PLG'].CHECK_PERIOD = 1000 * 60 * 10; // day
+networkOracle['PLG'].PRICE_CHECK_PERIOD = 1000 * 60 * 60 * 24; // day
+networkOracle['PLG'].MAX_DIFF_PERCENT = 2;
+
+networkOracle['ARB'].MAX_PERIOD = 1000 * 60 * 60 * 24; // day
+networkOracle['ARB'].CHECK_PERIOD = 1000 * 60 * 10; // day
+networkOracle['ARB'].PRICE_CHECK_PERIOD = 1000 * 60 * 60 * 24; // day
+networkOracle['ARB'].MAX_DIFF_PERCENT = 2;
 
 const updateCommissionsInNetwork = async (dataObject, networkID) => {
   try {

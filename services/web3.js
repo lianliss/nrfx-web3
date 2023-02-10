@@ -350,7 +350,11 @@ class Web3Service {
 const web3Service = new Web3Service();
 web3Service.BSC = web3Service;
 web3Service.ETH = new Web3Service('ETH');
+web3Service.PLG = new Web3Service('PLG');
+web3Service.ARB = new Web3Service('ARB');
 web3Service[56] = web3Service.BSC;
 web3Service[1] = web3Service.ETH;
+web3Service[137] = web3Service.PLG;
+web3Service[42161] = web3Service.ARB;
 
 module.exports = web3Service;

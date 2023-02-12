@@ -237,7 +237,8 @@ const updatePricesInNetwork = async (networkID, force = false) => {
 const updatePrices = async () => {
   try {
     telegram.log('<b>Force update prices!</b>');
-    Promise.all(networksList.map(networkID => updatePricesInNetwork(networkID, true)));
+    // TODO return ETH
+    Promise.all(networksList.filter(n => n !== 'ETH').map(networkID => updatePricesInNetwork(networkID, true)));
   } catch (error) {
     logger.error('[logic/oracle][updatePrices]', error);
   }

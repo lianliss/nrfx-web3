@@ -17,7 +17,7 @@ const withdrawDeclineScene = new Scenes.WizardScene(
   },
   async ctx => {
     const {withdraw, cancelWithdraw, user} = ctx.wizard.state;
-    const chat = ctx.wizard.ctx.message.chat;
+    const chat = _.get(ctx, 'wizard.ctx.message.chat', _.get(ctx, 'update.callback_query.from'));
 
     if (!user.isAdmin || ctx.message.text !== keyboards.buttons.yes) {
       ctx.reply('Go back', keyboards.mainScreen(chat.id));

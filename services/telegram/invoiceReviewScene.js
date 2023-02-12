@@ -35,7 +35,7 @@ const invoiceReviewScene = new Scenes.WizardScene(
   },
   async ctx => {
     const {invoice, approveInvoice, user, amount} = ctx.wizard.state;
-    const chat = _.get(ctx, 'wizard.ctx.message.chat');
+    const chat = _.get(ctx, 'wizard.ctx.message.chat', _.get(ctx, 'update.callback_query.from'));
     if (!chat) {
       ctx.reply('Undefined chat error');
       return ctx.scene.leave();

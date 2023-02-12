@@ -22,10 +22,17 @@ const cardReviewScene = new Scenes.WizardScene(
   },
   async ctx => {
     const {operation, approveTopup, user, log} = ctx.wizard.state;
-    const chat = _.get(ctx, 'wizard.ctx.message.chat', _.get(ctx, 'message.chat'));
+    const chat = _.get(ctx, 'wizard.ctx.message.chat', _.get(ctx, 'update.callback_query.from'));
     if (!chat) {
-      logger.error('[Telegram][cardReviewScene]', operation.id, 'Undefined chat', ctx);
-      ctx.telegram.log(`[withdrawApproveScene] ${operation.id} Error: undefined chat`);
+      logger.error('[Telegram][cardReviewScene]',
+        operation.id,
+        'Undefined chat',
+        ctx,
+        _.get(ctx, 'wizard.ctx'),
+        _.get(ctx, 'update.callback_query.from'),
+        _.get(ctx, 'update.callback_query.message')
+      );
+      log(`[withdrawApproveScene] ${operation.id} Error: undefined chat`);
       return ctx.scene.leave();
     }
     const amount = Number(ctx.message.text);

@@ -105,7 +105,7 @@ const networks = {
     name: 'Arbitrum',
     chainId: 42161,
     fiatDecimals: 6,
-    providerAddress: 'https://rpc.ankr.com/arbitrum/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb',
+    providerAddress: 'https://arb1.arbitrum.io/rpcr',
     providerWss: 'wss://rpc.ankr.com/arbitrum/ws/6c2f34a42715fa4c50762b0069a7a658618c752709b7db32f7bfe442741117eb',
     defaultToken: 'eth',
     defaultAccount: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',

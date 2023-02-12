@@ -492,10 +492,10 @@ if (isLocal) {
       + `${data[0].toFixed(2)} USDC\n\n`
       + `<b>USDC Pool Ether</b>\n`
       + `<code>${config.networks['ETH'].contracts.exchangePool}</code>\n`
-      + `${data[1].toFixed(2)} USDC\n\n`,
+      + `${data[1].toFixed(2)} USDC\n\n`
       + `<b>USDC Pool Polygon</b>\n`
       + `<code>${config.networks['PLG'].contracts.exchangePool}</code>\n`
-      + `${data[2].toFixed(2)} USDC\n\n`,
+      + `${data[2].toFixed(2)} USDC\n\n`
       + `<b>USDC Pool Arbitrum</b>\n`
       + `<code>${config.networks['ARB'].contracts.exchangePool}</code>\n`
       + `${data[3].toFixed(2)} USDC\n\n`,

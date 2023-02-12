@@ -305,7 +305,7 @@ class Web3Service {
    * @returns {Promise.<*>}
    */
   transaction = async (contract, method, params, value = 0, account = this.defaultAccount) => {
-    let data, gasPrice, gasLimit, count;
+    let data, gasPrice, gasLimit, count, block;
     try {
       const accountAddress = account.address;
       data = contract.methods[method](...params);
@@ -316,7 +316,7 @@ class Web3Service {
       ]);
       count = preflight[0];
       gasPrice = preflight[1];
-      const block = preflight[2];
+      block = preflight[2];
       const gasEstimationParams = {from: accountAddress, gas: block.gasLimit};
       if (value) {
         gasEstimationParams.value = value;
@@ -345,8 +345,9 @@ class Web3Service {
       logger.error('[Web3Service][transaction]', this.networkName, method, {
         params,
         data, gasPrice, gasLimit,
+        block,
         nonce: count,
-        encodedData: data ? data.encodeABI() : undefined,
+        encodedData: _.chunk(data ? data.encodeABI() : '', 64).map(c => c.join('')),
       }, error);
       throw error;
     }

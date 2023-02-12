@@ -79,7 +79,7 @@ const networks = {
     contracts: {
       wrap: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
       usdt: '',
-      usdc: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+      usdc: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
       fiatFactory: '0xAD1Fc0E22C13159884Cf9FD1d46e3C2Ad60C8F36',
       exchangeRouter: '0xEcF8DeF47948321Ab0594462D154E9B78625AA20',
       exchangePool: '0x60c68cb00C77AA0f46Af9eaB32695E4eFBEbd45C',

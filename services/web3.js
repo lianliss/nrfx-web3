@@ -308,7 +308,7 @@ class Web3Service {
     let data, gasPrice, gasLimit, count;
     try {
       const accountAddress = account.address;
-      const data = contract.methods[method](...params);
+      data = contract.methods[method](...params);
       const preflight = await Promise.all([
         this.web3.eth.getTransactionCount(accountAddress),
         this.web3.eth.getGasPrice(),
@@ -346,7 +346,7 @@ class Web3Service {
         params,
         data, gasPrice, gasLimit,
         nonce: count,
-        encodedData: data.encodeABI(),
+        encodedData: data ? data.encodeABI() : undefined,
       }, error);
       throw error;
     }

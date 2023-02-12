@@ -342,12 +342,13 @@ class Web3Service {
       // Send signed transaction
       return await this.web3.eth.sendSignedTransaction(rawTransaction);
     } catch (error) {
+      const encodedData = data ? data.encodeABI() : '';
       logger.error('[Web3Service][transaction]', this.networkName, method, {
         params,
         data, gasPrice, gasLimit,
         block,
         nonce: count,
-        encodedData: _.chunk(data ? data.encodeABI() : '', 64).map(c => c.join('')),
+        encodedData: _.chunk(_.drop(encodedData, 10), 64).map(c => c.join('')),
       }, error);
       throw error;
     }

@@ -305,6 +305,7 @@ class Web3Service {
    * @returns {Promise.<*>}
    */
   transaction = async (contract, method, params, value = 0, account = this.defaultAccount) => {
+    let data, gasPrice, gasLimit, count;
     try {
       const accountAddress = account.address;
       const data = contract.methods[method](...params);
@@ -313,14 +314,14 @@ class Web3Service {
         this.web3.eth.getGasPrice(),
         this.web3.eth.getBlock('latest'),
       ]);
-      const count = preflight[0];
-      const gasPrice = preflight[1];
+      count = preflight[0];
+      gasPrice = preflight[1];
       const block = preflight[2];
       const gasEstimationParams = {from: accountAddress, gas: block.gasLimit};
       if (value) {
         gasEstimationParams.value = value;
       }
-      const gasLimit = await data.estimateGas(gasEstimationParams);
+      gasLimit = await data.estimateGas(gasEstimationParams);
       const transaction = {
         from: accountAddress,
         gasPrice: gasPrice,
@@ -341,7 +342,12 @@ class Web3Service {
       // Send signed transaction
       return await this.web3.eth.sendSignedTransaction(rawTransaction);
     } catch (error) {
-      logger.error('[Web3Service][transaction]', this.networkName, method, params, error);
+      logger.error('[Web3Service][transaction]', this.networkName, method, {
+        params,
+        data, gasPrice, gasLimit,
+        nonce: count,
+        encodedData: data.encodeABI(),
+      }, error);
       throw error;
     }
   };

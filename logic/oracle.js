@@ -381,8 +381,8 @@ const processExchangerTransaction = async (txHash, networkID) => {
           }
           message += `<b>Commission:</b> ${swapFiat.commissionAmount.toFixed(5)} ${symbols[swapFiat.commissionToken]} (${swapFiat.commission.toFixed(2)}%)\n`;
           if (swapFiat.referReward) {
-            const referId = await referLogic.getAccountRefer(account);
-            if (referId) db.addReferReward(referId, account, symbols[swapFiat.commissionToken], swapFiat.referReward);
+            const refer = await referLogic.getAccountRefer(account);
+            if (refer) db.addReferReward(refer.id, account, symbols[swapFiat.commissionToken], swapFiat.referReward);
             message += `<b>Refer reward:</b> ${swapFiat.referReward.toFixed(5)} ${symbols[swapFiat.commissionToken]}\n`;
           }
           message += `<b>Profit:</b> ${swapFiat.profitUSDT.toFixed(5)} USDC\n`;

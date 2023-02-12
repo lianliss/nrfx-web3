@@ -483,14 +483,22 @@ if (isLocal) {
     const data = await Promise.all([
       telegram.narfexLogic.getPoolBalance('BSC'),
       telegram.narfexLogic.getPoolBalance('ETH'),
+      telegram.narfexLogic.getPoolBalance('PLG'),
+      telegram.narfexLogic.getPoolBalance('ARB'),
     ]);
     ctx.reply(
       `<b>USDC Pool BSC</b>\n`
       + `<code>${config.networks['BSC'].contracts.exchangePool}</code>\n`
       + `${data[0].toFixed(2)} USDC\n\n`
-      + `<b>USDC Pool ETH</b>\n`
+      + `<b>USDC Pool Ether</b>\n`
       + `<code>${config.networks['ETH'].contracts.exchangePool}</code>\n`
       + `${data[1].toFixed(2)} USDC\n\n`,
+      + `<b>USDC Pool Polygon</b>\n`
+      + `<code>${config.networks['PLG'].contracts.exchangePool}</code>\n`
+      + `${data[2].toFixed(2)} USDC\n\n`,
+      + `<b>USDC Pool Arbitrum</b>\n`
+      + `<code>${config.networks['ARB'].contracts.exchangePool}</code>\n`
+      + `${data[3].toFixed(2)} USDC\n\n`,
       {
         parse_mode: 'HTML',
       })

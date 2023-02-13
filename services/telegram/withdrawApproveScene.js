@@ -14,11 +14,12 @@ const withdrawApproveScene = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   async ctx => {
-    const {withdraw, confirmWithdraw, user} = ctx.wizard.state;
+    const {withdraw, confirmWithdraw, user, log} = ctx.wizard.state;
     try {
       const chat = _.get(ctx, 'wizard.ctx.message.chat', _.get(ctx, 'update.callback_query.from'));
   
-      if (!user.isAdmin || ctx.message.text !== keyboards.buttons.yes) {
+      const text = _.get(ctx, 'message.text', _.get(ctx, 'wizard.ctx.message.text'));
+      if (!user.isAdmin || text !== keyboards.buttons.yes) {
         ctx.reply('Go back', keyboards.mainScreen(chat.id));
         return ctx.scene.leave();
       }
@@ -29,7 +30,7 @@ const withdrawApproveScene = new Scenes.WizardScene(
         keyboards.mainScreen(chat.id));
     } catch (error) {
       logger.error('[Telegram][withdrawApproveScene]', withdraw.id, error, ctx);
-      ctx.telegram.log(`[withdrawApproveScene] ${withdraw.id} Error: ${error.message}`);
+      log(`[withdrawApproveScene] ${withdraw.id} Error: ${error.message}`);
     }
 
     return ctx.scene.leave();

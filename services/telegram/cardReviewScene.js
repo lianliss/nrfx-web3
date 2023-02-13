@@ -35,7 +35,7 @@ const cardReviewScene = new Scenes.WizardScene(
       log(`[withdrawApproveScene] ${operation.id} Error: undefined chat`);
       return ctx.scene.leave();
     }
-    const amount = Number(ctx.message.text);
+    const amount = Number(_.get(ctx, 'message.text', _.get(ctx, 'wizard.ctx.message.chat')));
     if (amount !== operation.amount && !user.isAdmin) {
       if (operation.status === 'wait_for_admin_review') {
         return ctx.reply(

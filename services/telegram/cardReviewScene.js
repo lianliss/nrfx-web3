@@ -93,7 +93,8 @@ const cardReviewScene = new Scenes.WizardScene(
       operation.status = 'wait_for_admin_review';
       return;
     } else {
-      if (user.isAdmin && ctx.message.text !== keyboards.buttons.yes) {
+      const text = _.get(ctx, 'message.text', _.get(ctx, 'wizard.ctx.message.text'));
+      if (user.isAdmin && text !== keyboards.buttons.yes) {
         ctx.reply('Go back', keyboards.mainScreen(chat.id));
         return ctx.scene.leave();
       }

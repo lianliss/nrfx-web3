@@ -75,7 +75,34 @@ const getTokenContract = async (token, networkID = 'BSC') => {
   }
 };
 
+const exchange = async (
+  accountAddress,
+  fiat,
+  coin,
+  fiatAmount,
+  coinAmount,
+  networkID,
+) => {
+  try {
+    const data = await Promise.all(
+      getTokenContract(fiat, networkID),
+      getTokenContract(coin, networkID),
+      getPoolBalance(networkID),
+    );
+    telegram.sendToAdmins(`
+<b>🚫 User failed to exchange:</b>\n
+<code>${accountAddress}</code>\n
+<b>From:</b> ${fiatAmount.toFixed(0)} ${data[0].symbol}\n
+<b>To:</b> ${coinAmount.toFixed(0)} ${data[1].symbol}\n
+<b>Pool balance:</b> ${data[2].toFixed(0)} USDC\n
+`, []);
+  } catch (error) {
+    logger.error('[exchange]', error.message);
+  }
+};
+
 module.exports = {
   getTokenContract,
   getPoolBalance,
+  exchange,
 };

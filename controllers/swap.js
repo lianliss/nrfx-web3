@@ -2,72 +2,6 @@ const _ = require('lodash');
 const logger = require('../utils/logger');
 const swapLogic = require('../logic/swap');
 
-const swapFiatToToken = (req, res) => {
-    (async () => {
-        try {
-            const {user} = res.locals;
-            const fiat = _.get(req, 'query.fiat');
-            const token = _.get(req, 'query.token');
-            const fiatAmount = Number(_.get(req, 'query.fiatAmount'));
-            const fiatToBNBAmount = Number(_.get(req, 'query.fiatToBNBAmount', 0));
-
-            if (!fiat || !token || !fiatAmount) {
-                return res.status(400).json({
-                    code: 400,
-                    message: 'Missing parameters',
-                });
-            }
-
-            const result = await swapLogic.swapFiatToToken({
-                user,
-                fiat,
-                token,
-                fiatAmount,
-                fiatToBNBAmount,
-            });
-            res.status(200).json(result);
-        } catch (error) {
-            logger.error('[swapController][swapFiatToToken]', error);
-            res.status(500).json({
-                name: error.name,
-                message: error.message,
-            });
-        }
-    })();
-};
-
-const estimateTransferToUserGas = (req, res) => {
-    (async () => {
-        try {
-            const {user} = res.locals;
-            const token = _.get(req, 'query.token', undefined);
-            const network = _.get(req, 'query.network', undefined);
-            const amount = Number(_.get(req, 'query.amount'));
-
-            if (!amount) {
-                return res.status(400).json({
-                    code: 400,
-                    message: 'Missing parameters',
-                });
-            }
-
-            const result = await swapLogic.estimateTransferToUserGas(
-                user,
-                amount,
-                token,
-                network,
-            );
-            res.status(200).json(result);
-        } catch (error) {
-            logger.error('[swapController][estimateTransferToUserGas]', error);
-            res.status(500).json({
-                name: error.name,
-                message: error.message,
-            });
-        }
-    })();
-};
-
 const getFiatToTokenRate = (req, res) => {
     (async () => {
         try {
@@ -105,7 +39,8 @@ const exchange = (req, res) => {
       const fiat = _.get(req, 'query.fiat');
       const coin = _.get(req, 'query.coin');
       const fiatAmount = Number(_.get(req, 'query.fiatAmount')) || 0;
-      const fiatToBNBAmount = Number(_.get(req, 'query.fiatToBNBAmount')) || 0;
+      const coinAmount = Number(_.get(req, 'query.coinAmount')) || 0;
+      const networkID = _.get(req, 'query.networkID', 'BSC');
 
       if (!fiat || !coin || !fiatAmount) {
         return res.status(400).json({
@@ -119,7 +54,8 @@ const exchange = (req, res) => {
         fiat,
         coin,
         fiatAmount,
-        fiatToBNBAmount,
+        coinAmount,
+        networkID,
       );
       res.status(200).json(result);
     } catch (error) {
@@ -133,8 +69,6 @@ const exchange = (req, res) => {
 };
 
 module.exports = {
-    swapFiatToToken,
     getFiatToTokenRate,
-    estimateTransferToUserGas,
     exchange,
 };

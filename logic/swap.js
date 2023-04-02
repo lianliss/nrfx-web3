@@ -89,7 +89,7 @@ const exchange = async (
       getTokenContract(coin, networkID),
       getPoolBalance(networkID),
     ]);
-    telegram.sendToAdmins(`<b>🚫 User failed to exchange:</b>\n`
+    telegram.sendToAdmins(`<b>🚫 User failed to exchange in ${networkID} network:</b>\n`
 + `<code>${accountAddress}</code>\n`
 + `<b>From:</b> ${fiatAmount.toFixed(0)} ${data[0].symbol}\n`
 + `<b>To:</b> ${coinAmount.toFixed(0)} ${data[1].symbol}\n`

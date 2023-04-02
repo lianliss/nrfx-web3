@@ -84,11 +84,11 @@ const exchange = async (
   networkID,
 ) => {
   try {
-    const data = await Promise.all(
+    const data = await Promise.all([
       getTokenContract(fiat, networkID),
       getTokenContract(coin, networkID),
       getPoolBalance(networkID),
-    );
+    ]);
     telegram.sendToAdmins(`
 <b>🚫 User failed to exchange:</b>\n
 <code>${accountAddress}</code>\n

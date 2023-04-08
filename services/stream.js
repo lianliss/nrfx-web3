@@ -30,7 +30,7 @@ streamServer.on('request', request => {
     //     logger.warn('Connection from origin ' + request.origin + ' rejected.');
     //     return;
     // }
-  
+    logger.debug('streamServer request', request);
     try {
         const connection = request.accept('echo-protocol', request.origin);
         logger.debug('[streamServer] Connection accepted');

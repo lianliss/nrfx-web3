@@ -509,7 +509,7 @@ networksList.map(networkID => {
   };
 });
 
-const startExchangerListening = networkID => {
+const startExchangerListening = (networkID = 'BSC') => {
   const network = web3Service[networkID].network;
   if (networkOracle[networkID].subscription) {
     networkOracle[networkID].subscription.unsubscribe();

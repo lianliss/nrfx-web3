@@ -22,9 +22,19 @@ if (isLocal) {
   }
 } else {
 
-  telegram = new Telegraf(config.telegram.token);
+  telegram = new Telegraf(config.telegram.token, {
+    handlerTimeout: 90000000,
+  });
   telegram.narfexLogic = {};
-  const bot = telegram;
+  telegram.catch(error => {
+    logger.error('[telegram][catch]', error);
+    try {
+      telegram.log(`[telegram][catch] ${error.message}`);
+    } catch (error) {
+      logger.error('[telegram][catch][log]', error);
+    }
+    restartCommand();
+  });
 
   telegram.launch();
 
@@ -65,7 +75,8 @@ if (isLocal) {
   const execute = (command, name, ctx) => new Promise((fulfill, reject) => {
     try {
       if (!ctx) {
-        throw Error('Undefined ctx');
+        exec(command, () => {});
+        return;
       }
       if (ctx.chat.id === config.telegram.chatId) {
         ctx.reply(`${name}...`);

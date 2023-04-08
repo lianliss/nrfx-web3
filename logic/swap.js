@@ -16,6 +16,9 @@ const fiatABI = require('../const/ABI/fiat');
 
 const getPoolBalance = async (networkID = 'BSC') => {
   try {
+    if (!web3Service[networkID]) {
+      return 0;
+    }
     const pool = new (web3Service[networkID].web3.eth.Contract)(
       poolABI,
       web3Service[networkID].network.contracts.exchangePool,

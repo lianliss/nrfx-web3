@@ -37,24 +37,24 @@ class Binance extends Request {
     });
 
     this.apiSecret = _.get(userCache, 'api_secret', env.secret);
-    Promise.all([
-      this.updateBalance(),
-      this.exchangeInfo(),
-    ]).then(data => {
-      const coins = data[0];
-      const exchange = data[1];
-      this.exchangeData = exchange;
-      this.availableSymbols = coins.filter(token => token.coin !== 'USDT')
-        .map(token => `${token.coin}USDT`)
-        .filter(symbol => {
-          return !!exchange.symbols.find(ex => ex.symbol === symbol);
-        });
-      this.updateRates(this.availableSymbols);
-    }).catch(error => {
-      logger.error(`[Binance] Can't start rates updates`, error);
-      telegram.log(`[Binance] Can't start rates updates: ${error.message}`);
-    });
-    this.updateWithdraws();
+    // Promise.all([
+    //   this.updateBalance(),
+    //   this.exchangeInfo(),
+    // ]).then(data => {
+    //   const coins = data[0];
+    //   const exchange = data[1];
+    //   this.exchangeData = exchange;
+    //   this.availableSymbols = coins.filter(token => token.coin !== 'USDT')
+    //     .map(token => `${token.coin}USDT`)
+    //     .filter(symbol => {
+    //       return !!exchange.symbols.find(ex => ex.symbol === symbol);
+    //     });
+    //   this.updateRates(this.availableSymbols);
+    // }).catch(error => {
+    //   logger.error(`[Binance] Can't start rates updates`, error);
+    //   telegram.log(`[Binance] Can't start rates updates: ${error.message}`);
+    // });
+    // this.updateWithdraws();
   }
 
   availableSymbols = [];

@@ -15,7 +15,7 @@ server.listen(3009, () => {
 
 const streamServer = new WebSocketServer({
     httpServer: server,
-    autoAcceptConnections: false
+    autoAcceptConnections: true
 });
 
 const originIsAllowed = origin => {
@@ -24,13 +24,40 @@ const originIsAllowed = origin => {
 };
 
 streamServer.on('request', request => {
-    if (!originIsAllowed(request.origin)) {
-        // Make sure we only accept requests from an allowed origin
-        request.reject();
-        logger.warn('Connection from origin ' + request.origin + ' rejected.');
-        return;
+    // if (!originIsAllowed(request.origin)) {
+    //     // Make sure we only accept requests from an allowed origin
+    //     request.reject();
+    //     logger.warn('Connection from origin ' + request.origin + ' rejected.');
+    //     return;
+    // }
+  
+    try {
+        const connection = request.accept('echo-protocol', request.origin);
+        logger.debug('[streamServer] Connection accepted');
+        connection.on('message', message => {
+          if (message.type === 'utf8') {
+            logger.debug('Received Message: ' + message.utf8Data);
+            
+            switch (_.get(message, 'utf8Data', '').toLowerCase()) {
+              case 'ping':
+                connection.sendUTF('PONG');
+                break;
+              default:
+                connection.sendUTF(message.utf8Data);
+            }
+          } else if (message.type === 'binary') {
+            logger.debug('Received Binary Message of ' + message.binaryData.length + ' bytes');
+            connection.sendBytes(message.binaryData);
+          }
+        });
+        connection.on('close', (reasonCode, description) => {
+          logger.debug('[streamServer] Disconnected stream', reasonCode, description);
+        });
+    } catch(error) {
+        logger.error('[streamServer] on request', error);
     }
 
+    return;
     auth(request, undefined, undefined, user => {
         try {
             const connection = request.accept('echo-protocol', request.origin);

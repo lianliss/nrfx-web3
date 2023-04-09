@@ -13,5 +13,6 @@ router.use('/invoice', require('./invoice'));
 router.use('/withdraw', require('./withdraw'));
 router.use('/refer', require('./refer'));
 router.use('/history', require('./history'));
+router.use('/webhook', require('./webhook'));
 
 module.exports = router;

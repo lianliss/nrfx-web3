@@ -17,6 +17,7 @@ module.exports = app => {
             "https://testnet.narfex.com",
             "https://nrfxlab.world",
             "https://web3.nrfxlab.world",
+            "https://api.sumsub.com",
         ],
         default: "https://web3.narfex.com",
     };

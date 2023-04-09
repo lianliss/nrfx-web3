@@ -4,9 +4,12 @@ const web3Service = require('../services/web3');
 const db = require('../models/db');
 const telegram = require('../services/telegram');
 
-const saveKYC = async (accountAddress, data) => {
+const saveKYC = async (data) => {
   try {
-    telegram.log(`New KYC ${accountAddress}`);
+    const accountAddress = _.get(data, 'externalUserId');
+    const result = _.get(data, 'reviewResult.reviewAnswer');
+    const isTest = _.get(data, 'sandboxMode', true);
+    telegram.log(`New KYC ${accountAddress} ${result}`);
     return true;
   } catch (error) {
     logger.error('[saveKYC]', accountAddress, data, error);

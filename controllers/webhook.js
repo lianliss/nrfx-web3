@@ -5,7 +5,9 @@ const kycLogic = require('../logic/kyc');
 const processKYC = async (req, res) => {
   try {
     logger.debug('[processKYC]', req);
-    await kycLogic.saveKYC('test address', {});
+    const headers = _.get(req, 'headers', _.get(req, 'httpRequest.headers', {}));
+    logger.debug('[processKYC] headers', headers);
+    await kycLogic.saveKYC(req.body);
     res.status(200).send();
   } catch (error) {
     logger.error('[processKYC]', error);

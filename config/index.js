@@ -39,6 +39,10 @@ const main = {
     },
 		address: '0x1c1dc05d3f7df354a1b6a1d1b5ef1870beb3f91d',
   },
+	sumsub: {
+		token: 'j9l1b18m1lpr9t1bp8sq0rfkgcx',
+		appID: '33',
+	}
 };
 
 let telegram = {

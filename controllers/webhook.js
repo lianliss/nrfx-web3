@@ -1,12 +1,15 @@
 const _ = require('lodash');
 const logger = require('../utils/logger');
 const kycLogic = require('../logic/kyc');
+const {sumsub} = require('../config');
 
 const processKYC = async (req, res) => {
   try {
-    logger.debug('[processKYC]', req);
     const headers = _.get(req, 'headers', _.get(req, 'httpRequest.headers', {}));
-    logger.debug('[processKYC] headers', headers);
+    if (headers['x-app-id'] !== sumsub.appID || headers['x-token'] !== sumsub.token) {
+      return res.status(403).send();
+    }
+    
     await kycLogic.saveKYC(req.body);
     res.status(200).send();
   } catch (error) {

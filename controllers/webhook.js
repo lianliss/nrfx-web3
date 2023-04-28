@@ -6,7 +6,7 @@ const {sumsub} = require('../config');
 const processKYC = async (req, res) => {
   try {
     const headers = _.get(req, 'headers', _.get(req, 'httpRequest.headers', {}));
-    if (headers['x-app-id'] !== sumsub.appID || headers['x-token'] !== sumsub.token) {
+    if (headers['x-app-id'] !== sumsub.appID || headers['x-token'] !== sumsub.xToken) {
       return res.status(403).send();
     }
     

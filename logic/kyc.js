@@ -57,6 +57,7 @@ const saveKYC = async (data) => {
     const result = _.get(data, 'reviewResult.reviewAnswer');
     const isTest = _.get(data, 'sandboxMode', true);
     telegram.log(`New KYC ${accountAddress} ${result}`);
+    logger.debug('[SaveKYC]', data);
     return true;
   } catch (error) {
     logger.error('[saveKYC]', accountAddress, data, error);

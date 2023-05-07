@@ -33,6 +33,33 @@ const networks = {
       GBP: '0xC00565016486b345BefdD38c6BEA3A4E497F7633',
     },
   },
+  BSCTest: {
+    name: 'BSC Testnet',
+    chainId: 97,
+    fiatDecimals: 18,
+    providerAddress: 'https://bsc-testnet.web3api.com/v1/KBR2FY9IJ2IXESQMQ45X76BNWDAW2TT3Z3',
+    providerWss: 'wss://testnet.binance.vision/ws',
+    defaultToken: 'bnb',
+    defaultAccount: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',
+    scan: 'https://testnet.bscscan.com',
+    contracts: {
+      wrap: '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd',
+      usdc: '0xd92271C20A5a3A03d8Eb6244D1c002EBed525605',
+      fiatFactory: '0xF1f8206c94F38525E94919E7381889B3d6D57Ac5',
+      exchangeRouter: '0x96E163D8E6f3C1D128Ce9EBA81fF7AD5E3054f4d',
+      exchangePool: '0x0f6E4Ba2ad27f8C3f732A5A3ed4A2e3E06ba3425',
+      oracle: '0x5bA23078FaB7Dd3A6d7b5049a2C711Ef8ba7E8d0',
+      defaultRefer: '0x08AbC7831db337419579EC1CD36460B47A1Df492',
+    },
+    p2p: {
+      pool: '0x8237E359F677E466d6f96CeaBDA650d909216bc2',
+      router: '0x24BA91256FDBf924b21143fD6A465d63DB27814c',
+      kyc: '0xF3b1A9D96De804F9DA7F219a362E49e024Db2997',
+      lawyers: '0xe22E7F4beAa4BADc29Bff9609645b9999fCb2F17',
+      buyFactory: '0xa5e4036916c320daa9150Bea9B16fb219573113e',
+      sellFactory: '0xf0723Bc4b648AA146189655aB4bE8833B819264A',
+    }
+  },
   ETH: {
     name: 'Ether',
     chainId: 1,

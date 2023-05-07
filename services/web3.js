@@ -360,9 +360,11 @@ web3Service.BSC = web3Service;
 web3Service.ETH = new Web3Service('ETH');
 web3Service.PLG = new Web3Service('PLG');
 web3Service.ARB = new Web3Service('ARB');
+web3Service.BSCTest = new Web3Service('BSCTest');
 web3Service[56] = web3Service.BSC;
 web3Service[1] = web3Service.ETH;
 web3Service[137] = web3Service.PLG;
 web3Service[42161] = web3Service.ARB;
+web3Service[97] = web3Service.BSCTest;
 
 module.exports = web3Service;

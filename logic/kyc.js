@@ -58,7 +58,6 @@ const saveKYC = async (data) => {
     const applicant = _.get(data, 'applicantId');
     const result = _.get(data, 'reviewResult.reviewAnswer');
     const isTest = _.get(data, 'sandboxMode', true);
-    telegram.log(`New KYC ${accountAddress} ${result}`);
     
     // Mark as verified
     db.setKYCVerified(accountAddress);
@@ -83,6 +82,8 @@ const saveKYC = async (data) => {
     const lastName = _.get(response, 'data.info.lastName', '');
     const name = [firstName, lastName].join(' ').trim();
     db.setKYCName(accountAddress, name);
+  
+    telegram.log(`New KYC\n${accountAddress}\n${name}`);
   
     // Send to contract
     appConfig.p2pNetworks.map(networkID => {

@@ -55,6 +55,7 @@ const createAccessToken = async (externalUserId, levelName = 'basic-kyc-level', 
 const saveKYC = async (data) => {
   const accountAddress = _.get(data, 'externalUserId');
   try {
+    const applicant = _.get(data, 'applicantId');
     const result = _.get(data, 'reviewResult.reviewAnswer');
     const isTest = _.get(data, 'sandboxMode', true);
     telegram.log(`New KYC ${accountAddress} ${result}`);
@@ -67,7 +68,7 @@ const saveKYC = async (data) => {
     const config = {
       baseURL: sumsub.url,
       method: 'get',
-      url: `/resources/-;externalUserId=${accountAddress}/one`,
+      url: `/resources/${applicant}/one`,
       headers: {
         'Accept': 'application/json',
         'X-App-Token': sumsub.token,

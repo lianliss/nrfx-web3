@@ -80,18 +80,24 @@ const saveKYC = async (data) => {
       return Promise.reject(error);
     });
     const response = await instance(config);
-    logger.debug('[saveKYC] data', response);
+    const firstName = _.get(response, 'data.info.firstName', '');
+    const lastName = _.get(response, 'data.info.lastName', '');
+    const name = [firstName, lastName].join(' ').trim();
+    db.setKYCName(accountAddress, name);
   
     // Send to contract
-    // appConfig.p2pNetworks.map(networkID => {
-    //   const service = web3Service[networkID];
-    //   const network = service.network;
-    //   const kycContract = new (web3Service[networkID].web3.eth.Contract)(
-    //     require('../const/ABI/p2p/kyc'),
-    //     network.p2p.kyc,
-    //   );
-    //   //service.transaction(kycContract, )
-    // });
+    appConfig.p2pNetworks.map(networkID => {
+      const service = web3Service[networkID];
+      const network = service.network;
+      const kycContract = new (web3Service[networkID].web3.eth.Contract)(
+        require('../const/ABI/p2p/kyc'),
+        network.p2p.kyc,
+      );
+      service.transaction(kycContract, 'verify', [
+        accountAddress,
+        name,
+      ]);
+    });
     
     return true;
   } catch (error) {

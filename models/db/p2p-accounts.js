@@ -45,6 +45,25 @@ const setKYCVerified = async address => {
   }
 };
 
+const setKYCName = async (address, name) => {
+  try {
+    const query = `
+        INSERT INTO ${dataBaseName} (address, name)
+        VALUES (
+          '${address}',
+          '${name}'
+        )
+        ON DUPLICATE KEY
+        UPDATE
+        name='${name}';`;
+    return await db.query(query);
+  } catch (error) {
+    logger.error('[setKYCVerified]', error);
+    return null;
+  }
+};
+
 module.exports = {
   setKYCVerified,
+  setKYCName,
 };

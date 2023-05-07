@@ -67,7 +67,7 @@ const saveKYC = async (data) => {
     const config = {
       baseURL: sumsub.url,
       method: 'get',
-      url: `/resources/-;externalUserId=${externalUserId}/one`,
+      url: `/resources/-;externalUserId=${accountAddress}/one`,
       headers: {
         'Accept': 'application/json',
         'X-App-Token': sumsub.token,

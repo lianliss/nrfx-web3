@@ -14,4 +14,5 @@ module.exports = {
   ...require('./withdraws'),
   ...require('./refers'),
   ...require('./exchange-history'),
+  ...require('./p2p-accounts'),
 };

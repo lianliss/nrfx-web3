@@ -7,6 +7,7 @@ const db = require('../models/db');
 const telegram = require('../services/telegram');
 const {sumsub} = require('../config');
 const FormData = require('form-data');
+const appConfig = require('../config');
 
 function createSignature(config) {
   const ts = Math.floor(Date.now() / 1000);
@@ -58,6 +59,39 @@ const saveKYC = async (data) => {
     const isTest = _.get(data, 'sandboxMode', true);
     telegram.log(`New KYC ${accountAddress} ${result}`);
     logger.debug('[SaveKYC]', data);
+    
+    // Mark as verified
+    db.setKYCVerified(accountAddress);
+  
+    // Get name
+    const config = {
+      baseURL: sumsub.url,
+      method: 'get',
+      url: `/resources/-;externalUserId=${externalUserId}/one`,
+      headers: {
+        'Accept': 'application/json',
+        'X-App-Token': sumsub.token,
+      },
+      data: null,
+    };
+    const instance = axios.create(config);
+    instance.interceptors.request.use(createSignature, function (error) {
+      return Promise.reject(error);
+    });
+    const response = await instance(config);
+    logger.debug('[saveKYC] data', response);
+  
+    // Send to contract
+    // appConfig.p2pNetworks.map(networkID => {
+    //   const service = web3Service[networkID];
+    //   const network = service.network;
+    //   const kycContract = new (web3Service[networkID].web3.eth.Contract)(
+    //     require('../const/ABI/p2p/kyc'),
+    //     network.p2p.kyc,
+    //   );
+    //   //service.transaction(kycContract, )
+    // });
+    
     return true;
   } catch (error) {
     logger.error('[saveKYC]', accountAddress, data, error);

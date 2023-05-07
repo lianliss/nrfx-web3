@@ -45,7 +45,10 @@ const main = {
     token: 'sbx:x13YF9UIUkgdYUfi2h6aNgoE.7lRn9kQo6xxyuXMvcbkHJVwKNxjoY1ir',
     secret: '3etZVjFPZSc67rD5z69JxcN282tSvzR3',
     url: 'https://api.sumsub.com',
-	}
+	},
+	p2pNetworks: [
+		'BSCTest',
+	],
 };
 
 let telegram = {

@@ -56,8 +56,8 @@ const networks = {
       router: '0x24BA91256FDBf924b21143fD6A465d63DB27814c',
       kyc: '0xF3b1A9D96De804F9DA7F219a362E49e024Db2997',
       lawyers: '0xe22E7F4beAa4BADc29Bff9609645b9999fCb2F17',
-      buyFactory: '0xa5e4036916c320daa9150Bea9B16fb219573113e',
-      sellFactory: '0xf0723Bc4b648AA146189655aB4bE8833B819264A',
+      buyFactory: '0x7f61fe0EFd6E1ADA9310AbCe2083CFe43134dc1B',
+      sellFactory: '0x98d37EDAC406ea15cAaEb0A9A5B423CA47A098Bd',
     }
   },
   ETH: {

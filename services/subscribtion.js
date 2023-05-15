@@ -149,7 +149,9 @@ const getData = async networkID => {
     });
   } catch (error) {
     logger.error(`[subscription][getData] ${networkID}`, error);
-    telegram.log(`[subscription][getData] ${networkID} ${error.message}`);
+    if (error.message.indexOf('<html>') < 0) {
+      telegram.log(`[subscription][getData] ${networkID} ${error.message}`);
+    }
   }
 };
 

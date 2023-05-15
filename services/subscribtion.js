@@ -141,8 +141,6 @@ const getData = async networkID => {
     });
     const offersLogs = await service.web3.eth.getPastLogs({
       topics: [_.values(p2pTopics.offerEvents)],
-      fromBlock: 29792795,
-      toBlock: 29792795,
     });
     offersLogs.map(log => {
       if (!subscriptions[networkID].hashes[log.transactionHash]) {

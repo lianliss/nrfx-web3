@@ -16,14 +16,15 @@ const run = async () => {
     
     telegram.log(`<b>Started</b>`);
     
-    // const wallet = (await db.getUserWallets(6787))[0];
+    // const wallet = (await db.getUserWallets(6039))[0];
     // logger.debug('wallet', wallet);
-    // const encr = web3Service.decrypt(JSON.parse(wallet.encryption), 6787);
+    // const encr = web3Service.decrypt(wallet.privateData, 6039);
+    // //const encr = web3Service.decrypt(JSON.parse(wallet.encryption), 6093);
     // logger.debug('key', encr);
     
     // Run jobs
     const jobs = require('../services/jobs');
-    //subscriptionService.runAllSubscriptions();
+    subscriptionService.runAllSubscriptions();
   } catch (error) {
     telegram.log('Run error. Waiting...');
     logger.error('Start error', error);

@@ -14,5 +14,6 @@ router.use('/withdraw', require('./withdraw'));
 router.use('/refer', require('./refer'));
 router.use('/history', require('./history'));
 router.use('/webhook', require('./webhook'));
+router.use('/offers', require('./offers'));
 
 module.exports = router;

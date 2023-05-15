@@ -15,4 +15,5 @@ module.exports = {
   ...require('./refers'),
   ...require('./exchange-history'),
   ...require('./p2p-accounts'),
+  ...require('./p2pOffers'),
 };

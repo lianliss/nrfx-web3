@@ -137,6 +137,7 @@ class DataModel {
                 values: `(${values.join(', ')})`,
                 update: update.join(",\n"),
                 and: update.join("\nAND "),
+                encoded,
             }
         }
 

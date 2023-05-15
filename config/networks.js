@@ -37,7 +37,7 @@ const networks = {
     name: 'BSC Testnet',
     chainId: 97,
     fiatDecimals: 18,
-    providerAddress: 'https://bsc-testnet.web3api.com/v1/KBR2FY9IJ2IXESQMQ45X76BNWDAW2TT3Z3',
+    providerAddress: 'https://data-seed-prebsc-2-s3.binance.org:8545',
     providerWss: 'wss://testnet.binance.vision/ws',
     defaultToken: 'bnb',
     defaultAccount: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',
@@ -50,6 +50,13 @@ const networks = {
       exchangePool: '0x0f6E4Ba2ad27f8C3f732A5A3ed4A2e3E06ba3425',
       oracle: '0x5bA23078FaB7Dd3A6d7b5049a2C711Ef8ba7E8d0',
       defaultRefer: '0x08AbC7831db337419579EC1CD36460B47A1Df492',
+    },
+    fiats: {
+      USD: '0x6dBB65750a6BBE8A0CBD28257008C464bAbe4de6',
+      RUB: '0x93e9fefdb37431882D1A27bB794E73a191ebD945',
+      UAH: '0xbD6a27FF04405F0111D8d811951b53B7cbb1bf95',
+      CNY: '0x6CbcfF2b0bCd4a23b016C3dc419E73620058c802',
+      IDR: '0x91049b125A7c57971B52d96c6eB931AC500EC98D',
     },
     p2p: {
       pool: '0x8237E359F677E466d6f96CeaBDA650d909216bc2',

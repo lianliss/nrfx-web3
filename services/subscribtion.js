@@ -5,82 +5,174 @@ const web3Service = require('../services/web3');
 const telegram = require('../services/telegram');
 const LogsDecoder = require('logs-decoder');
 const networks = require('../config/networks');
+const appConfig = require('../config');
 const p2pLogic = require('../logic/p2p');
 const p2pTopics = require('../const/p2pTopics');
+const db = require('../models/db');
+const wei = require('../utils/wei');
 
-const networksList = ['BSCTest'];
+const GET_DATA_INTERVAL = 1000;
+const networksList = appConfig.p2pNetworks;
 const subscriptions = {};
-networksList.map(networkID => {
-  subscriptions[networkID] = {
-    hashes: {},
-    subscription: null,
-    lastBlock: 'latest',
-    subErrors: 0,
-    lastUpdate: Date.now(),
-  };
-});
 
-const isP2pAvailable = networkID => !!networks[networkID].p2p;
-const encode = event => web3Service.web3.eth.abi.encodeEventSignature(event);
+const sellFactoryABI = require('../const/ABI/p2p/sellFactory');
+const buyFactoryABI = require('../const/ABI/p2p/buyFactory');
+const sellOfferABI = require('../const/ABI/p2p/sell');
+const buyOfferABI = require('../const/ABI/p2p/buy');
 
-const subscriptionCallbacks = {};
-networksList.map(networkID => {
-  subscriptionCallbacks[networkID] = (error, log) => {
-    if (error) {
-      logger.warn(`[subscription][${networkID}] Subscription error`, error);
-      telegram.log(`[${networkID}] Subscription error: ${error.message}`);
-      
-      if (error.message.indexOf('connection not open on send') >= 0) {
-        const Web3 = require('web3');
-        const config = require('../config');
-        const service = web3Service[networkID];
-        service.wss = new Web3(service.network.providerWss);
-        if (subscriptions[networkID].subErrors < 3) {
-          subscriptions[networkID].subErrors++;
-          runSubscription(networkID);
-        } else {
-          subscriptions[networkID].subErrors = 0;
-          telegram.log(`[subscriptionCallback][${networkID}] Too much subErrors`);
-        }
-      }
-    } else {
-      const {transactionHash} = log;
-      logger.info('NEW LOG', log);
-      return;
-      // if (!networkOracle[networkID].hashes[transactionHash]) {
-      //   networkOracle[networkID].hashes[transactionHash] = processExchangerTransaction(transactionHash, networkID);
-      // }
-    }
-  };
-});
-
-const runSubscription = async (networkID = 'BSCTest') => {
-  const network = web3Service[networkID].network;
-  if (subscriptions[networkID].subscription) {
-    subscriptions[networkID].subscription.unsubscribe();
-  }
-  
-  // subscriptions[networkID].subscription = web3Service[networkID].wss.eth.getPastLogs({
-  //   fromBlock: 'latest',
-  //   address: '0xcDA8eD22bB27Fe84615f368D09B5A8Afe4a99320',
-  //   topics: null,
-  // }, subscriptionCallbacks[networkID]);
-  
+const updateOffer = async (networkID, offerAddress, isBuy = true) => {
   try {
-    const receipt = await web3Service[networkID].web3.eth.getTransaction('0x284b8eff40685724adec73de04d320c4a9d891e19d664adf18e954d358a3e1d7');
-    logger.debug('receipt', receipt);
-    // logger.debug('topics', receipt.logs[0].topics);
-    // const logsDecoder = LogsDecoder.create();
-    // logsDecoder.addABI(exchangeRouterABI);
-    // const decodedLogs = logsDecoder.decodeLogs(receipt.logs);
+    const service = web3Service[networkID];
+    const network = service.network;
+    const offerContract = new (web3Service[networkID].web3.eth.Contract)(
+      isBuy ? buyOfferABI : sellOfferABI,
+      offerAddress,
+    );
+    const offer = await offerContract.methods.getOffer().call();
+    await db.setOffer({
+      offerAddress,
+      fiatAddress: offer[1],
+      owner: offer[2],
+      commission: wei.from(offer[5], 4),
+      minTradeAmount: wei.from(offer[7], network.fiatDecimals),
+      maxTradeAmount: wei.from(offer[8], network.fiatDecimals),
+      isBuy,
+      networkID,
+    });
+    
+    let schedule = await offerContract.methods.getSchedule().call();
+    logger.info("SCHEDULE", schedule);
+    schedule = schedule.map(week => week.map(day => Number(day)).join(''));
+    const settings = await db.getOfferSettings(offerAddress);
+    settings.schedule = schedule;
+    db.setOfferSettings(offerAddress, settings);
+    logger.info('settings', settings);
   } catch (error) {
-    logger.error('[runSubscription]', error);
+    logger.error('[updateOffer]', error);
+  }
+};
+
+const updateOfferSchedule = async (networkID, offerAddress, isBuy = true) => {
+  try {
+    const service = web3Service[networkID];
+    const network = service.network;
+    const offerContract = new (web3Service[networkID].web3.eth.Contract)(
+      isBuy ? buyOfferABI : sellOfferABI,
+      offerAddress,
+    );
+    
+    let schedule = await offerContract.methods.getSchedule().call();
+    schedule = schedule.map(week => week.map(day => Number(day)).join(''));
+    const settings = await db.getOfferSettings(offerAddress);
+    settings.schedule = schedule;
+    db.setOfferSettings(offerAddress, settings);
+  } catch (error) {
+    logger.error('[updateOfferSchedule]', error);
+  }
+};
+
+const processFactoryLog = async (networkID, log) => {
+  try {
+    const logsDecoder = LogsDecoder.create();
+    logsDecoder.addABI(sellFactoryABI);
+    logsDecoder.addABI(buyOfferABI);
+    const logs = logsDecoder.decodeLogs([log]);
+    logs.map(async log => {
+      const eventName = log.name;
+      const validator = log.events.find(l => l.name === 'validator').value;
+      const fiatAddress = log.events.find(l => l.name === 'fiatAddress').value;
+      const offerAddress = log.events.find(l => l.name === 'offer').value;
+      const isBuy = log.events.find(l => l.name === 'isBuy').value;
+  
+      updateOffer(networkID, offerAddress, isBuy);
+    });
+  } catch (error) {
+    logger.error('[processFactoryLog]', error);
+  }
+};
+
+const processOfferLog = async (networkID, log) => {
+  try {
+    const logsDecoder = LogsDecoder.create();
+    logsDecoder.addABI(sellOfferABI);
+    logsDecoder.addABI(buyFactoryABI);
+    const logs = logsDecoder.decodeLogs([log]);
+    const offerAddress = log.address;
+    const isBuy = db.getOfferIsBuy(offerAddress);
+    logs.map(async log => {
+      const eventName = log.name;
+      switch (eventName) {
+        case 'P2pOfferEnable':
+        case 'P2pOfferDisable':
+          db.setOfferActiveness(offerAddress, eventName === 'P2pOfferEnable');
+          break;
+        case 'P2pOfferKYCRequired':
+        case 'P2pOfferKYCUnrequired':
+          db.setOfferKYCRequired(offerAddress, eventName === 'P2pOfferKYCRequired');
+          break;
+        case 'P2pOfferScheduleUpdate':
+          updateOfferSchedule(networkID, offerAddress, isBuy);
+          break;
+        default:
+          logger.info('OFFER EVENT', eventName, offerAddress, log.events);
+          updateOffer(networkID, offerAddress, isBuy);
+      }
+    });
+  } catch (error) {
+    logger.error('[processOfferLog]', error);
+  }
+};
+
+const getData = async networkID => {
+  try {
+    const service = web3Service[networkID];
+    const network = service.network;
+    const factoryLogs = await service.web3.eth.getPastLogs({
+      address: [
+        network.p2p.buyFactory,
+        network.p2p.sellFactory,
+      ],
+      topics: [_.values(p2pTopics.factoryEvents)],
+    });
+    factoryLogs.map(log => {
+      if (!subscriptions[networkID].hashes[log.transactionHash]) {
+        subscriptions[networkID].hashes[log.transactionHash] = processFactoryLog(networkID, log);
+      }
+    });
+    const offersLogs = await service.web3.eth.getPastLogs({
+      topics: [_.values(p2pTopics.offerEvents)],
+      fromBlock: 29792795,
+      toBlock: 29792795,
+    });
+    offersLogs.map(log => {
+      if (!subscriptions[networkID].hashes[log.transactionHash]) {
+        subscriptions[networkID].hashes[log.transactionHash] = processOfferLog(networkID, log);
+      }
+    });
+  } catch (error) {
+    logger.error(`[subscription][getData] ${networkID}`, error);
+    telegram.log(`[subscription][getData] ${networkID} ${error.message}`);
   }
 };
 
 const runAllSubscriptions = () => {
+  logger.debug('FACTORY', p2pTopics.factoryEvents);
+  logger.debug('OFFER', p2pTopics.offerEvents);
   networksList.map(networkID => {
-    runSubscription(networkID);
+    web3Service[networkID].onInit(() => {
+      if (!subscriptions[networkID]) {
+        subscriptions[networkID] = {
+          hashes: {},
+          subscription: null,
+          lastBlock: 'latest',
+          subErrors: 0,
+          lastUpdate: Date.now(),
+        };
+      }
+      if (!subscriptions[networkID].subscription) {
+        subscriptions[networkID].subscription = setInterval(() => getData(networkID), GET_DATA_INTERVAL);
+      }
+    });
   });
 };
 

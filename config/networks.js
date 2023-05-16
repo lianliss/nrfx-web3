@@ -37,7 +37,7 @@ const networks = {
     name: 'BSC Testnet',
     chainId: 97,
     fiatDecimals: 18,
-    providerAddress: 'https://data-seed-prebsc-2-s3.binance.org:8545',
+    providerAddress: 'https://data-seed-prebsc-1-s1.binance.org:8545',
     providerWss: 'wss://testnet.binance.vision/ws',
     defaultToken: 'bnb',
     defaultAccount: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',

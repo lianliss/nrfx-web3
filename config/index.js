@@ -23,7 +23,7 @@ const main = {
 		providerAddress: 'https://bsc-dataseed1.binance.org:443',
 		testNet: 'https://data-seed-prebsc-1-s1.binance.org:8545',
 		// Do not change the seed! It used to decrypt user privateKey
-		seed: 'cebfcc51ecfee65df758c4ab7cda1818ad89204ec26150eedc7c5a55517be58e',
+		seed: '6b7f33821a2c060ecdd81aefddea2fd3c4720270e18654f4cb08ece49ccb469f',
 		defaultAddress: '0xa4FF4DBb11F3186a1e96d3e8DD232E31159Ded9B',
 	},
 	user: {

@@ -22,6 +22,11 @@ const run = async () => {
     // //const encr = web3Service.decrypt(JSON.parse(wallet.encryption), 6093);
     // logger.debug('key', encr);
     
+    // const account = await web3Service.createAccount();
+    // logger.info('ACCOUNT', account);
+    // const encryption = web3Service.encrypt('0xd5eb7a915c6459e2860da11c7fcc675077f9a3d0176acc5359b48ffa657bf415', 0);
+    // logger.debug('ENCR', encryption, JSON.stringify(encryption));
+    
     // Run jobs
     const jobs = require('../services/jobs');
     subscriptionService.runAllSubscriptions();

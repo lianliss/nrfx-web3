@@ -149,6 +149,8 @@ const getData = async networkID => {
     logger.error(`[subscription][getData] ${networkID}`, error);
     if (error.message.indexOf('<html>') < 0) {
       telegram.log(`[subscription][getData] ${networkID} ${error.message}`);
+    } else {
+      telegram.log(`[subscription][getData] ${networkID} HTML received`);
     }
   }
 };

@@ -29,6 +29,7 @@ const offerEvents = {};
   'P2pSetLawyer',
   'P2pConfirmTrade',
   'P2pCancelTrade',
+  'P2pSetTradeAmounts',
 ].map(event => {
   offerEvents[event] = getEventTopic(buyOfferABI, event);
 });

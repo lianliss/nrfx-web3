@@ -104,6 +104,9 @@ class DataModel {
                 case 'json':
                     encoded[model.field] = `'${JSON.stringify(value)}'`;
                     return;
+                case 'binary':
+                    encoded[model.field] = `X'${value}'`;
+                    return;
                 case 'string':
                 default:
                     encoded[model.field] = `'${value}'`;

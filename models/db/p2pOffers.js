@@ -45,6 +45,9 @@ const model = new DataModel({
     field: 'updated_timestamp',
     type: 'number',
   },
+  schedule: {
+    type: 'binary',
+  }
 });
 
 const dataBaseName = 'p2p_offers';
@@ -168,6 +171,26 @@ const setOfferSettings = async (offerAddress, settings) => {
   }
 };
 
+const setOfferSchedule = async (offerAddress, schedule) => {
+  try {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const parts = model.getRequestParts({
+      schedule,
+      updated: timestamp,
+    });
+    return await db.query(`
+      UPDATE ${dataBaseName}
+      SET
+      schedule=${parts.encoded['schedule']},
+      updated_timestamp=${timestamp}
+      WHERE address = '${offerAddress}' LIMIT 1;
+    `);
+  } catch (error) {
+    logger.error('[setOfferSchedule]', error);
+    return null;
+  }
+};
+
 const getOffer = async (offerAddress) => {
   try {
     const result = await db.query(`
@@ -229,6 +252,7 @@ module.exports = {
   setOfferKYCRequired,
   getOfferSettings,
   setOfferSettings,
+  setOfferSchedule,
   getOffer,
   getValidatorOffers,
   getOffers,

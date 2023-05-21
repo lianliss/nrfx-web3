@@ -62,10 +62,8 @@ const updateOfferSchedule = async (networkID, offerAddress, isBuy = true) => {
     );
     
     let schedule = await offerContract.methods.getSchedule().call();
-    schedule = schedule.map(week => week.map(day => Number(day)).join(''));
-    const settings = await db.getOfferSettings(offerAddress);
-    settings.schedule = schedule;
-    db.setOfferSettings(offerAddress, settings);
+    logger.debug('SCHEDULE', schedule);
+    db.setOfferSchedule(offerAddress, schedule);
   } catch (error) {
     logger.error('[updateOfferSchedule]', error);
   }

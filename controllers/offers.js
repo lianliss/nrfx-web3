@@ -54,8 +54,24 @@ const getValidatorOffers = (req, res) => {
   })();
 };
 
+const getBanks = (req, res) => {
+  (async () => {
+    try {
+      const currency = _.get(req, 'query.currency');
+      res.status(200).json(await db.getCurrencyBanks(currency));
+    } catch (error) {
+      logger.error('[offersController][getBanks]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
   getOffers,
   getOffer,
   getValidatorOffers,
+  getBanks,
 };

@@ -66,6 +66,7 @@ const updateOfferSchedule = async (networkID, offerAddress, isBuy = true) => {
     db.setOfferSchedule(offerAddress, schedule);
   } catch (error) {
     logger.error('[updateOfferSchedule]', error);
+    telegram.log(`[updateOfferSchedule] ${error.message}`);
   }
 };
 
@@ -99,6 +100,7 @@ const processOfferLog = async (networkID, log) => {
     const isBuy = db.getOfferIsBuy(offerAddress);
     logs.map(async log => {
       const eventName = log.name;
+      telegram.log(`${networkID}\n<b>${eventName}</b>\n${offerAddress}`);
       switch (eventName) {
         case 'P2pOfferEnable':
         case 'P2pOfferDisable':

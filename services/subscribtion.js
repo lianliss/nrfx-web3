@@ -70,6 +70,27 @@ const updateOfferSchedule = async (networkID, offerAddress, isBuy = true) => {
   }
 };
 
+const updateOfferBanks = async (networkID, offerAddress, isBuy = true) => {
+  try {
+    const service = web3Service[networkID];
+    const network = service.network;
+    const offerContract = new (web3Service[networkID].web3.eth.Contract)(
+      isBuy ? buyOfferABI : sellOfferABI,
+      offerAddress,
+    );
+    
+    const banks = (await offerContract.methods.getBankAccounts().call()).map(a => JSON.parse(a));
+    logger.debug('OFFER BANKS', banks);
+    const settings = await db.getOfferSettings(offerAddress);
+    settings.banks = banks;
+    logger.debug('NEW SETTINGS', settings);
+    await db.setOfferSettings(offerAddress, settings);
+  } catch (error) {
+    logger.error('[updateOfferBanks]', error);
+    telegram.log(`[updateOfferBanks] ${error.message}`);
+  }
+};
+
 const processFactoryLog = async (networkID, log) => {
   try {
     const logsDecoder = LogsDecoder.create();
@@ -112,6 +133,10 @@ const processOfferLog = async (networkID, log) => {
           break;
         case 'P2pOfferScheduleUpdate':
           updateOfferSchedule(networkID, offerAddress, isBuy);
+          break;
+        case 'P2pOfferAddBankAccount':
+        case 'P2pOfferClearBankAccount':
+          updateOfferBanks(networkID, offerAddress, isBuy);
           break;
         default:
           logger.info('OFFER EVENT', eventName, offerAddress, log.events);
@@ -180,4 +205,5 @@ const runAllSubscriptions = () => {
 
 module.exports = {
   runAllSubscriptions,
+  updateOffer,
 };

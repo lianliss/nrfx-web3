@@ -89,7 +89,11 @@ const updateOfferBanks = async (networkID, offerAddress, isBuy = true) => {
       return parsed;
     });
     logger.debug('OFFER BANKS', banks);
-    const settings = await db.getOfferSettings(offerAddress);
+    let settings = await db.getOfferSettings(offerAddress);
+    try {
+      settings = JSON.parse(settings);
+    } catch (error) {
+    }
     settings.banks = banks;
     logger.debug('NEW SETTINGS', settings);
     await db.setOfferSettings(offerAddress, settings);

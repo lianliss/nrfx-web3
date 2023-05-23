@@ -20,6 +20,24 @@ const buyFactoryABI = require('../const/ABI/p2p/buyFactory');
 const sellOfferABI = require('../const/ABI/p2p/sell');
 const buyOfferABI = require('../const/ABI/p2p/buy');
 
+const updateOfferSchedule = async (networkID, offerAddress, isBuy = true) => {
+  try {
+    const service = web3Service[networkID];
+    const network = service.network;
+    const offerContract = new (web3Service[networkID].web3.eth.Contract)(
+      isBuy ? buyOfferABI : sellOfferABI,
+      offerAddress,
+    );
+    
+    let schedule = await offerContract.methods.getSchedule().call();
+    logger.debug('SCHEDULE', schedule);
+    db.setOfferSchedule(offerAddress, schedule);
+  } catch (error) {
+    logger.error('[updateOfferSchedule]', error);
+    telegram.log(`[updateOfferSchedule] ${error.message}`);
+  }
+};
+
 const updateOffer = async (networkID, offerAddress, isBuy = true) => {
   try {
     const service = web3Service[networkID];
@@ -39,34 +57,10 @@ const updateOffer = async (networkID, offerAddress, isBuy = true) => {
       isBuy,
       networkID,
     });
-    
-    let schedule = await offerContract.methods.getSchedule().call();
-    logger.info("SCHEDULE", schedule);
-    schedule = schedule.map(week => week.map(day => Number(day)).join(''));
-    const settings = await db.getOfferSettings(offerAddress);
-    settings.schedule = schedule;
-    db.setOfferSettings(offerAddress, settings);
-    logger.info('settings', settings);
+  
+    updateOfferSchedule(networkID, offerAddress, isBuy);
   } catch (error) {
     logger.error('[updateOffer]', error);
-  }
-};
-
-const updateOfferSchedule = async (networkID, offerAddress, isBuy = true) => {
-  try {
-    const service = web3Service[networkID];
-    const network = service.network;
-    const offerContract = new (web3Service[networkID].web3.eth.Contract)(
-      isBuy ? buyOfferABI : sellOfferABI,
-      offerAddress,
-    );
-    
-    let schedule = await offerContract.methods.getSchedule().call();
-    logger.debug('SCHEDULE', schedule);
-    db.setOfferSchedule(offerAddress, schedule);
-  } catch (error) {
-    logger.error('[updateOfferSchedule]', error);
-    telegram.log(`[updateOfferSchedule] ${error.message}`);
   }
 };
 

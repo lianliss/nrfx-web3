@@ -131,7 +131,8 @@ const processOfferLog = async (networkID, offerLogs) => {
       if (!log) {
         logger.debug('UNDEFINED LOGS', offerLogs, log);
         offerLogs.topics.map(topic => {
-          if (topic === p2pTopics.offerEvents.P2pOfferAddBankAccount) {
+          if (topic === p2pTopics.offerEvents.P2pOfferAddBankAccount
+            || topic === p2pTopics.offerEvents.P2pOfferClearBankAccount) {
             updateOfferBanks(networkID, offerAddress, isBuy);
           }
         });

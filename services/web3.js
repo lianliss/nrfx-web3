@@ -345,10 +345,6 @@ class Web3Service {
       const encodedData = data ? data.encodeABI() : '';
       logger.error('[Web3Service][transaction]', this.networkName, method, {
         params,
-        data, gasPrice, gasLimit,
-        block,
-        nonce: count,
-        encodedData: _.chunk(_.drop(encodedData, 10), 64).map(c => c.join('')),
       }, error);
       throw error;
     }

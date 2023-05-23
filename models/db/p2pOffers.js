@@ -161,7 +161,7 @@ const setOfferSettings = async (offerAddress, settings) => {
     return await db.query(`
       UPDATE ${dataBaseName}
       SET
-      settings=${parts.encoded['settings']},
+      settings='` + JSON.stringify(settings) + `',
       updated_timestamp=${timestamp}
       WHERE address = '${offerAddress}' LIMIT 1;
     `);

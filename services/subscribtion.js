@@ -79,7 +79,15 @@ const updateOfferBanks = async (networkID, offerAddress, isBuy = true) => {
       offerAddress,
     );
     
-    const banks = (await offerContract.methods.getBankAccounts().call()).map(a => JSON.parse(a));
+    const banks = (await offerContract.methods.getBankAccounts().call()).map(a => {
+      let parsed;
+      try {
+        parsed = JSON.parse(a);
+      } catch (error) {
+        parsed = a;
+      }
+      return parsed;
+    });
     logger.debug('OFFER BANKS', banks);
     const settings = await db.getOfferSettings(offerAddress);
     settings.banks = banks;

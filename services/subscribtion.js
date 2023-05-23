@@ -120,6 +120,7 @@ const processOfferLog = async (networkID, log) => {
     const offerAddress = log.address;
     const isBuy = db.getOfferIsBuy(offerAddress);
     logs.map(async log => {
+      if (!log) return;
       const eventName = log.name;
       telegram.log(`${networkID}\n<b>${eventName}</b>\n${offerAddress}`);
       switch (eventName) {

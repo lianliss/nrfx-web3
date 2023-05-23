@@ -86,7 +86,7 @@ const updateOfferBanks = async (networkID, offerAddress, isBuy = true) => {
     logger.debug('NEW SETTINGS', settings);
     await db.setOfferSettings(offerAddress, settings);
   } catch (error) {
-    logger.error('[updateOfferBanks]', error);
+    logger.error('[updateOfferBanks]', offerAddress, error);
     telegram.log(`[updateOfferBanks] ${error.message}`);
   }
 };
@@ -117,12 +117,16 @@ const processOfferLog = async (networkID, offerLogs) => {
     logsDecoder.addABI(sellOfferABI);
     logsDecoder.addABI(buyFactoryABI);
     const logs = logsDecoder.decodeLogs([offerLogs]);
-    const offerAddress = logs.address;
+    const offerAddress = offerLogs.address;
     const isBuy = db.getOfferIsBuy(offerAddress);
     logs.map(async log => {
       if (!log) {
-        telegram.log('Undefined log');
         logger.debug('UNDEFINED LOGS', offerLogs, log);
+        offerLogs.topics.map(topic => {
+          if (topic === p2pTopics.offerEvents.P2pOfferAddBankAccount) {
+            updateOfferBanks(networkID, offerAddress, isBuy);
+          }
+        });
         return;
       }
       const eventName = log.name;
@@ -171,6 +175,8 @@ const getData = async networkID => {
     });
     const offersLogs = await service.web3.eth.getPastLogs({
       topics: [_.values(p2pTopics.offerEvents)],
+      fromBlock: 30042921,
+      toBlock: 30042921,
     });
     offersLogs.map(log => {
       if (!subscriptions[networkID].hashes[log.transactionHash]) {

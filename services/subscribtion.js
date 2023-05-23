@@ -111,16 +111,20 @@ const processFactoryLog = async (networkID, log) => {
   }
 };
 
-const processOfferLog = async (networkID, log) => {
+const processOfferLog = async (networkID, offerLogs) => {
   try {
     const logsDecoder = LogsDecoder.create();
     logsDecoder.addABI(sellOfferABI);
     logsDecoder.addABI(buyFactoryABI);
-    const logs = logsDecoder.decodeLogs([log]);
-    const offerAddress = log.address;
+    const logs = logsDecoder.decodeLogs([offerLogs]);
+    const offerAddress = logs.address;
     const isBuy = db.getOfferIsBuy(offerAddress);
     logs.map(async log => {
-      if (!log) return;
+      if (!log) {
+        telegram.log('Undefined log');
+        logger.debug('UNDEFINED LOGS', offerLogs, log);
+        return;
+      }
       const eventName = log.name;
       telegram.log(`${networkID}\n<b>${eventName}</b>\n${offerAddress}`);
       switch (eventName) {

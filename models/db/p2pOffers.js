@@ -47,7 +47,10 @@ const model = new DataModel({
   },
   schedule: {
     type: 'binary',
-  }
+  },
+  name: {
+    type: 'string',
+  },
 });
 
 const dataBaseName = 'p2p_offers';
@@ -220,7 +223,23 @@ const getOffers = async ({
                          }) => {
   try {
     let query = `
-      SELECT * FROM ${dataBaseName}
+      SELECT
+        o.owner AS owner,
+        o.address AS address,
+        o.side AS side,
+        o.network AS network,
+        o.currency AS currency,
+        o.isActive AS isActive,
+        o.minTrade AS minTrade,
+        o.maxTrade AS maxTrade,
+        o.isKYCRequired AS isKYCRequired,
+        o.commission AS commission,
+        o.settings AS settings,
+        o.schedule AS schedule,
+        a.name AS name
+      FROM ${dataBaseName} AS o
+      INNER JOIN p2p_accounts AS a
+      ON o.owner = a.address
     `;
     const conditions = [];
     if (currency) {

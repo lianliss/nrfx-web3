@@ -252,8 +252,8 @@ const getOffers = async ({
       conditions.push(`side = '${side}'`);
     }
     if (amount) {
-      conditions.push(`minTrade < '${amount}'`);
-      conditions.push(`maxTrade > '${amount}'`);
+      conditions.push(`minTrade <= '${amount}'`);
+      conditions.push(`maxTrade >= '${amount}'`);
     }
     if (conditions.length) {
       query += 'WHERE ' + conditions.join(' AND ');

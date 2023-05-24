@@ -11,10 +11,14 @@ const p2pSubscription = require('../services/subscribtion');
 const getOffers = (req, res) => {
   (async () => {
     try {
+      const networkID = _.get(req, 'query.networkID', 'BSCTest');
       const currency = _.get(req, 'query.currency');
       const bank = _.get(req, 'query.bank');
       const side = _.get(req, 'query.side');
-      res.status(200).json(await db.getOffers(currency, bank, side));
+      const amount = _.get(req, 'query.amount');
+      res.status(200).json(await db.getOffers({
+        currency, bank, side, networkID, amount,
+      }));
     } catch (error) {
       logger.error('[offersController][getOffers]', error);
       res.status(500).json({

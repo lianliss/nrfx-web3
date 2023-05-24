@@ -215,25 +215,29 @@ const getValidatorOffers = async (ownerAddress) => {
   }
 };
 
-const getOffers = async (currency, bank, side) => {
+const getOffers = async ({
+                           currency, bank, side, networkID = 'BSCTest', amount,
+                         }) => {
   try {
     let query = `
       SELECT * FROM ${dataBaseName}
     `;
+    const conditions = [];
     if (currency) {
-      query += `
-      WHERE currency='${currency}'
-      `;
+      conditions.push(`currency='${currency}'`);
     }
     if (bank) {
-      query += `
-      ${currency ? 'AND' : 'WHERE'} settings LIKE '%"code":"${bank}"%'
-      `;
+      conditions.push(`settings LIKE '%"code":"${bank}"%'`);
     }
     if (side) {
-      query += `
-      ${currency || bank ? 'AND' : 'WHERE'} side = '${side}'
-      `;
+      conditions.push(`side = '${side}'`);
+    }
+    if (amount) {
+      conditions.push(`minTrade < '${amount}'`);
+      conditions.push(`maxTrade > '${amount}'`);
+    }
+    if (conditions.length) {
+      query += 'WHERE ' + conditions.join(' AND ');
     }
     query += ';';
     const result = await db.query(query);

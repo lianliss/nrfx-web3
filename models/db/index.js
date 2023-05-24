@@ -17,4 +17,5 @@ module.exports = {
   ...require('./p2p-accounts'),
   ...require('./p2pOffers'),
   ...require('./p2pBanks'),
+  ...require('./p2pTrades'),
 };

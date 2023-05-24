@@ -29,6 +29,28 @@ const getOffers = (req, res) => {
   })();
 };
 
+const getTrades = (req, res) => {
+  (async () => {
+    try {
+      const networkID = _.get(req, 'query.networkID', 'BSCTest');
+      const trader = _.get(req, 'query.trader');
+      const client = _.get(req, 'query.client');
+      const status = _.get(req, 'query.status');
+      const lawyer = _.get(req, 'query.lawyer');
+      const side = _.get(req, 'query.side');
+      res.status(200).json(await db.getTrades({
+        trader, client, networkID, status, lawyer, side,
+      }));
+    } catch (error) {
+      logger.error('[offersController][getTrades]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 const getOffer = (req, res) => {
   (async () => {
     try {
@@ -124,4 +146,5 @@ module.exports = {
   getBanks,
   updateOffer,
   updateOfferTerms,
+  getTrades,
 };

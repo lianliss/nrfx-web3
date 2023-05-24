@@ -64,6 +64,33 @@ const updateOffer = async (networkID, offerAddress, isBuy = true) => {
   }
 };
 
+const updateTrade = async (networkID, client, isBuy = true) => {
+  try {
+    const service = web3Service[networkID];
+    const network = service.network;
+    const offerContract = new (web3Service[networkID].web3.eth.Contract)(
+      isBuy ? buyOfferABI : sellOfferABI,
+      offerAddress,
+    );
+    const trade = await offerContract.methods.getTrade(client).call();
+    logger.debug('TRADE', trade);
+    telegram.log('FOUND TRADE');
+    return;
+    await db.setOffer({
+      offerAddress,
+      fiatAddress: offer[1],
+      owner: offer[2],
+      commission: wei.from(offer[5], 4),
+      minTradeAmount: wei.from(offer[7], network.fiatDecimals),
+      maxTradeAmount: wei.from(offer[8], network.fiatDecimals),
+      isBuy,
+      networkID,
+    });
+  } catch (error) {
+    logger.error('[updateTrade]', error);
+  }
+};
+
 const updateOfferBanks = async (networkID, offerAddress, isBuy = true) => {
   try {
     const service = web3Service[networkID];
@@ -154,8 +181,16 @@ const processOfferLog = async (networkID, offerLogs) => {
         case 'P2pOfferClearBankAccount':
           updateOfferBanks(networkID, offerAddress, isBuy);
           break;
+        case 'P2pCreateTrade':
+        case 'P2pSetLawyer':
+        case 'P2pConfirmTrade':
+        case 'P2pCancelTrade':
+          logger.debug('TRADE EVENT LOG', log);
+          updateTrade(networkID, offerAddress, isBuy);
+          break;
         default:
           logger.info('OFFER EVENT', eventName, offerAddress, log.events);
+          telegram.log(`<b>${eventName}</b>\n offerAddress`);
           updateOffer(networkID, offerAddress, isBuy);
       }
     });

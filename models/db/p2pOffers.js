@@ -246,7 +246,7 @@ const getOffers = async ({
       conditions.push(`currency='${currency}'`);
     }
     if (bank) {
-      conditions.push(`settings LIKE '%"code":"${bank}"%'`);
+      conditions.push(`settings LIKE '%"code": "${bank}"%'`);
     }
     if (side) {
       conditions.push(`side = '${side}'`);

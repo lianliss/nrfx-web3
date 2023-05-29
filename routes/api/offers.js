@@ -10,5 +10,6 @@ router.get('/validator', authWallet, offersController.getValidatorOffers);
 router.get('/trades', offersController.getTrades);
 router.post('/update', authWallet, offersController.updateOffer);
 router.post('/terms', authWallet, offersController.updateOfferTerms);
+router.post('/payed', authWallet, offersController.setTradeIsPayed);
 
 module.exports = router;

@@ -43,6 +43,9 @@ const model = new DataModel({
   isCancel: {
     type: 'boolean',
   },
+  isPayed: {
+    type: 'boolean',
+  },
   created: {
     field: 'created_timestamp',
     type: 'number',
@@ -116,12 +119,29 @@ const setTradeIsCancel = async ({
   }
 };
 
+const setTradeIsPayed = async ({
+                                  chat,
+                                }) => {
+  try {
+    const query = `
+        UPDATE ${dataBaseName}
+        SET isPayed = 1
+        WHERE chat = '${chat}'
+        LIMIT 1;`;
+    return await db.query(query);
+  } catch (error) {
+    logger.error('[setTradeIsPayed]', error);
+    return null;
+  }
+};
+
 const getTrades = async ({
-                           trader, client, networkID = 'BSCTest', status, lawyer, side, offer,
+                           trader, client, networkID = 'BSCTest', status, lawyer, side, offer, chat,
                          }) => {
   try {
     let query = `
       SELECT
+        o.id AS id,
         o.side AS side,
         o.trader AS trader,
         o.offer AS offer,
@@ -135,6 +155,7 @@ const getTrades = async ({
         o.network AS network,
         o.created_timestamp AS created_timestamp,
         o.isCancel AS isCancel,
+        o.isPayed AS isPayed,
         a.name AS ownerName,
         c.name AS clientName
       FROM ${dataBaseName} AS o
@@ -162,6 +183,9 @@ const getTrades = async ({
     if (side) {
       conditions.push(`side = '${side}'`);
     }
+    if (chat) {
+      conditions.push(`chat = '${chat}'`);
+    }
     if (networkID) {
       conditions.push(`network = '${networkID}'`);
     }
@@ -182,4 +206,5 @@ module.exports = {
   setTrade,
   getTrades,
   setTradeIsCancel,
+  setTradeIsPayed,
 };

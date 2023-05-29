@@ -140,6 +140,39 @@ const updateOfferTerms = (req, res) => {
   })();
 };
 
+const setTradeIsPayed = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const chat = _.get(req, 'query.chat', '');
+      
+      const trade = (await db.getTrades({chat}))[0];
+      if (!trade) {
+        return res.status(200).json({});
+      }
+      if (trade.side === 'buy') {
+        if (accountAddress === trade.client) {
+          await db.setTradeIsPayed(chat);
+          return res.status(200).json(trade);
+        }
+      } else {
+        if (accountAddress === trade.owner) {
+          await db.setTradeIsPayed(chat);
+          return res.status(200).json(trade);
+        }
+      }
+      
+      res.status(200).json(trade);
+    } catch (error) {
+      logger.error('[offersController][setTradeIsPayed]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
   getOffers,
   getOffer,
@@ -148,4 +181,5 @@ module.exports = {
   updateOffer,
   updateOfferTerms,
   getTrades,
+  setTradeIsPayed,
 };

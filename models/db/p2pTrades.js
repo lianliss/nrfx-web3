@@ -4,6 +4,9 @@ const db = require('../../services/mysql');
 const DataModel = require('./data-model');
 
 const model = new DataModel({
+  id: {
+    type: 'number',
+  },
   side: {
     type: 'string',
   },

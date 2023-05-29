@@ -152,20 +152,18 @@ const setTradeIsPayed = (req, res) => {
       }
       if (trade.side === 'buy') {
         if (accountAddress === trade.client) {
-          const result = await db.setTradeIsPayed(chat);
+          const result = await db.setTradeIsPayed(trade.id);
           return res.status(200).json({
             ...trade,
             isPayed: true,
-            result,
           });
         }
       } else {
         if (accountAddress === trade.trader) {
-          const result = await db.setTradeIsPayed(chat);
+          const result = await db.setTradeIsPayed(trade.id);
           return res.status(200).json({
             ...trade,
             isPayed: true,
-            result,
           });
         }
       }

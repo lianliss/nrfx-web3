@@ -119,14 +119,12 @@ const setTradeIsCancel = async ({
   }
 };
 
-const setTradeIsPayed = async ({
-                                  chat,
-                                }) => {
+const setTradeIsPayed = async (id) => {
   try {
     const query = `
         UPDATE ${dataBaseName}
         SET isPayed = 1
-        WHERE chat = '${chat}'
+        WHERE id = '${id}'
         LIMIT 1;`;
     return await db.query(query);
   } catch (error) {

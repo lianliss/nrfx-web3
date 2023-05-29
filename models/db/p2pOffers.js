@@ -224,6 +224,7 @@ const getOffers = async ({
   try {
     let query = `
       SELECT
+        o.id AS id,
         o.owner AS owner,
         o.address AS address,
         o.side AS side,

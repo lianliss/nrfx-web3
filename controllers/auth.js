@@ -87,7 +87,7 @@ const authWallet = (req, res = {}, next = () => {}, callback = () => {}) => {
         web3Service.web3.utils.utf8ToHex(message),
         sign,
       );
-      _.set(res, 'locals.accountAddress', account);
+      _.set(res, 'locals.accountAddress', web3Service.web3.utils.toChecksumAddress(account));
       next();
       callback();
     } catch (error) {

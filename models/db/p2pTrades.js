@@ -37,6 +37,9 @@ const model = new DataModel({
   fiatAmount: {
     type: 'number',
   },
+  isCancel: {
+    type: 'boolean',
+  },
   created: {
     field: 'created_timestamp',
     type: 'number',
@@ -94,6 +97,22 @@ const setTrade = async ({
   }
 };
 
+const setTradeIsCancel = async ({
+                          chat,
+                        }) => {
+  try {
+    const query = `
+        UPDATE ${dataBaseName}
+        SET isCancel = 1
+        WHERE chat = '${chat}'
+        LIMIT 1;`;
+    return await db.query(query);
+  } catch (error) {
+    logger.error('[setTradeIsCancel]', error);
+    return null;
+  }
+};
+
 const getTrades = async ({
                            trader, client, networkID = 'BSCTest', status, lawyer, side, offer,
                          }) => {
@@ -112,6 +131,7 @@ const getTrades = async ({
         o.fiatAmount AS fiatAmount,
         o.network AS network,
         o.created_timestamp AS created_timestamp,
+        o.isCancel AS isCancel,
         a.name AS ownerName,
         c.name AS clientName
       FROM ${dataBaseName} AS o
@@ -158,4 +178,5 @@ const getTrades = async ({
 module.exports = {
   setTrade,
   getTrades,
+  setTradeIsCancel,
 };

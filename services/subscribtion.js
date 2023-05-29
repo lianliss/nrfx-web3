@@ -64,7 +64,7 @@ const updateOffer = async (networkID, offerAddress, isBuy = true) => {
   }
 };
 
-const updateTrade = async (networkID, offerAddress, client, isBuy = true) => {
+const updateTrade = async (networkID, offerAddress, client, isBuy = true, eventName) => {
   try {
     const service = web3Service[networkID];
     const network = service.network;
@@ -92,6 +92,9 @@ const updateTrade = async (networkID, offerAddress, client, isBuy = true) => {
       timestamp: Number(trade['createDate']),
       networkID,
     });
+    if (eventName === 'P2pCancelTrade') {
+      await db.setTradeIsCancel({chat: trade['chatRoom']});
+    }
   } catch (error) {
     logger.error('[updateTrade]', error);
   }
@@ -191,7 +194,7 @@ const processOfferLog = async (networkID, offerLogs) => {
         case 'P2pSetLawyer':
         case 'P2pConfirmTrade':
         case 'P2pCancelTrade':
-          updateTrade(networkID, offerAddress, _.get(log.events.find(e => e.name === '_client'), 'value'), isBuy);
+          updateTrade(networkID, offerAddress, _.get(log.events.find(e => e.name === '_client'), 'value'), isBuy, eventName);
           break;
         default:
           logger.info('OFFER EVENT', eventName, offerAddress, log.events);

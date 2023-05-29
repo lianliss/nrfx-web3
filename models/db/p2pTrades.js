@@ -111,7 +111,7 @@ const getTrades = async ({
         o.moneyAmount AS moneyAmount,
         o.fiatAmount AS fiatAmount,
         o.network AS network,
-        o.created AS created,
+        o.created_timestamp AS created_timestamp,
         a.name AS ownerName,
         c.name AS clientName
       FROM ${dataBaseName} AS o

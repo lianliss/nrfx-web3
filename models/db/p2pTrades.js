@@ -95,7 +95,7 @@ const setTrade = async ({
 };
 
 const getTrades = async ({
-                           trader, client, networkID = 'BSCTest', status, lawyer, side,
+                           trader, client, networkID = 'BSCTest', status, lawyer, side, offer,
                          }) => {
   try {
     let query = `
@@ -129,6 +129,9 @@ const getTrades = async ({
     }
     if (lawyer) {
       conditions.push(`client='${lawyer}'`);
+    }
+    if (offer) {
+      conditions.push(`offer='${offer}'`);
     }
     if (status) {
       conditions.push(`status=${status}`);

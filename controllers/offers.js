@@ -37,9 +37,10 @@ const getTrades = (req, res) => {
       const client = _.get(req, 'query.client');
       const status = _.get(req, 'query.status');
       const lawyer = _.get(req, 'query.lawyer');
+      const offer = _.get(req, 'query.offer');
       const side = _.get(req, 'query.side');
       res.status(200).json(await db.getTrades({
-        trader, client, networkID, status, lawyer, side,
+        trader, client, networkID, status, lawyer, side, offer,
       }));
     } catch (error) {
       logger.error('[offersController][getTrades]', error);

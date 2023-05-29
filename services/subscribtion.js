@@ -64,7 +64,7 @@ const updateOffer = async (networkID, offerAddress, isBuy = true) => {
   }
 };
 
-const updateTrade = async (networkID, client, isBuy = true) => {
+const updateTrade = async (networkID, offerAddress, client, isBuy = true) => {
   try {
     const service = web3Service[networkID];
     const network = service.network;
@@ -72,18 +72,24 @@ const updateTrade = async (networkID, client, isBuy = true) => {
       isBuy ? buyOfferABI : sellOfferABI,
       offerAddress,
     );
-    const trade = await offerContract.methods.getTrade(client).call();
-    logger.debug('TRADE', trade);
-    telegram.log('FOUND TRADE');
-    return;
-    await db.setOffer({
-      offerAddress,
-      fiatAddress: offer[1],
-      owner: offer[2],
-      commission: wei.from(offer[5], 4),
-      minTradeAmount: wei.from(offer[7], network.fiatDecimals),
-      maxTradeAmount: wei.from(offer[8], network.fiatDecimals),
-      isBuy,
+    const data = await Promise.all([
+      offerContract.methods.getTrade(client).call(),
+      offerContract.methods.getOffer().call(),
+    ]);
+    const trade = data[0];
+    const offer = data[1];
+    await db.setTrade({
+      side: isBuy ? 'buy' : 'sell',
+      trader: offer[2],
+      offer: offerAddress,
+      client: trade['client'],
+      chat: trade['chatRoom'],
+      lawyer: trade['lawyer'],
+      status: Number(trade['status']),
+      currency: offer[1],
+      moneyAmount: wei.from(trade['moneyAmount']),
+      fiatAmount: wei.from(trade['fiatAmount']),
+      timestamp: Number(trade['createDate']),
       networkID,
     });
   } catch (error) {
@@ -185,8 +191,7 @@ const processOfferLog = async (networkID, offerLogs) => {
         case 'P2pSetLawyer':
         case 'P2pConfirmTrade':
         case 'P2pCancelTrade':
-          logger.debug('TRADE EVENT LOG', log);
-          updateTrade(networkID, offerAddress, isBuy);
+          updateTrade(networkID, offerAddress, _.get(log.events.find(e => e.name === '_client'), 'value'), isBuy);
           break;
         default:
           logger.info('OFFER EVENT', eventName, offerAddress, log.events);

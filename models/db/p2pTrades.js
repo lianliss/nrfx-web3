@@ -63,9 +63,9 @@ const setTrade = async ({
                           moneyAmount,
                           fiatAmount,
                           networkID,
+                          timestamp = Math.floor(Date.now() / 1000),
                         }) => {
   try {
-    const timestamp = Math.floor(Date.now() / 1000);
     const parts = model.getRequestParts({
       side,
       trader,

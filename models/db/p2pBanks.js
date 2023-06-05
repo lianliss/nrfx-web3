@@ -28,6 +28,19 @@ const getCurrencyBanks = async (currency) => {
   }
 };
 
+
+const getAllBanks = async () => {
+  try {
+    return await db.query(`
+      SELECT * FROM ${dataBaseName}';
+    `);
+  } catch (error) {
+    logger.error('[getAllBanks]', error);
+    return null;
+  }
+};
+
 module.exports = {
   getCurrencyBanks,
+  getAllBanks,
 };

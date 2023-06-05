@@ -86,7 +86,11 @@ const getBanks = (req, res) => {
   (async () => {
     try {
       const currency = _.get(req, 'query.currency');
-      res.status(200).json(await db.getCurrencyBanks(currency));
+      if (currency) {
+        res.status(200).json(await db.getCurrencyBanks(currency));
+      } else {
+        res.status(200).json(await db.getAllBanks());
+      }
     } catch (error) {
       logger.error('[offersController][getBanks]', error);
       res.status(500).json({

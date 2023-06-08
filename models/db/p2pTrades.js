@@ -159,7 +159,7 @@ const getTrades = async ({
       FROM ${dataBaseName} AS o
       INNER JOIN p2p_accounts AS a
       ON o.trader = a.address
-      INNER JOIN p2p_accounts AS c
+      LEFT OUTER JOIN p2p_accounts AS c
       ON o.client = c.address
     `;
     const conditions = [];
@@ -191,7 +191,6 @@ const getTrades = async ({
       query += 'WHERE ' + conditions.join(' AND ');
     }
     query += ';';
-    logger.debug('QUERY', query);
     const result = await db.query(query);
     
     return model.process(result);

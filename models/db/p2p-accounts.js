@@ -23,6 +23,9 @@ const model = new DataModel({
     field: 'telegram',
     type: 'number',
   },
+  settings: {
+    type: 'json',
+  }
 });
 
 const dataBaseName = 'p2p_accounts';
@@ -63,7 +66,62 @@ const setKYCName = async (address, name) => {
   }
 };
 
+const getP2pUser = async (address) => {
+  try {
+    const result = await db.query(`
+      SELECT * FROM ${dataBaseName} WHERE address = '${address}';
+    `);
+    return model.process(result)[0];
+  } catch (error) {
+    logger.error('[getP2pUser]', error);
+    return null;
+  }
+};
+
+const setP2pUserTelegram = async (address, telegram) => {
+  try {
+    const query = `
+        INSERT INTO ${dataBaseName} (address, telegram)
+        VALUES (
+          '${address}',
+          ${telegram}
+        )
+        ON DUPLICATE KEY
+        UPDATE
+        telegram=${telegram};`;
+    return await db.query(query);
+  } catch (error) {
+    logger.error('[setP2pUserTelegram]', error);
+    return null;
+  }
+};
+
+const setP2pUserSettings = async (address, settings) => {
+  try {
+    const parts = model.getRequestParts({
+      address,
+      settings,
+    });
+    return await db.query(`
+      INSERT INTO ${dataBaseName} (address, settings)
+      VALUES (
+        '${address}',
+        ${parts.encoded['settings']}
+      )
+      ON DUPLICATE KEY
+      UPDATE
+      settings=${parts.encoded['settings']};
+    `);
+  } catch (error) {
+    logger.error('[setP2pUserSettings]', error);
+    return null;
+  }
+};
+
 module.exports = {
   setKYCVerified,
   setKYCName,
+  getP2pUser,
+  setP2pUserTelegram,
+  setP2pUserSettings,
 };

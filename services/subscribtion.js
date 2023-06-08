@@ -64,6 +64,12 @@ const updateOffer = async (networkID, offerAddress, isBuy = true) => {
   }
 };
 
+const getFiatSymbol = (networkID, fiatAddress) => {
+  const service = web3Service[networkID];
+  const network = service.network;
+  return Object.keys(network.fiats).find(symbol => _.get(network.fiats, symbol) === fiatAddress);
+};
+
 const updateTrade = async (networkID, offerAddress, client, isBuy = true, eventName) => {
   try {
     const service = web3Service[networkID];
@@ -78,8 +84,12 @@ const updateTrade = async (networkID, offerAddress, client, isBuy = true, eventN
     ]);
     const trade = data[0];
     const offer = data[1];
+    const symbol = getFiatSymbol(networkID, offer[1]);
+    const moneyAmount = wei.from(trade['moneyAmount']);
+    const fiatAmount = wei.from(trade['fiatAmount']);
+    const side = isBuy ? 'buy' : 'sell';
     await db.setTrade({
-      side: isBuy ? 'buy' : 'sell',
+      side,
       trader: offer[2],
       offer: offerAddress,
       client: trade['client'],
@@ -87,16 +97,40 @@ const updateTrade = async (networkID, offerAddress, client, isBuy = true, eventN
       lawyer: trade['lawyer'],
       status: Number(trade['status']),
       currency: offer[1],
-      moneyAmount: wei.from(trade['moneyAmount']),
-      fiatAmount: wei.from(trade['fiatAmount']),
+      moneyAmount,
+      fiatAmount,
       timestamp: Number(trade['createDate']),
       networkID,
     });
     if (eventName === 'P2pCancelTrade') {
       await db.setTradeIsCancel({chat: trade['chatRoom']});
     }
+    let message;
+    switch (eventName) {
+      case 'P2pCreateTrade':
+        message = `<b>New ${side} trade on network ${networkID}</b>`;
+        message += `\n<b>Client:</b><code>${trade['client']}</code>`;
+        message += `\n<b>Money:</b> ${moneyAmount.toFixed(2)} ${symbol}`;
+        message += `\n<b>Tokens:</b> ${fiatAmount.toFixed(2)} ${symbol}`;
+        break;
+      case 'P2pConfirmTrade':
+        message = `<b>Trade confirmed on network ${networkID}</b>`;
+        message += `\n<b>Client:</b><code>${trade['client']}</code>`;
+        break;
+      case 'P2pCancelTrade':
+        message = `<b>Trade cancelled on network ${networkID}</b>`;
+        message += `\n<b>Client:</b><code>${trade['client']}</code>`;
+        break;
+      default:
+    }
+    if (message) {
+      telegram.sendToUser(offer[2], message, [
+        {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${offerAddress}/${trade['client']}`},
+      ]);
+    }
   } catch (error) {
     logger.error('[updateTrade]', error);
+    telegram.log(`[updateTrade] Error: ${error.message}`);
   }
 };
 

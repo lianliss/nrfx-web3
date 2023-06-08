@@ -79,8 +79,60 @@ const setUserTelegramID = (req, res) => {
   })();
 };
 
+const setP2pUserTelegram = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const telegramID = Number(_.get(req, 'query.telegramID'));
+      if (!telegramID) {
+        return res.status(400).json({
+          code: 400,
+          message: 'Missing parameters',
+        });
+      }
+      
+      const result = await db.setP2pUserTelegram(accountAddress, telegramID);
+      
+      res.status(200).json({
+        result,
+        telegramID,
+      });
+    } catch (error) {
+      logger.error('[userController][setP2pUserTelegram]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
+const setP2pUserSettings = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const settings = JSON.parse(_.get(req, 'query.settings'));
+      
+      const result = await db.setP2pUserSettings(accountAddress, settings);
+      
+      res.status(200).json({
+        result,
+        settings,
+      });
+    } catch (error) {
+      logger.error('[userController][setP2pUserSettings]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
     getUserData,
     setReferPercent,
     setUserTelegramID,
+    setP2pUserTelegram,
+    setP2pUserSettings,
 };

@@ -232,6 +232,30 @@ if (isLocal) {
       logger.error('[telegram][sendToAdmins]', error);
     }
   };
+  
+  /**
+   * Send a specific message to a p2p user
+   * @param address {string} - User address
+   * @param text {string} - HTML-style message
+   * @param params {object} - Message params
+   * @returns {Promise.<Array>}
+   */
+  telegram.sendToUser = async (address, text, params = {}) => {
+    try {
+      const user = await db.getP2pUser(address);
+      const chatID = _.get(user, 'telegram');
+      if (!telegram) return;
+  
+      const options = prepareOptions(params);
+  
+      await telegram.telegram.sendMessage(
+        chatID,
+        text,
+        options)
+    } catch (error) {
+      logger.error('[telegram][sendToUser]', error);
+    }
+  };
 
   /**
    * Update messages text

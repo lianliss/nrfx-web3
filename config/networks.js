@@ -63,8 +63,8 @@ const networks = {
       router: '0x24BA91256FDBf924b21143fD6A465d63DB27814c',
       kyc: '0xF3b1A9D96De804F9DA7F219a362E49e024Db2997',
       lawyers: '0xe22E7F4beAa4BADc29Bff9609645b9999fCb2F17',
-      buyFactory: '0x6c902Ea51478eA009d4bBA517fFEa6CeE56F1D3f',
-      sellFactory: '0x6c902Ea51478eA009d4bBA517fFEa6CeE56F1D3f',
+      buyFactory: '0x6843Fb678Ac87CD77a3EF9569B557d1fe4eF783F',
+      sellFactory: '0x79698A7841A0ae8A8464a54F86174dF38c787901',
     }
   },
   ETH: {

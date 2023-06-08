@@ -156,11 +156,13 @@ const setTradeIsPayed = (req, res) => {
         return res.status(200).json({});
       }
       if (trade.side === 'buy') {
-        let message = `<b>${trade.side.toUpperCase()} marked as payed</b>`;
-        message += `\nby client: <code>${trade.client}</code>`;
-        telegram.sendToUser(trade.trader, message, [
-          {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${trade.address}/${trade.client}`}
-        ]);
+        let message = `<b>${trade.side.toUpperCase()} trade marked as payed</b>`;
+        message += `\nBy client: <code>${trade.client}</code>`;
+        telegram.sendToUser(trade.trader, message, {
+          links: [
+            {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${trade.address}/${trade.client}`}
+          ]
+        });
         if (accountAddress === trade.client) {
           const result = await db.setTradeIsPayed(trade.id);
           return res.status(200).json({

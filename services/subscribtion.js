@@ -109,24 +109,26 @@ const updateTrade = async (networkID, offerAddress, client, isBuy = true, eventN
     switch (eventName) {
       case 'P2pCreateTrade':
         message = `<b>New ${side} trade on network ${networkID}</b>`;
-        message += `\n<b>Client:</b><code>${trade['client']}</code>`;
+        message += `\n<b>Client:</b> <code>${trade['client']}</code>`;
         message += `\n<b>Money:</b> ${moneyAmount.toFixed(2)} ${symbol}`;
         message += `\n<b>Tokens:</b> ${fiatAmount.toFixed(2)} ${symbol}`;
         break;
       case 'P2pConfirmTrade':
         message = `<b>Trade confirmed on network ${networkID}</b>`;
-        message += `\n<b>Client:</b><code>${trade['client']}</code>`;
+        message += `\n<b>Client:</b> <code>${trade['client']}</code>`;
         break;
       case 'P2pCancelTrade':
         message = `<b>Trade cancelled on network ${networkID}</b>`;
-        message += `\n<b>Client:</b><code>${trade['client']}</code>`;
+        message += `\n<b>Client:</b> <code>${trade['client']}</code>`;
         break;
       default:
     }
     if (message) {
-      telegram.sendToUser(offer[2], message, [
-        {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${offerAddress}/${trade['client']}`},
-      ]);
+      telegram.sendToUser(offer[2], message, {
+        links: [
+          {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${offerAddress}/${trade['client']}`},
+        ]
+      });
     }
   } catch (error) {
     logger.error('[updateTrade]', error);

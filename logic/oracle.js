@@ -225,9 +225,11 @@ const updatePricesInNetwork = async (networkID, force = false) => {
     message += `<b>Gas used:</b> ${gasUsed.toFixed(4)} ${network.defaultToken.toUpperCase()} ($${(gasUsed * bnbPrice).toFixed(2)})\n`;
     message += `<b>Gas left:</b> ${gasLeft.toFixed(4)} ${network.defaultToken.toUpperCase()} ($${(gasLeft * bnbPrice).toFixed(2)})`;
     if (networkID === 'ETH') {
-      telegram.sendToAdmins(message, [
-        {title: 'Transaction', url: `${network.scan}/tx/${tx.transactionHash}`},
-      ]);
+      telegram.sendToAdmins(message, {
+        links: [
+          {title: 'Transaction', url: `${network.scan}/tx/${tx.transactionHash}`},
+        ]
+      });
     }
   } catch (error) {
     logger.error('[logic/oracle][updatePricesInNetwork]', networkID, error);

@@ -191,6 +191,7 @@ const getTrades = async ({
       query += 'WHERE ' + conditions.join(' AND ');
     }
     query += ';';
+    logger.debug('QUERY', query);
     const result = await db.query(query);
     
     return model.process(result);

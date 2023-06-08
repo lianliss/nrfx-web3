@@ -33,11 +33,11 @@ const getTrades = (req, res) => {
   (async () => {
     try {
       const networkID = _.get(req, 'query.networkID', 'BSCTest');
-      const trader = _.get(req, 'query.trader');
-      const client = _.get(req, 'query.client');
+      const trader = web3Service.web3.utils.toChecksumAddress(_.get(req, 'query.trader'));
+      const client = web3Service.web3.utils.toChecksumAddress(_.get(req, 'query.client'));
       const status = _.get(req, 'query.status');
-      const lawyer = _.get(req, 'query.lawyer');
-      const offer = _.get(req, 'query.offer');
+      const lawyer = web3Service.web3.utils.toChecksumAddress(_.get(req, 'query.lawyer'));
+      const offer = web3Service.web3.utils.toChecksumAddress(_.get(req, 'query.offer'));
       const side = _.get(req, 'query.side');
       res.status(200).json(await db.getTrades({
         trader, client, networkID, status, lawyer, side, offer,
@@ -56,7 +56,7 @@ const getOffer = (req, res) => {
   (async () => {
     try {
       const offerAddress = _.get(req, 'query.offerAddress');
-      res.status(200).json(await db.getOffer(offerAddress));
+      res.status(200).json(await db.getOffer(web3Service.web3.utils.toChecksumAddress(offerAddress)));
     } catch (error) {
       logger.error('[offersController][getOffers]', error);
       res.status(500).json({
@@ -107,7 +107,7 @@ const updateOffer = (req, res) => {
       const offerAddress = _.get(req, 'query.offerAddress', 0);
       const isBuy = !!_.get(req, 'query.isBuy', true);
       const networkID = _.get(req, 'query.networkID', 'BSC');
-      await p2pSubscription.updateOffer(networkID, offerAddress, isBuy);
+      await p2pSubscription.updateOffer(networkID, web3Service.web3.utils.toChecksumAddress(offerAddress), isBuy);
       res.status(200).json({status: 'updated'});
     } catch (error) {
       logger.error('[offersController][getBanks]', error);

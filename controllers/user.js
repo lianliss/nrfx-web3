@@ -129,10 +129,30 @@ const setP2pUserSettings = (req, res) => {
   })();
 };
 
+const getP2pUserTelegram = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const user = await db.getP2pUser(accountAddress);
+      
+      res.status(200).json({
+        telegram: _.get(user, 'telegram'),
+      });
+    } catch (error) {
+      logger.error('[userController][getP2pUserTelegram]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 module.exports = {
     getUserData,
     setReferPercent,
     setUserTelegramID,
     setP2pUserTelegram,
     setP2pUserSettings,
+    getP2pUserTelegram,
 };

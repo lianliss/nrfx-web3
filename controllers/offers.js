@@ -160,7 +160,7 @@ const setTradeIsPayed = (req, res) => {
         message += `\nBy client: <code>${trade.client}</code>`;
         telegram.sendToUser(trade.trader, message, {
           links: [
-            {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${trade.address}/${trade.client}`}
+            {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${trade.offer}/${trade.client}`}
           ]
         });
         if (accountAddress === trade.client) {

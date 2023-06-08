@@ -190,6 +190,9 @@ const getTrades = async ({
     if (conditions.length) {
       query += 'WHERE ' + conditions.join(' AND ');
     }
+    if (offer && client) {
+      query += ' ORDER BY id DESC LIMIT 1';
+    }
     query += ';';
     const result = await db.query(query);
     

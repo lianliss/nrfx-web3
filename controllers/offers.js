@@ -7,6 +7,7 @@ const {request} = require('../utils/request');
 const web3Service = require('../services/web3');
 const Web3 = require('web3');
 const p2pSubscription = require('../services/subscribtion');
+const telegram = require('../services/telegram');
 
 const getOffers = (req, res) => {
   (async () => {
@@ -171,6 +172,11 @@ const setTradeIsPayed = (req, res) => {
           });
         }
       }
+      let message = `<b>${trade.side.toUpperCase()} marked as payed</b>`;
+      message += `\nby client: <code>${trade.client}</code>`;
+      telegram.sendToUser(trade.trader, message, [
+          {title: 'See trade', url: `http://testnet.narfex.com/dapp/p2p/order/${trade.address}/${trade.client}`}
+        ]);
       
       res.status(200).json(trade);
     } catch (error) {

@@ -129,6 +129,24 @@ const setP2pUserSettings = (req, res) => {
   })();
 };
 
+const getP2pUserSettings = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      
+      const result = await db.getP2pUser(accountAddress);
+      
+      res.status(200).json(_.get(result, 'settings'));
+    } catch (error) {
+      logger.error('[userController][getP2pUserSettings]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 const getP2pUserTelegram = (req, res) => {
   (async () => {
     try {
@@ -155,4 +173,5 @@ module.exports = {
     setP2pUserTelegram,
     setP2pUserSettings,
     getP2pUserTelegram,
+    getP2pUserSettings,
 };

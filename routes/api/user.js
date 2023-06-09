@@ -11,5 +11,6 @@ router.get('/kycToken', authWallet, kycController.getAccessToken);
 router.get('/p2p/telegram', authWallet, userController.getP2pUserTelegram);
 router.post('/p2p/telegram', authWallet, userController.setP2pUserTelegram);
 router.post('/p2p/settings', authWallet, userController.setP2pUserSettings);
+router.get('/p2p/settings', authWallet, userController.getP2pUserSettings);
 
 module.exports = router;

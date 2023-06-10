@@ -219,7 +219,7 @@ const getValidatorOffers = async (ownerAddress) => {
 };
 
 const getOffers = async ({
-                           currency, bank, side, networkID = 'BSCTest', amount,
+                           currency, bank, side, networkID = 'BSCTest', amount, offerAddress,
                          }) => {
   try {
     let query = `
@@ -245,6 +245,9 @@ const getOffers = async ({
     const conditions = [];
     if (currency) {
       conditions.push(`currency='${currency}'`);
+    }
+    if (offerAddress) {
+      conditions.push(`address='${offerAddress}'`);
     }
     if (bank) {
       conditions.push(`settings LIKE '%"code": "${bank}"%'`);

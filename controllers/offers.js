@@ -120,6 +120,61 @@ const updateOffer = (req, res) => {
   })();
 };
 
+const getOfferBanks = (req, res) => {
+  (async () => {
+    try {
+      const offerAddress = _.get(req, 'query.offerAddress', 0);
+      let settings = await db.getOfferSettings(offerAddress);
+      try {
+        settings = JSON.parse(settings);
+      } catch (error) {
+      }
+      
+      res.status(200).json(settings.banks);
+    } catch (error) {
+      logger.error('[offersController][getOfferBanks]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
+const updateOfferBanks = (req, res) => {
+  (async () => {
+    try {
+      const {accountAddress} = res.locals;
+      const offerAddress = _.get(req, 'query.offerAddress', 0);
+      let banks = _.get(req, 'query.banks', {});
+      try {
+        banks = JSON.parse(banks);
+      } catch (error) {
+      
+      }
+      
+      const offer = await db.getOffer(offerAddress);
+      if (offer.owner !== accountAddress) throw new Error('Wrong offer owner');
+      let settings;
+      try {
+        settings = JSON.parse(offer.settings);
+      } catch (error) {
+        settings = offer.settings;
+      }
+      settings.banks = banks;
+      db.setOfferSettings(offerAddress, settings);
+      
+      res.status(200).json(settings);
+    } catch (error) {
+      logger.error('[offersController][updateOfferBanks]', error);
+      res.status(500).json({
+        name: error.name,
+        message: error.message,
+      });
+    }
+  })();
+};
+
 const updateOfferTerms = (req, res) => {
   (async () => {
     try {
@@ -196,6 +251,8 @@ module.exports = {
   getOffer,
   getValidatorOffers,
   getBanks,
+  getOfferBanks,
+  updateOfferBanks,
   updateOffer,
   updateOfferTerms,
   getTrades,

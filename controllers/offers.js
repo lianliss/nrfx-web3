@@ -146,7 +146,7 @@ const updateOfferBanks = (req, res) => {
     try {
       const {accountAddress} = res.locals;
       const offerAddress = _.get(req, 'query.offerAddress', 0);
-      let banks = _.get(req, 'query.banks', {});
+      let banks = _.get(req, 'query.banks', []);
       try {
         banks = JSON.parse(banks);
       } catch (error) {

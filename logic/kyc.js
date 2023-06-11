@@ -95,7 +95,7 @@ const saveKYC = async (data) => {
       );
       service.transaction(kycContract, 'verify', [
         accountAddress,
-        name,
+        name || accountAddress,
       ]);
     });
     

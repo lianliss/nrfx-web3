@@ -196,7 +196,7 @@ const processOfferLog = async (networkID, offerLogs) => {
     logsDecoder.addABI(buyFactoryABI);
     const logs = logsDecoder.decodeLogs([offerLogs]);
     const offerAddress = offerLogs.address;
-    const isBuy = db.getOfferIsBuy(offerAddress);
+    const isBuy = await db.getOfferIsBuy(offerAddress);
     logs.map(async log => {
       if (!log) {
         logger.debug('UNDEFINED LOGS', offerLogs, log);

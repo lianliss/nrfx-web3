@@ -253,6 +253,19 @@ const approveReservation = async (operationId) => {
   }
 };
 
+const cancelReservation = async (operationId) => {
+  try {
+    return await db.query(`
+            UPDATE bank_cards_operations
+            SET status = 'cancelled'
+            WHERE id = ${operationId};
+        `);
+  } catch (error) {
+    logger.error('[cancelReservation]', error);
+    return null;
+  }
+};
+
 const getReservationById = async (operationId) => {
   try {
     return await db.query(`
@@ -334,6 +347,7 @@ module.exports = {
   cancelBooking,
   sendToReview,
   approveReservation,
+  cancelReservation,
   getReservationById,
   getAvailableBanks,
   getCardData,

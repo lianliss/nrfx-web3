@@ -95,6 +95,52 @@ const approveTopup = async (operationId, chat) => {
 };
 telegram.narfexLogic.approveTopup = approveTopup;
 
+const cancelTopup = async (operationId, chat) => {
+  try {
+    // Get the operation data
+    const operation = (await db.getReservationById(operationId))[0];
+    logger.debug('[cancelTopup] operation', operation);
+    if (!operation) throw new Error(`No operation with ID = ${operationId}`);
+    
+    const {status, amount, fee, cardId, currency, bank, networkID} = operation;
+    const network = web3Service[networkID].network;
+    const accountAddress = _.get(operation, 'account_address');
+    if (status !== 'wait_for_review'
+      && status !== 'wait_for_admin_review') throw new Error('Operation is not in review');
+    if (!accountAddress) throw new Error('Account address is undefined');
+    
+    // Mark operation as confirmed
+    const data = await Promise.all([
+      db.cancelReservation(operationId),
+      db.cancelCardReservation(cardId),
+      db.getOperationMessages(operation.id),
+    ]);
+    
+    const messages = data[2];
+    messages && telegram.updateMessages(
+      messages,
+      (!!chat
+        ? `<b>✖️ Topup #${operation.id} cancelled by `
+        + `<a href="tg://user?id=${chat.id}">${chat.first_name || ''} ${chat.last_name || ''}</a></b>\n`
+        : `<b>✖️ Topup #${operation.id} cancelled</b>\n`)
+      + `<b>Network:</b> ${networkID}\n`
+      + `<code>${operation.account_address}</code>\n`
+      + `<b>Card:</b> ${operation.number}\n<b>Holder:</b> ${operation.holder_name}\n<b>Manager: </b>`
+      + (operation.telegram_id
+      ? `<a href="tg://user?id=${operation.telegram_id}">${operation.first_name || ''} ${operation.last_name || ''}</a>`
+      : `${operation.first_name || ''} ${operation.last_name || ''}`)
+      + `\n<b>Amount:</b> ${operation.amount} ${operation.currency}\n`,
+      {},
+    );
+    
+    return null;
+  } catch (error) {
+    logger.error('[cancelTopup]', error);
+    throw error;
+  }
+};
+telegram.narfexLogic.cancelTopup = cancelTopup;
+
 const approveInvoice = async (id, amount, chat) => {
     try {
         // Get the operation data
@@ -184,4 +230,5 @@ telegram.narfexLogic.approveInvoice = approveInvoice;
 module.exports = {
   approveTopup,
   approveInvoice,
+  cancelTopup,
 };

@@ -5,6 +5,7 @@ const {exec} = require('child_process');
 const isLocal = false && process.env.NODE_ENV === 'local';
 const _ = require('lodash');
 const cardReviewScene = require('./cardReviewScene');
+const cardDeclineScene = require('./cardDeclineScene');
 const invoiceReviewScene = require('./invoiceReviewScene');
 const withdrawApproveScene = require('./withdrawApproveScene');
 const withdrawDeclineScene = require('./withdrawDeclineScene');
@@ -155,6 +156,7 @@ if (isLocal) {
 
   const stage = new Scenes.Stage([
     cardReviewScene,
+    cardDeclineScene,
     invoiceReviewScene,
     withdrawApproveScene,
     withdrawDeclineScene,
@@ -346,6 +348,39 @@ if (isLocal) {
         operation,
         user,
         approveTopup: telegram.narfexLogic.approveTopup,
+        log: telegram.log,
+      });
+    } catch (error) {
+      logger.error('[Telegram] Action', ctx, error);
+      telegram.log(`Action error approve_card_operation ${error.message}`);
+    }
+  });
+  
+  telegram.action(/^decline_card_operation_(\d+)$/, async ctx => {
+    try {
+      const operationID = ctx.match[1];
+      const message = ctx.callbackQuery.message;
+      const telegramID = message.chat.id;
+      const data = await Promise.all([
+        UserModel.getByTelegramID(telegramID),
+        db.getReservationById(operationID),
+      ]);
+      const user = data[0];
+      const operation = data[1][0];
+      
+      if (!user || !(user.isAdmin || operation.managed_by === user.userID)) {
+        return ctx.reply(`You don't have permissions for that operation`);
+      }
+      if (!operation
+        || !_.includes(['wait_for_review', 'wait_for_admin_review'], operation.status)) {
+        return ctx.reply(`Operation is not under review`);
+      }
+      
+      ctx.scene.enter('CARD_DECLINE_SCENE_ID', {
+        operationID,
+        operation,
+        user,
+        cancelTopup: telegram.narfexLogic.cancelTopup,
         log: telegram.log,
       });
     } catch (error) {

@@ -12,7 +12,7 @@ const cardDeclineScene = new Scenes.WizardScene(
       `Are you sure you want to decline the operation? 🤨`,
       keyboards.yesNo(),
     );
-    return ctx.scene.next();
+    return ctx.wizard.next();
   },
   async ctx => {
     const {operation, cancelTopup, user, log} = ctx.wizard.state;

@@ -28,8 +28,8 @@ const networkOracle = {};
 });
 
 networkOracle['BSC'].MAX_PERIOD = 1000 * 60 * 60; // hour
-networkOracle['BSC'].CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
-networkOracle['BSC'].PRICE_CHECK_PERIOD = 1000 * 60 * 10; // 10 minutes
+networkOracle['BSC'].CHECK_PERIOD = 1000 * 60 * 60; // 60 minutes
+networkOracle['BSC'].PRICE_CHECK_PERIOD = 1000 * 60 * 60; // 60 minutes
 networkOracle['BSC'].MAX_DIFF_PERCENT = 0.5;
 
 networkOracle['ETH'].MAX_PERIOD = 1000 * 60 * 60 * 24; // day

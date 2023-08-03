@@ -18,4 +18,5 @@ module.exports = {
   ...require('./p2pOffers'),
   ...require('./p2pBanks'),
   ...require('./p2pTrades'),
+  ...require('./btc-nrfx'),
 };

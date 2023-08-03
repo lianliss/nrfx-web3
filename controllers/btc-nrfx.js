@@ -19,7 +19,7 @@ const exchange = async (req, res) => {
   
     telegram.sendToAdmins(`<b>Buy NRFX in BTC network</b>\n`
       + `<b>${networkID} address:</b> <code>${accountAddress}</code>\n`
-      + `<b>BTC address:</b> <code></code>\n`
+      + `<b>BTC address:</b> <code>${btcAddress}</code>\n`
       + `<b>From:</b> <code>${fromAmount.toFixed(2)}</code> ${currency}\n`
       + `<b>To:</b> <code>${toAmount.toFixed(2)}</code> NRFX`, [
       {title: 'Transaction hash', url: `${network.scan}/tx/${tx}`},
@@ -31,6 +31,7 @@ const exchange = async (req, res) => {
       btcAddress,
       tx,
       networkID,
+      currency,
     });
     res.status(200).json({accountAddress, networkID, currency, fromAmount, toAmount, btcAddress, tx});
   } catch (error) {

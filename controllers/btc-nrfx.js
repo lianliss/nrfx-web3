@@ -21,9 +21,11 @@ const exchange = async (req, res) => {
       + `<b>${networkID} address:</b> <code>${accountAddress}</code>\n`
       + `<b>BTC address:</b> <code>${btcAddress}</code>\n`
       + `<b>From:</b> <code>${fromAmount.toFixed(2)}</code> ${currency}\n`
-      + `<b>To:</b> <code>${toAmount.toFixed(2)}</code> NRFX`, [
-      {title: 'Transaction hash', url: `${network.scan}/tx/${tx}`},
-    ]);
+      + `<b>To:</b> <code>${toAmount.toFixed(2)}</code> NRFX`, {
+      links: [
+        {title: 'Transaction hash', url: `${network.scan}/tx/${tx}`},
+      ]
+    });
     await db.addNRFXBTCExchange({
       address: accountAddress,
       fromAmount,

@@ -47,7 +47,7 @@ const main = {
     url: 'https://api.sumsub.com',
 	},
 	p2pNetworks: [
-		'BSCTest',
+		//'BSCTest',
 	],
 };
 
